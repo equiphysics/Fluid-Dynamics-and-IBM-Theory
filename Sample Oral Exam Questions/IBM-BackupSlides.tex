@@ -1,18 +1,42 @@
-\documentclass{beamer}
+\documentclass[aspectratio=169,11pt]{beamer}
 
+\usetheme{Boadilla}
+\usecolortheme{seahorse}
+\useinnertheme{rectangles}
+\useoutertheme{infolines}
+\setbeamercolor{structure}{fg=blue!55!black}
+\setbeamercolor{title}{fg=white,bg=blue!55!black}
+\setbeamercolor{frametitle}{fg=blue!55!black}
+\setbeamercolor{block title}{bg=blue!12,fg=blue!55!black}
+\setbeamercolor{block body}{bg=blue!4}
+\setbeamertemplate{navigation symbols}{}
+\setbeamerfont{frametitle}{series=\bfseries,size=\large}
+\setbeamerfont{title}{series=\bfseries,size=\Large}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\DeclareFontShape{T1}{cmss}{b}{n}{<->ssub*cmss/bx/n}{}
 \usepackage{graphicx}
 \usepackage{amsmath}
 
-\title{Immersed Boundary Method Backup Slides for Exams and Talks}
+\title[IBM backup]{Immersed Boundary Method Backup Slides for Exams and Talks}
 \author{Laura Miller}
-\date{\today}
+\date{}
 \begin{document}
+
+% ------------------------------------------------------------
+\begin{frame}[plain]
+  \titlepage
+  \vfill
+  \centering{\tiny\color{black!55}AI tools were used to assist with formatting, organization, and clarification of the instructor's original notes.}
+\end{frame}
+
 % ============================================================
 % BACKUP SLIDES: Meaning of force spreading + discretization + NS LHS
 % ============================================================
 
 % ------------------------------------------------------------
-\begin{frame}{[Backup] Meaning of force spreading (what the equation enforces)}
+\begin{frame}{[Backup] Force spreading: pointwise meaning}
 \footnotesize
 
 \textbf{IB coupling definition (force spreading):}
@@ -29,20 +53,20 @@
 \medskip
 \textbf{Interpretation in words:}
 \begin{itemize}\itemsep3pt
-\item $\mathbf{F}(\mathbf{X},t)$ is a force density attached to material labels $\mathbf{X}\in\mathcal U$.
+\item $\mathcal U$ is the reference material domain, and $\mathbf{F}(\mathbf{X},t)$ is a force density with respect to its material measure $d\mathbf X$.
 \item $\delta(\mathbf{x}-\chi(\mathbf{X},t))$ deposits that force at the \emph{current physical location}
       $\mathbf{x}=\chi(\mathbf{X},t)$.
 \item $\mathbf{f}(\mathbf{x},t)$ is the corresponding \emph{Eulerian body-force density} used in Navier--Stokes.
 \end{itemize}
 
 \medskip
-\textbf{Key idea:} this is a compact way to express ``forces carried by the structure become forces applied to the fluid
+\textbf{Key idea:} this compactly expresses ``forces carried by the structure become forces applied to the fluid
 at the structure's current location.''
 
 \end{frame}
 
 % ------------------------------------------------------------
-\begin{frame}{[Backup] Meaning of force spreading (integrate over a region)}
+\begin{frame}{[Backup] Force spreading over a region}
 \footnotesize
 
 Let $\Gamma\subset\Omega$ be any Eulerian region.
@@ -87,7 +111,7 @@ Use the defining property of $\delta$:
 \end{frame}
 
 % ------------------------------------------------------------
-\begin{frame}{[Backup] Swapping the order of integration: what is actually justified?}
+\begin{frame}{[Backup] Distributional meaning and Fubini}
 \footnotesize
 
 \textbf{Subtlety:} $\delta$ is a \emph{distribution}, not an $L^1$ function, so classical Fubini/Tonelli
@@ -111,16 +135,16 @@ No ``swap'' is needed; the delta notation is shorthand for this identity.
 
 \medskip
 \textbf{(B) Regularized delta (what we compute):}
-replace $\delta$ by $\delta_h$ (smooth, bounded, compact support). Then the double integral is absolutely integrable,
+replace $\delta$ by $\delta_h$ (bounded, integrable, compactly supported). Then the double integral is absolutely integrable,
 and Fubini is valid.
 
 \end{frame}
 
 % ------------------------------------------------------------
-\begin{frame}{[Backup] Regularized delta $\delta_h$: why it makes life easy}
+\begin{frame}{[Backup] Regularized delta kernel $\delta_h$}
 \footnotesize
 
-In practice we use a regularized kernel $\delta_h$ supported on a few grid cells:
+In computation we use a regularized kernel $\delta_h$ supported on a few grid cells:
 \[
 \mathbf{f}_h(\mathbf{x},t)=\int_{\mathcal U}\mathbf{F}(\mathbf{X},t)\,
 \delta_h(\mathbf{x}-\chi(\mathbf{X},t))\,d\mathbf{X}.
@@ -129,9 +153,9 @@ In practice we use a regularized kernel $\delta_h$ supported on a few grid cells
 \medskip
 \textbf{Why this helps:}
 \begin{itemize}\itemsep3pt
-\item $\delta_h$ is an \emph{ordinary function} (bounded + smooth), so $\mathbf{f}_h$ is an ordinary function.
+\item $\delta_h$ is a bounded, integrable function rather than a distribution, so $\mathbf{f}_h$ is an ordinary function.
 \item The coupling becomes weighted sums over nearby grid points / Lagrangian points.
-\item Standard properties (partition of unity, moment conditions) give good force/torque transfer and avoid spurious drift.
+\item Partition of unity and first-moment conditions support exact transfer of net force and torque when the discrete weights are compatible; other kernel conditions reduce sensitivity to grid position.
 \end{itemize}
 
 \medskip
@@ -141,7 +165,7 @@ it spreads (or interpolates) between the Lagrangian mesh and Eulerian grid over 
 \end{frame}
 
 % ------------------------------------------------------------
-\begin{frame}{[Backup] IBM discretization at a high level (algorithm)}
+\begin{frame}{[Backup] One explicit IB time step}
 \footnotesize
 
 \textbf{Grids:}
@@ -149,31 +173,32 @@ Eulerian grid points $\mathbf{x}_{i}$ (Cartesian mesh spacing $h$), and Lagrangi
 (or FE quadrature points), with positions $\chi_k^n\approx \chi(\mathbf{X}_k,t^n)$.
 
 \medskip
-\textbf{One time step (high-level):}
+\textbf{One illustrative explicit-coupling time step:}
 \begin{enumerate}\itemsep3pt
 \item \textbf{Structure forces:} compute $\mathbf{F}_k^n$ from the structure model (springs/beam/FE stresses, etc.).
 \item \textbf{Spread to fluid:} for each Eulerian grid point $\mathbf{x}_i$,
 \[
-\mathbf{f}_i^n \approx \sum_k \mathbf{F}_k^n\,\delta_h(\mathbf{x}_i-\chi_k^n)\,\Delta \mathbf{X}_k.
+\mathbf{f}_i^n \approx \sum_k \mathbf{F}_k^n\,\delta_h(\mathbf{x}_i-\chi_k^n)\,w_k,
 \]
+where $w_k$ is the Lagrangian quadrature weight.
 \item \textbf{Fluid solve:} advance Navier--Stokes using $\mathbf{f}^n$ as a body force to get $\mathbf{u}^{n+1},p^{n+1}$.
 \item \textbf{Interpolate to structure:} for each Lagrangian point,
 \[
-\dot{\chi}_k^{n} \approx \sum_i \mathbf{u}_i^{n+1}\,\delta_h(\mathbf{x}_i-\chi_k^{n})\,h^d.
+\mathbf U_k^{n+1} \approx \sum_i \mathbf{u}_i^{n+1}\,\delta_h(\mathbf{x}_i-\chi_k^{n})\,v_i,
 \]
-\item \textbf{Update structure:} $\chi_k^{n+1}=\chi_k^{n}+\Delta t\,\dot{\chi}_k^{n}$ (or implicit/semi-implicit variant).
+where $v_i=h^d$ on a uniform grid.
+\item \textbf{Update structure:} $\chi_k^{n+1}=\chi_k^{n}+\Delta t\,\mathbf U_k^{n+1}$ (or implicit/semi-implicit variant).
 \end{enumerate}
+
+With compatible weights, interpolation is chosen as the discrete adjoint of spreading so the two grids exchange equal power.
 
 \end{frame}
 
 % ------------------------------------------------------------
-
-
-% ------------------------------------------------------------
-\begin{frame}{[Backup] Navier--Stokes LHS = material acceleration}
+\begin{frame}{[Backup] Density times material acceleration}
 \footnotesize
 
-For an incompressible Newtonian fluid with body force $\mathbf{f}$:
+For an incompressible Newtonian fluid with constant $\rho$, constant $\mu$, and body force $\mathbf{f}$:
 \[
 \rho\left(\frac{\partial \mathbf{u}}{\partial t} + (\mathbf{u}\cdot\nabla)\mathbf{u}\right)
 =
@@ -190,7 +215,7 @@ For an incompressible Newtonian fluid with body force $\mathbf{f}$:
 \rho\,\frac{D\mathbf{u}}{Dt}
 }
 \]
-is the \textbf{material (total) acceleration} of a fluid parcel.
+is density times the \textbf{material (total) acceleration} of a fluid parcel.
 
 \medskip
 \textbf{Two pieces:}
@@ -204,7 +229,7 @@ change in velocity because the parcel moves through spatial velocity gradients.
 \end{frame}
 
 % ------------------------------------------------------------
-\begin{frame}{[Backup] LHS in components (what $(\mathbf{u}\cdot\nabla)\mathbf{u}$ means)}
+\begin{frame}{[Backup] Advective acceleration in components}
 \footnotesize
 
 Let $\mathbf{u}=(u,v,w)$ in 3D (or omit $w$ in 2D). Then
@@ -232,6 +257,9 @@ So each component has the form:
 \textbf{Quick oral-exam style interpretation:}
 ``the parcel accelerates either because time changes at a point (local) or because it advects into a region
 with different velocity (advective).''
+
+\vfill
+{\tiny\color{black!55}AI tools were used to assist with formatting, organization, and clarification of the instructor's original notes.}
 
 \end{frame}
 \end{document}

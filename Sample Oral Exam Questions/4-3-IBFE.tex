@@ -34,10 +34,13 @@
 $x=\chi(X,t)$. The deformation gradient is $F_\chi(X,t)=\nabla_X \chi(X,t)$, which maps reference line elements via
 $d x = F_\chi\, dX$. The Jacobian $J(X,t)=\det(F_\chi)$ maps volumes: $dv = J\, dV$.
 
-\item \textbf{Stress: What is the first Piola--Kirchhoff stress, and how is it defined from hyperelasticity?}\\
+\item \textbf{Stress: Define the first Piola--Kirchhoff stress from hyperelasticity.}\\
 \textbf{Sample answer:} For a hyperelastic material we choose a strain energy density $W(F_\chi)$ per reference volume.
-The first Piola--Kirchhoff stress is $P(X,t) = \dfrac{\partial W}{\partial F_\chi}(F_\chi(X,t))$. It is the stress measure
-that is naturally work-conjugate to $F_\chi$ in a reference description.
+The first Piola--Kirchhoff stress is
+\[
+P(X,t) = \frac{\partial W}{\partial F_\chi}\bigl(F_\chi(X,t)\bigr).
+\]
+It is the stress measure naturally work-conjugate to $F_\chi$ in a reference description.
 
 \item \textbf{Traction: What does $P$ \emph{mean} physically?}\\
 \textbf{Sample answer:} The most direct physical meaning is traction on a \emph{reference} surface patch:
@@ -49,11 +52,16 @@ $t_0(X,t)=P(X,t)\,N(X)$. It is force per reference area, with direction in spati
 information. In components, $(t_0)_i = P_{iI}\,N_I$, where $i$ is a spatial index and $I$ is a material index. So $P$ is
 a mixed (spatial $\times$ material) tensor.
 
-\item \textbf{Reference momentum balance: State the strong form on $B_0$ and interpret each term.}\\
-\textbf{Sample answer:} The reference strong form is
-$\rho_0(X)\,\ddot{\chi}(X,t)=\nabla_X\cdot P(X,t) + B(X,t)$ in $B_0$.
-Here $\rho_0$ is reference density, $\nabla_X\cdot P$ is internal force per reference volume, and $B$ is a body force per
-reference volume (e.g.\ gravity or other prescribed forcing).
+\item \textbf{Reference momentum balance: State and interpret the strong form on $B_0$.}\\
+\textbf{Sample answer:} For a stand-alone solid, the reference strong form is
+\[
+\rho_0(X)\,\ddot{\chi}(X,t)=\operatorname{Div}_X P(X,t) + B(X,t)
+\qquad\text{in }B_0.
+\]
+Here $\rho_0$ is reference density, $\operatorname{Div}_X P$ is internal force per reference volume, and $B$ is a body force per
+reference volume (e.g.\ gravity or other prescribed forcing). In the common neutrally buoyant IBFE formulation,
+the Eulerian momentum equation carries the inertia, so this separate solid-inertia equation is a useful balance-law bridge,
+not an additional equation solved for the same material.
 
 \item \textbf{Divergence theorem step: How do you get from boundary traction to $\nabla_X\cdot P$?}\\
 \textbf{Sample answer:} For any material subregion $V_0\subset B_0$,
@@ -71,24 +79,29 @@ Then use the identity $\nabla_X\cdot(P^T\psi)=(\nabla_X\cdot P)\cdot\psi + P:\na
 Substitute back to get the weak form, including any boundary traction term.
 
 \item \textbf{Boundary term: When does the boundary traction term vanish, and what does that assumption mean physically?}\\
-\textbf{Sample answer:} It vanishes if the boundary is traction-free ($PN=0$ on $\partial B_0$) or if the material has no
-boundary (closed manifold, so $\partial B_0=\emptyset$). Physically, that means no external contact traction is applied on the
-solid boundary in the reference description (or there is no boundary).
+\textbf{Sample answer:} In a stand-alone solid problem it vanishes if the natural boundary condition is traction-free
+($PN=0$ on $\partial B_0$), or if the material domain has no boundary. For an immersed volumetric solid, however,
+$PN$ generally represents elastic transmission to the surrounding fluid and should not simply be discarded.
+The unified IBFE weak force packages the associated surface force $-PN$ together with the interior force.
 
 \item \textbf{Defining the Lagrangian force density $F$: What does ``define by duality'' mean here?}\\
-\textbf{Sample answer:} Instead of computing $\nabla_X\cdot P$ pointwise, we define a force density $F(X,t)$ so that for all
+\textbf{Sample answer:} Instead of computing $\operatorname{Div}_X P$ pointwise, define a force density $\mathcal F(X,t)$ so that for all
 test functions $\psi$,
 \[
-\int_{B_0} F\cdot \psi\, dV
+\int_{B_0} \mathcal F\cdot \psi\, dV
 = -\int_{B_0} P:\nabla_X\psi\, dV + \int_{B_0} B\cdot \psi\, dV
-\quad (+\text{boundary work if present}).
 \]
-This is exactly the virtual-work statement: $F$ is the force density whose action on $\psi$ equals the internal virtual work.
+This unified identity is equivalent, in the distributional sense, to combining the interior density
+$\operatorname{Div}_X P+B$ with the boundary transmission force $-PN$; no extra $PN$ term is added to this
+particular definition. Independently prescribed external tractions would add their own boundary work.
+The symbol $\mathcal F$ distinguishes this force density from the deformation gradient $F_\chi$.
 
 \item \textbf{Coupling: Write the two IB coupling equations (spreading and velocity interpolation) and interpret them.}\\
-\textbf{Sample answer:} Spreading: $f(x,t)=\int_{B_0} F(X,t)\,\delta_h(x-\chi(X,t))\, dV$ gives the Eulerian force density
-in Navier--Stokes. Interpolation: $\partial_t \chi(X,t)=\int_\Omega u(x,t)\,\delta_h(x-\chi(X,t))\, dx$ moves the structure
-with a smoothed no-slip/no-penetration condition. $\delta_h$ is a regularized delta kernel tied to grid spacing.
+\textbf{Sample answer:} Spreading: $f(x,t)=\int_{B_0} \mathcal F(X,t)\,\delta(x-\chi(X,t))\, dV$ gives the Eulerian force density
+in Navier--Stokes. Interpolation: $\partial_t \chi(X,t)=\int_\Omega u(x,t)\,\delta(x-\chi(X,t))\, dx$ moves the structure
+with a no-slip/no-penetration condition. In the discretization the Dirac $\delta$ is replaced by a regularized kernel
+$\delta_h$, which is tied to grid spacing; the discrete formulas must also
+include the appropriate Eulerian and Lagrangian quadrature weights.
 
 \item \textbf{Active stress: How do you add active tension in IBFE?}\\
 \textbf{Sample answer:} Use an additive split $P=P_p+P_a$. $P_p$ comes from $W(F_\chi)$ and $P_a$ is prescribed by an
@@ -96,23 +109,28 @@ active model. Both enter identically in the weak form through $-\int P:\nabla_X\
 $P_p$ and $P_a$ at quadrature points, add them, and assemble forces as usual.
 
 \item \textbf{Fiber active model: Explain the form $P_a = J\,T\,a\otimes f_0$ and define all symbols.}\\
-\textbf{Sample answer:} Choose a unit reference fiber direction field $f_0(X)$ and a scalar tension $T(X,t)\ge 0$.
+\textbf{Sample answer:} One mapped-fiber convention begins with a unit reference direction $f_0(X)$ and a scalar
+stress coefficient $T(X,t)\ge 0$.
 Let $F_\chi=\nabla_X\chi$, $J=\det(F_\chi)$, and define the deformed fiber direction (not normalized) $a(X,t)=F_\chi f_0$.
-Then a simple PK1 active stress is $P_a = J\,T\,a\otimes f_0$. This represents tension generated along fibers and is written
-in reference variables, so it drops directly into the weak form.
+If the active Cauchy stress is $\sigma_a=T\,a\otimes a$, the Piola transform gives
+$P_a=J\sigma_aF_\chi^{-T}=J\,T\,a\otimes f_0$. This represents tension along the mapped fibers and drops directly
+into the weak form. A model using the unit current direction $a/\lVert a\rVert$ has different stretch factors, so the
+meaning and calibration of $T$ must be stated with the chosen convention.
 
-\item \textbf{Worked example: Uniaxial stretch. Given $\chi(X)=(\lambda X_1, X_2, X_3)$, compute $F_\chi$, $J$, $C$, $E$.}\\
+\item \textbf{Worked example: uniaxial stretch (prescribed axial deformation). Given $\chi(X)=(\lambda X_1, X_2, X_3)$, compute $F_\chi$, $J$, $C$, $E$.}\\
 \textbf{Sample answer:} $F_\chi=\mathrm{diag}(\lambda,1,1)$, $J=\lambda$.
 $C=F_\chi^T F_\chi=\mathrm{diag}(\lambda^2,1,1)$.
 $E=\tfrac12(C-I)=\tfrac12\,\mathrm{diag}(\lambda^2-1,0,0)$.
 
-\item \textbf{Constitutive example: For compressible neo-Hookean $W=\frac{\mu}{2}(I_1-3)-\mu\ln J +\frac{\kappa}{2}(\ln J)^2$,
+\item \textbf{Constitutive example: For compressible neo-Hookean $W=\frac{\mu}{2}(I_1-3)-\mu\ln J +\frac{\lambda_{\mathrm L}}{2}(\ln J)^2$,
 what is a standard closed form for $P$?}\\
 \textbf{Sample answer:} A common formula is
-$P=\mu\left(F_\chi - F_\chi^{-T}\right) + \kappa(\ln J)\,F_\chi^{-T}$.
+$P=\mu\left(F_\chi - F_\chi^{-T}\right) + \lambda_{\mathrm L}(\ln J)\,F_\chi^{-T}$,
+where $\lambda_{\mathrm L}$ is the first Lam\'e parameter (not the volumetric stabilization coefficient $\kappa_{\mathrm{stab}}$).
 For $F_\chi=\mathrm{diag}(\lambda,1,1)$, $F_\chi^{-T}=\mathrm{diag}(1/\lambda,1,1)$ and $\ln J=\ln\lambda$, so you can write
 $P$ componentwise and see that lateral components generally are nonzero under a prescribed kinematic stretch.
 
+\enlargethispage{2\baselineskip}
 \item \textbf{Concept check: Why does a prescribed uniaxial \emph{stretch} generally produce nonzero lateral stresses?}\\
 \textbf{Sample answer:} Because holding $\chi_2=X_2$ and $\chi_3=X_3$ constrains lateral deformation to be zero, which is
 not the same as a uniaxial-stress test. A true uniaxial-stress test would enforce $\sigma_{22}=\sigma_{33}=0$ and solve for

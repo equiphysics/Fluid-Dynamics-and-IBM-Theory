@@ -11,6 +11,7 @@
 
 % === Formatting tweaks ===
 \setstretch{1.15}
+\setlength{\emergencystretch}{3em}
 \setlist[enumerate]{itemsep=0.4em, topsep=0.2em}
 \titleformat{\section}{\Large\bfseries\sffamily}{\thesection.}{1em}{}
 \titleformat{\subsection}{\large\bfseries\sffamily}{\thesubsection}{1em}{}
@@ -31,111 +32,115 @@ These questions are designed for an applied mathematics oral examination followi
 They emphasize conceptual understanding of the material derivative, incompressibility, the stress tensor, and the derivation and interpretation of the Navier--Stokes equations.  
 Students are typically expected to demonstrate fluency in physical interpretation, modeling assumptions, and connections to research contexts rather than detailed on-board derivations.
 
+Unless stated otherwise, bold symbols denote vectors or tensors, $\boldsymbol{\sigma}$ is the Cauchy stress, $\mathbf{b}$ is body force per unit mass, and the fluid is a classical single-constituent continuum with no couple stresses.
+
 \section*{Applied Mathematics Oral Exam Questions and Model Answers:\\
 From Euler to Navier--Stokes}
 
 \subsection*{1. Kinematics and Material Derivative}
 \begin{enumerate}
 \item \textbf{Question:} Explain the difference between the local and convective components of the material derivative.\\
-\textbf{Answer:} The local term $\partial \phi/\partial t$ measures how a quantity changes at a fixed point in space. The convective term $(u \cdot \nabla)\phi$ accounts for the change experienced by a fluid parcel as it moves through spatial gradients in the field. Together they represent the total derivative following the flow.
+\textbf{Answer:} The local term $\partial \phi/\partial t$ measures change at a fixed spatial point. The convective term $(\mathbf{u}\cdot\nabla)\phi$ accounts for change caused by a parcel moving through spatial gradients. Together,
+$D\phi/Dt=\partial_t\phi+\mathbf{u}\cdot\nabla\phi$ is the derivative following the motion. For a vector or tensor field, apply this operation componentwise.
 
 \item \textbf{Question:} How does the material derivative help us interpret acceleration in a flow field?\\
-\textbf{Answer:} The acceleration of a fluid particle is given by $D u/Dt = \partial u/\partial t + (u \cdot \nabla)u$. It shows that acceleration depends both on local unsteadiness and spatial changes experienced as the parcel moves.
+\textbf{Answer:} The acceleration of a fluid particle is $D\mathbf{u}/Dt=\partial_t\mathbf{u}+(\mathbf{u}\cdot\nabla)\mathbf{u}$. Thus a steady Eulerian velocity field can still accelerate particles through spatial variation; ``steady'' does not mean zero particle acceleration.
 
 \item \textbf{Question:} Give a physical example where the convective term dominates the local term.\\
-\textbf{Answer:} In steady but spatially varying flow around an airfoil, $\partial u/\partial t = 0$ but $(u \cdot \nabla)u$ is large, so acceleration arises purely from convection.
+\textbf{Answer:} In steady, spatially varying flow around an airfoil or through a nozzle, $\partial_t\mathbf{u}=\mathbf{0}$ while $(\mathbf{u}\cdot\nabla)\mathbf{u}$ can be large, so the acceleration is entirely convective.
 \end{enumerate}
 
 \subsection*{2. Incompressibility and Mass Conservation}
 \begin{enumerate}
-\item \textbf{Question:} What does $\nabla \cdot u = 0$ mean physically?\\
-\textbf{Answer:} The divergence-free condition means fluid elements neither expand nor contract; the volume of any small parcel is conserved in time.
+\item \textbf{Question:} What does $\nabla \cdot \mathbf{u} = 0$ mean physically?\\
+\textbf{Answer:} It is the local condition for a volume-preserving velocity field: an infinitesimal material volume has zero instantaneous dilatation. It does not, by itself, say that the velocity is spatially uniform. Mass conservation is
+$D\rho/Dt+\rho\nabla\cdot\mathbf{u}=0$; hence a positive-density material with $D\rho/Dt=0$ is divergence-free.
 
 \item \textbf{Question:} How would you detect deviations from incompressibility?\\
-\textbf{Answer:} By measuring density changes or divergence of the velocity field from data. In simulations, monitoring $\nabla \cdot u$ provides a diagnostic.
+\textbf{Answer:} Measure or compute both density variation and velocity divergence. In an incompressible numerical formulation, norms of $\nabla\cdot\mathbf{u}$ diagnose constraint error; in a compressible formulation, the continuity residual and $D\rho/Dt$ are also relevant. Measurement and differentiation errors must be distinguished from physical compressibility.
 
 \item \textbf{Question:} Why is constant density often assumed even for slightly compressible fluids?\\
-\textbf{Answer:} When flow speeds are much smaller than the speed of sound (low Mach number), density variations are negligible and the incompressible approximation is accurate.
+\textbf{Answer:} For many liquid flows and low-Mach gas flows with modest temperature and composition changes, relative density variations are small, so a constant-density model is accurate. Low Mach number alone is not sufficient in strongly heated, reacting, stratified, or variable-composition flows; an incompressible or low-Mach model must be justified by the density scales and physics.
 \end{enumerate}
 
 \subsection*{3. Pressure and Euler’s Equations}
 \begin{enumerate}
 \item \textbf{Question:} How does pressure arise as a surface traction?\\
-\textbf{Answer:} Pressure represents an isotropic normal stress acting on any surface element. The net pressure force on a small control volume is $-\!\int_S p n\,dS$, which becomes $-\nabla p$ per unit volume.
+\textbf{Answer:} With outward unit normal $\mathbf{n}$ and the convention $\boldsymbol{\sigma}=-p\mathbf{I}+\boldsymbol{\tau}$, the traction is $\mathbf{t}=\boldsymbol{\sigma}\mathbf{n}$ and its pressure part is $-p\mathbf{n}$. Thus $\int_{\partial V}(-p\mathbf{n})\,dS=-\int_V\nabla p\,dV$. The sign follows from the chosen stress convention.
 
 \item \textbf{Question:} What assumptions distinguish Euler’s equations from Navier--Stokes?\\
-\textbf{Answer:} Euler’s equations neglect viscosity, assuming the stress tensor is purely isotropic ($T = -pI$). Navier--Stokes includes viscous stresses through the term $\mu \nabla^2 u$.
+\textbf{Answer:} Euler's equations assume an inviscid continuum with $\boldsymbol{\sigma}=-p\mathbf{I}$, whereas Navier--Stokes closes the stress with a viscous constitutive law. The familiar term $\mu\nabla^2\mathbf{u}$ follows only for a Newtonian fluid with constant viscosity and $\nabla\cdot\mathbf{u}=0$; more generally the viscous term is $\nabla\cdot\boldsymbol{\tau}$.
 
 \item \textbf{Question:} Give a physical example where Euler’s equations are adequate and one where they fail.\\
-\textbf{Answer:} Euler’s equations are suitable for high-Reynolds-number, inviscid flows such as external aerodynamics far from boundaries. They fail near solid surfaces or in low-Reynolds-number flows where viscous effects dominate.
+\textbf{Answer:} Euler's equations can approximate the outer region of a high-Reynolds-number external flow away from viscous layers. They fail wherever viscous stress is leading order---for example, near a no-slip wall, in lubrication or creeping flow, and within dissipative shear layers. Even a thin viscous layer can determine global drag or separation, so ``high Reynolds number'' does not justify Euler everywhere.
 \end{enumerate}
 
 \subsection*{4. Cauchy Stress Tensor and Momentum Balance}
 \begin{enumerate}
 \item \textbf{Question:} What additional information does the Cauchy stress tensor contain compared to pressure?\\
-\textbf{Answer:} The tensor includes both normal and shear components of stress, describing how momentum is transferred in all directions, not just isotropically.
+\textbf{Answer:} The Cauchy stress maps a surface normal to traction, $\mathbf{t}(\mathbf{n})=\boldsymbol{\sigma}\mathbf{n}$. It contains direction-dependent normal and shear stresses; pressure is only its isotropic compressive part under the convention $\boldsymbol{\sigma}=-p\mathbf{I}+\boldsymbol{\tau}$.
 
 \item \textbf{Question:} Why must the stress tensor be symmetric?\\
-\textbf{Answer:} Conservation of angular momentum for infinitesimal elements requires zero net torque, implying $T_{ij} = T_{ji}$ in the absence of body couples.
+\textbf{Answer:} Local angular-momentum balance implies $\boldsymbol{\sigma}=\boldsymbol{\sigma}^{T}$ for a classical Cauchy continuum when there are no couple stresses or distributed body couples. Micropolar and other generalized continua need not have a symmetric Cauchy stress.
 
-\item \textbf{Question:} Interpret each term in $\rho \frac{D u}{D t} = \nabla \cdot T + \rho g$.\\
-\textbf{Answer:} The left-hand side is the material acceleration (rate of momentum change). $\nabla \cdot T$ represents internal stresses acting through adjacent fluid, and $\rho g$ is the external body force such as gravity.
+\item \textbf{Question:} Interpret each term in $\rho D\mathbf{u}/Dt = \nabla \cdot \boldsymbol{\sigma} + \rho \mathbf{b}$.\\
+\textbf{Answer:} The left side is mass density times material acceleration, hence force per unit volume. The divergence $\nabla\cdot\boldsymbol{\sigma}$ is the net contact force per unit volume arising from tractions on an infinitesimal element, and $\rho\mathbf{b}$ is body force per unit volume, such as gravity when $\mathbf{b}=\mathbf{g}$.
 \end{enumerate}
 
 \subsection*{5. Viscous Stress and Newtonian Fluids}
 \begin{enumerate}
-\item \textbf{Question:} What is the physical meaning of the rate-of-strain tensor $D$?\\
-\textbf{Answer:} $D$ quantifies the local rate at which fluid elements deform (stretch and shear) without rotation. It captures how velocity differences generate internal friction.
+\item \textbf{Question:} What is the physical meaning of the rate-of-strain tensor $\mathbf{D}$?\\
+\textbf{Answer:} $\mathbf{D}=\tfrac12(\nabla\mathbf{u}+\nabla\mathbf{u}^{T})$ is the symmetric part of the velocity gradient. It measures instantaneous stretching and shear of material line elements; rigid-body rotation lies in the antisymmetric part and does not contribute to $\mathbf{D}$.
 
-\item \textbf{Question:} What are the key assumptions behind $\tau = 2\mu D + \lambda (\nabla \cdot u)I$?\\
-\textbf{Answer:} The relation assumes the fluid is isotropic, Newtonian (stress proportional to rate of strain), and that viscous effects depend only on instantaneous deformation rate, not history.
+\item \textbf{Question:} What are the key assumptions behind $\boldsymbol{\tau} = 2\mu \mathbf{D} + \lambda (\nabla \cdot \mathbf{u})\mathbf{I}$?\\
+\textbf{Answer:} This is the most general linear, isotropic, frame-indifferent viscous response of a simple Newtonian fluid, with instantaneous dependence on the local rate of deformation. The coefficients may depend on thermodynamic state but not on the deformation history. For incompressible flow the $\lambda$ term vanishes; for compressible flow thermodynamic admissibility constrains the shear and bulk viscosities.
 
 \item \textbf{Question:} How does viscosity act as momentum diffusion?\\
-\textbf{Answer:} Molecular interactions transfer momentum between adjacent layers of fluid, smoothing velocity gradients analogous to diffusion of heat.
+\textbf{Answer:} Viscous stress transfers momentum across neighboring material layers. For constant $\mu$ in an incompressible Newtonian fluid, its divergence is $\mu\nabla^2\mathbf{u}$, a diffusion operator that damps velocity gradients and dissipates kinetic energy into internal energy.
 
 \item \textbf{Question:} When does the Newtonian assumption break down?\\
-\textbf{Answer:} In non-Newtonian fluids such as polymers, suspensions, blood, or mucus, where stress depends nonlinearly or history-dependently on strain rate.
+\textbf{Answer:} It can break down in polymer solutions, concentrated suspensions, mucus, and blood at low shear rates, where stress may depend nonlinearly on shear rate, on deformation history, or on evolving microstructure. Whether a Newtonian approximation is acceptable depends on the material, time scale, and shear-rate range.
 \end{enumerate}
 
 \subsection*{6. Navier--Stokes Equations}
 \begin{enumerate}
 \item \textbf{Question:} Explain the physical meaning of each term in the incompressible Navier--Stokes equations.\\
-\textbf{Answer:} $\rho(\partial u/\partial t)$ represents local acceleration, $\rho(u \cdot \nabla)u$ convective acceleration, $-\nabla p$ pressure forces, $\mu \nabla^2 u$ viscous diffusion, and $\rho g$ body forces.
+\textbf{Answer:} In $\rho[\partial_t\mathbf{u}+(\mathbf{u}\cdot\nabla)\mathbf{u}]=-\nabla p+\mu\nabla^2\mathbf{u}+\rho\mathbf{b}$, the two left-hand terms are local and convective momentum change per unit volume. The right-hand terms are the pressure-gradient force, viscous momentum diffusion (under constant-$\mu$, incompressible assumptions), and body force. The companion constraint is $\nabla\cdot\mathbf{u}=0$.
 
 \item \textbf{Question:} How does adding viscosity change the qualitative flow behavior?\\
-\textbf{Answer:} Viscosity introduces energy dissipation, enforces the no-slip condition, and smooths small-scale features. It prevents discontinuities and allows the existence of boundary layers.
+\textbf{Answer:} Viscosity dissipates kinetic energy and diffuses momentum, regularizing velocity gradients over finite scales. Together with a separately specified wall condition, it produces viscous boundary layers. Viscosity does not itself ``enforce'' no-slip, and discontinuities in pressure or stress can still occur across interfaces carrying singular forces.
 
 \item \textbf{Question:} In which regimes does the Reynolds number play a dominant role?\\
-\textbf{Answer:} At high Reynolds numbers inertial forces dominate, often leading to turbulence. At low Reynolds numbers viscous forces dominate, producing smooth, reversible, laminar flows.
+\textbf{Answer:} Reynolds number compares inertial and viscous scales for a stated choice of $U$ and $L$. Small $Re$ often supports a creeping-flow approximation; when all inertial terms are negligible, the steady Stokes equations are kinematically reversible. Large $Re$ permits strong scale separation and transition, but neither laminar/turbulent behavior nor steadiness is determined by $Re$ alone: geometry, forcing, stability, and disturbances matter.
 
-\item \textbf{Question:} What does the term $\mu \nabla^2 u$ represent physically?\\
-\textbf{Answer:} It describes the diffusion of momentum in space, tending to equalize velocity gradients much like diffusion equalizes temperature gradients.
+\item \textbf{Question:} What does the term $\mu \nabla^2 \mathbf{u}$ represent physically?\\
+\textbf{Answer:} It is the divergence of Newtonian viscous stress for constant $\mu$ and a divergence-free velocity. It diffuses each velocity component and dissipates kinetic energy. If viscosity varies or the flow is compressible, one must retain the more general expression $\nabla\cdot\boldsymbol{\tau}$.
 \end{enumerate}
 
 \subsection*{7. Boundary Conditions and Non-Dimensionalization}
 \begin{enumerate}
 \item \textbf{Question:} Explain the physical reasoning behind the no-slip and no-penetration conditions.\\
-\textbf{Answer:} No-penetration ($u \cdot n=0$) ensures impermeable walls, while no-slip ($u=0$) arises from molecular adhesion between fluid and solid surfaces, matching their velocities.
+\textbf{Answer:} At an impermeable wall moving with velocity $\mathbf{u}_w$, no penetration is $(\mathbf{u}-\mathbf{u}_w)\cdot\mathbf{n}=0$. No slip additionally sets the tangential relative velocity to zero, so $\mathbf{u}=\mathbf{u}_w$. It is an effective interfacial model supported for many continuum liquid flows, not a consequence of incompressibility; slip laws may be appropriate at rarefied, microstructured, or specially treated interfaces.
 
 \item \textbf{Question:} Why do we nondimensionalize the Navier--Stokes equations?\\
-\textbf{Answer:} It identifies key dimensionless parameters such as the Reynolds number, facilitates comparison between systems of different scales, and simplifies numerical and theoretical analysis.
+\textbf{Answer:} Nondimensionalization exposes competing balances, identifies independent dimensionless groups, permits similarity comparisons, and gives variables of order one for analysis and computation. It does not by itself guarantee numerical stability; the discretization and time integrator still determine stability.
 
 \item \textbf{Question:} What insight does the Reynolds number provide?\\
-\textbf{Answer:} It measures the ratio of inertial to viscous forces and predicts flow regime transitions—low $Re$ means laminar and steady, high $Re$ means turbulent and unsteady behavior.
+\textbf{Answer:} With specified characteristic scales, $Re=UL/\nu$ measures the inertial-to-viscous scale ratio. It is an important control parameter and helps organize regimes, but critical values are configuration-dependent. Low $Re$ need not be steady, and high $Re$ need not be turbulent.
 \end{enumerate}
 
 \subsection*{8. Broader and Applied Questions}
 \begin{enumerate}
 \item \textbf{Question:} What numerical challenges arise at high Reynolds numbers?\\
-\textbf{Answer:} The equations become stiff due to wide scale separation; small time steps and fine grids are needed to resolve turbulent structures, making direct simulation computationally expensive.
+\textbf{Answer:} High-$Re$ flows can contain thin shear layers and a broad range of dynamically active scales. A direct numerical simulation must resolve down to the dissipative scales and obey the time integrator's stability limits, so cost grows rapidly with $Re$. Under-resolution can cause aliasing and nonphysical energy accumulation; LES or RANS introduces modeling error instead. ``Stiffness'' depends on the formulation and solver rather than on $Re$ alone.
 
 \item \textbf{Question:} How might the stress--strain relation change for complex or non-Newtonian fluids?\\
 \textbf{Answer:} The stress may depend on strain history, rate magnitude, or additional internal variables, requiring constitutive laws such as power-law, Bingham, or viscoelastic models.
 
 \item \textbf{Question:} In modeling biological or soft-matter flows, which assumptions must be revisited?\\
-\textbf{Answer:} Constant viscosity, incompressibility, and linear stress--strain relationships may not hold; coupling to elasticity, porosity, or surface tension effects may be required.
+\textbf{Answer:} Revisit the constitutive law, wall or interface conditions, structural inertia, and coupling to elasticity, porosity, surface tension, chemistry, or active stresses. Liquid incompressibility is often still an excellent approximation, while effective viscosity or stress--strain relations may be non-Newtonian. The relevant assumptions should be checked against the system's scales rather than discarded automatically.
 
 \item \textbf{Question:} How would you connect the continuum Navier--Stokes framework to molecular-scale descriptions?\\
-\textbf{Answer:} Through statistical mechanics or kinetic theory: averaging molecular motions yields continuum quantities like density, velocity, and stress; parameters such as viscosity can be derived from microscopic interactions.
+\textbf{Answer:} Kinetic theory and nonequilibrium statistical mechanics define continuum fields as coarse-grained molecular moments and relate fluxes such as stress to microscopic dynamics. A continuum description also requires scale separation: the mean free path and molecular correlation scales must be small relative to the macroscopic length and time scales. Constitutive coefficients such as viscosity may be computed or measured from microscopic correlations.
 \end{enumerate}
 \end{document}

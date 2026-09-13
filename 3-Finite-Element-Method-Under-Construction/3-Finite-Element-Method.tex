@@ -2,21 +2,31 @@
 
 \usepackage{graphicx}
 \usepackage{amsmath}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,calc,shapes}
+
+\usetheme{default}
+\usefonttheme{serif}
 
 \title{Introduction to the Finite Element Method}
-\author{Your Name}
+\author{Laura A. Miller}
 \date{\today}
 
 \begin{document}
 
-\frame{\titlepage}
+\begin{frame}
+  \titlepage
+  \begin{center}
+    {\tiny AI tools were used to assist with formatting, organization, and clarification of the instructor's original notes.}
+  \end{center}
+\end{frame}
 
 \begin{frame}{Resources}
   \begin{itemize}
-    \item \href{https://example.com/resource2}{Resource 2: Topic 2}
-    \item \href{https://example.com/resource3}{Resource 3: Topic 3}
-    \item \href{https://example.com/resource4}{Resource 4: Further Reading}
-    \item \href{https://example.com/resource5}{Resource 5: Online Tools}
+    \item T. J. R. Hughes, \emph{The Finite Element Method: Linear Static and Dynamic Finite Element Analysis} (Dover, 2000).
+    \item libMesh documentation: \url{https://libmesh.github.io}
+    \item IBAMR: \url{https://ibamr.github.io}
+    \item deal.II tutorial, step-3: \url{https://www.dealii.org/current/doxygen/deal.II/step_3.html}
   \end{itemize}
 \end{frame}
 
@@ -34,8 +44,23 @@
         \item This process is called discretization, and it transforms a continuous problem into a discrete one that can be solved numerically.
     \end{itemize}
     \begin{figure}
-        \includegraphics[width=0.8\textwidth]{discretization.png}
-        \caption{Example of domain discretization.}
+        \centering
+        \begin{tikzpicture}[scale=0.9]
+          \draw[very thick] (0,0) -- (8,0);
+          \foreach \x in {0,2,4,6,8}{
+            \draw[very thick] (\x,-0.18) -- (\x,0.18);
+          }
+          \foreach \x/\n in {0/1,2/2,4/3,6/4,8/5}{
+            \filldraw (\x,0) circle (2.6pt);
+            \node[below=6pt] at (\x,0) {\small $\n$};
+          }
+          \foreach \x/\e in {1/1,3/2,5/3,7/4}{
+            \node[above=8pt] at (\x,0) {\small $\Omega^{\e}$};
+          }
+          \node[below=20pt] at (4,0) {\small node numbers};
+          \node[above=22pt] at (4,0) {\small four elements};
+        \end{tikzpicture}
+        \caption{Example of domain discretization: a 1D domain split into four elements with five numbered nodes.}
     \end{figure}
 \end{frame}
 
@@ -46,8 +71,28 @@
         \item They interpolate the solution between the nodal values, which are the values of the unknown variables at the nodes of the element.
     \end{itemize}
     \begin{figure}
-        \includegraphics[width=0.8\textwidth]{shape_functions.png}
-        \caption{Example of shape functions.}
+        \centering
+        \begin{tikzpicture}[scale=0.85]
+          \draw[->,thick] (-0.3,0) -- (8.6,0) node[right] {\small $x$};
+          \draw[->,thick] (0,-0.15) -- (0,2.0) node[above] {\small $N$};
+          \node[left] at (0,1.5) {\small $1$};
+          \draw[dashed,gray] (0,1.5) -- (8,1.5);
+          \foreach \x in {0,2,4,6,8}{
+            \filldraw (\x,0) circle (2.2pt);
+          }
+          \foreach \x/\n in {0/1,2/2,4/3,6/4,8/5}{
+            \node[below=5pt] at (\x,0) {\small $\n$};
+          }
+          \draw[very thick] (0,1.5) -- (2,0) -- (8,0);
+          \draw[very thick,dashed] (0,0) -- (2,1.5) -- (4,0) -- (8,0);
+          \draw[very thick,dotted] (0,0) -- (2,0) -- (4,1.5) -- (6,0) -- (8,0);
+          \draw[very thick,dashdotted] (0,0) -- (4,0) -- (6,1.5) -- (8,0);
+          \node[above right] at (0,1.5) {\small $N_1$};
+          \node[above] at (2,1.5) {\small $N_2$};
+          \node[above] at (4,1.5) {\small $N_3$};
+          \node[above] at (6,1.5) {\small $N_4$};
+        \end{tikzpicture}
+        \caption{Piecewise-linear (hat) shape functions $N_1,\dots,N_4$ on the four-element mesh. Each equals 1 at its own node and 0 at every other node.}
     \end{figure}
 \end{frame}
 
@@ -82,7 +127,7 @@
     \begin{itemize}
         \item Interpolation property: The shape function associated with a particular node has a value of 1 at that node and 0 at all other nodes.
         \item Partition of unity: The sum of all shape functions at any point within the element is equal to 1.
-        \item Continuity: The shape functions exhibit $C^0$ continuity, meaning that they are continuous across element boundaries but their derivatives may not be.
+        \item Continuity: Lagrange shape functions are $C^0$ across element boundaries, meaning that they are continuous there but their derivatives generally are not; Hermite or spline elements are $C^1$ or higher.
         \item Completeness: The shape functions can represent constant and linear variations of the solution within the element.
     \end{itemize}
 \end{frame}
@@ -124,6 +169,7 @@
         \begin{equation*}
         \mathbf{K}^e \mathbf{u}^e = \mathbf{f}^e
         \end{equation*}
+        (linear, small-strain case; hyperelastic IBFE structures give a nonlinear residual $\mathbf{r}(\mathbf{u}) = \mathbf{0}$ solved with a tangent stiffness)
         where:
         \begin{itemize}
             \item $\mathbf{K}^e$ is the element stiffness matrix
@@ -166,8 +212,38 @@
         \item This system of equations is then solved numerically to obtain the nodal values of the unknown variables.
     \end{itemize}
     \begin{figure}
-        \includegraphics[width=0.8\textwidth]{assembly.png}
-        \caption{Example of assembly process.}
+        \centering
+        \begin{tikzpicture}[scale=1.0]
+          % element matrix 1
+          \begin{scope}[shift={(0,1.4)}]
+            \fill[gray!25] (0,0) rectangle (1,1);
+            \draw[step=0.5,thick] (0,0) grid (1,1);
+            \draw[thick] (0,0) rectangle (1,1);
+            \node[left] at (-0.15,0.5) {\small $K^{(1)}$};
+            \node[above] at (0.5,1.05) {\tiny dofs 1,2};
+          \end{scope}
+          % element matrix 2
+          \begin{scope}[shift={(0,0)}]
+            \fill[gray!55] (0,0) rectangle (1,1);
+            \draw[step=0.5,thick] (0,0) grid (1,1);
+            \draw[thick] (0,0) rectangle (1,1);
+            \node[left] at (-0.15,0.5) {\small $K^{(2)}$};
+            \node[below] at (0.5,-0.1) {\tiny dofs 2,3};
+          \end{scope}
+          \draw[-{Latex[length=3mm]},very thick] (1.5,1.2) -- (2.6,1.2);
+          \node[above] at (2.05,1.3) {\small assemble};
+          % global matrix
+          \begin{scope}[shift={(3.2,0.2)}]
+            \fill[gray!25] (0,1) rectangle (1,2);      % element 1 block
+            \fill[gray!55] (0.5,0.5) rectangle (1.5,1.5); % element 2 block
+            \fill[gray!85] (0.5,1) rectangle (1,1.5);  % overlap
+            \draw[step=0.5,thick] (0,0) grid (2,2);
+            \draw[thick] (0,0) rectangle (2,2);
+            \node[above] at (1,2.1) {\small global $K$ ($4\times 4$)};
+            \node[right,align=left] at (2.15,0.9) {\tiny shared dof 2:\\ \tiny contributions add};
+          \end{scope}
+        \end{tikzpicture}
+        \caption{Assembly: each element matrix is scattered into the rows and columns of its own degrees of freedom in the global matrix; entries for a shared node (dark square) receive contributions from both elements.}
     \end{figure}
 \end{frame}
 
@@ -177,8 +253,49 @@
         \item The choice of element type depends on the geometry of the problem, the desired accuracy, and the computational cost.
     \end{itemize}
     \begin{figure}
-        \includegraphics[width=0.8\textwidth]{element_types.png}
-        \caption{Different types of finite elements.}
+        \centering
+        \begin{tikzpicture}[scale=0.95,every node/.style={font=\small}]
+          % 1D line element
+          \begin{scope}[shift={(0,0)}]
+            \draw[very thick] (0,0.6) -- (1.4,0.6);
+            \filldraw (0,0.6) circle (2pt);
+            \filldraw (1.4,0.6) circle (2pt);
+            \node at (0.7,-0.15) {line (1D)};
+          \end{scope}
+          % triangle
+          \begin{scope}[shift={(2.4,0)}]
+            \draw[very thick] (0,0.1) -- (1.4,0.1) -- (0.7,1.3) -- cycle;
+            \filldraw (0,0.1) circle (2pt);
+            \filldraw (1.4,0.1) circle (2pt);
+            \filldraw (0.7,1.3) circle (2pt);
+            \node at (0.7,-0.35) {triangle (2D)};
+          \end{scope}
+          % quadrilateral
+          \begin{scope}[shift={(4.9,0)}]
+            \draw[very thick] (0,0.1) -- (1.5,0.0) -- (1.6,1.3) -- (0.15,1.25) -- cycle;
+            \filldraw (0,0.1) circle (2pt);
+            \filldraw (1.5,0.0) circle (2pt);
+            \filldraw (1.6,1.3) circle (2pt);
+            \filldraw (0.15,1.25) circle (2pt);
+            \node at (0.8,-0.35) {quadrilateral (2D)};
+          \end{scope}
+          % tetrahedron (wireframe)
+          \begin{scope}[shift={(8.3,0)}]
+            \coordinate (A) at (0,0.1);
+            \coordinate (B) at (1.5,0.35);
+            \coordinate (C) at (0.55,0.75);
+            \coordinate (D) at (0.75,1.5);
+            \draw[very thick] (A) -- (B) -- (D) -- cycle;
+            \draw[very thick] (A) -- (C) -- (D);
+            \draw[very thick,dashed] (C) -- (B);
+            \filldraw (A) circle (2pt);
+            \filldraw (B) circle (2pt);
+            \filldraw (C) circle (2pt);
+            \filldraw (D) circle (2pt);
+            \node at (0.75,-0.35) {tetrahedron (3D)};
+          \end{scope}
+        \end{tikzpicture}
+        \caption{Different types of finite elements: a 1D line element, 2D triangular and quadrilateral elements, and a 3D tetrahedron (shown as a wireframe).}
     \end{figure}
 \end{frame}
 
@@ -209,7 +326,7 @@
     \end{itemize}
 \end{frame}
 
-\begin{frame}{Glossary of Terms}
+\begin{frame}{Glossary (stress units, from the solids module)}
   \begin{description}
     \item[Stress] A measure of the force acting per unit area within a deformable body.
     \item[Tensor] A mathematical object that describes a multilinear relationship between sets of algebraic objects related to a vector space.

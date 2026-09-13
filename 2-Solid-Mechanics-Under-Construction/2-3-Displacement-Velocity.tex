@@ -2,18 +2,23 @@
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{graphicx}
+% Resolve ../pictures/... whether compiling in this folder or from the repo root.
+\graphicspath{{./}{../}{2-Solid-Mechanics-Under-Construction/}}
 
 \usetheme{default} % Or any other Beamer theme
 \usefonttheme{serif} 
 
 \title{Mathematical Description of Shape Changes in Solids}
-\author{Your Name}
+\author{Laura A. Miller}
 \date{\today}
 
 \begin{document}
 
 \begin{frame}
   \titlepage
+  \begin{center}
+    {\tiny AI tools were used to assist with formatting, organization, and clarification of the instructor's original notes.}
+  \end{center}
 \end{frame}
 
 \begin{frame}{Introduction}
@@ -34,7 +39,7 @@
 
 \begin{frame}{Mathematical description of shape changes in solids (continued)}
     \begin{itemize}
-        \item   These could be the six independent components of the Lagrangian strain, Eulerian strain, the left or right stretch tensors, or your own favorite deformation measure.
+        \item   These could be the six independent components of the Lagrangian strain, Eulerian strain, the left or right stretch tensors, or your own favorite deformation measure (these are developed in deck 4-2, IBFE Solids Prep).
         \item   Given the complete set of six numbers for any one deformation measure, you can always calculate the components of other strain measures.
         \item   The reason that so many different deformation measures exist is partly that different material models adopt different strain measures, and partly because each measure is useful for describing a particular type of shape change.
     \end{itemize}
@@ -115,8 +120,8 @@
 \begin{frame}{Examples of Simple Deformations (continued)}
   \begin{itemize}
     \item   \textbf{General rigid rotation about the origin}
-    $$ \mathbf{y} = \mathbf{R} \cdot \mathbf{x} \quad \text{or} \quad y_{i_{r}}=R_{ij}x_{j} $$
-    where \(\mathbf{R}\) must satisfy \(\mathbf{R} \cdot \mathbf{R}^T = \mathbf{R}^T \cdot \mathbf{R} = \mathbf{I}\) and \(\det(\mathbf{R}) > 0\) (\(\mathbf{R}\) is proper orthogonal). \(\mathbf{I}\) is the identity tensor
+    $$ \mathbf{y} = \mathbf{R} \cdot \mathbf{x} \quad \text{or} \quad y_{i}=R_{ij}x_{j} $$
+    where \(\mathbf{R}\) must satisfy \(\mathbf{R} \cdot \mathbf{R}^T = \mathbf{R}^T \cdot \mathbf{R} = \mathbf{I}\) and \(\det(\mathbf{R}) = +1\) (\(\mathbf{R}\) is proper orthogonal). \(\mathbf{I}\) is the identity tensor
     with components
     $$
     \delta_{ik}=\begin{cases}
@@ -155,7 +160,7 @@
     \begin{aligned}
       y_1 &= A_{11} x_1 + A_{12} x_2 + A_{13} x_3 + c_1 \\
       y_2 &= A_{21} x_1 + A_{22} x_2 + A_{23} x_3 + c_2 \\
-      y_3 &= A_{31} x_1 + A_{32} x_2 + A_{3} x_3 + c_3
+      y_3 &= A_{31} x_1 + A_{32} x_2 + A_{33} x_3 + c_3
     \end{aligned}
     $$
     or
@@ -178,6 +183,7 @@
             \end{bmatrix}
             \]
             where \(u_1\), \(u_2\), and \(u_3\) are the components of the displacement vector \(\mathbf{u}\), and \(x_1\), \(x_2\), and \(x_3\) are the components of the position vector \(\mathbf{x}\).
+        \item Bower writes this as \(\mathbf{u} \otimes \nabla\); deck 2-2 writes \(\nabla \mathbf{u}\) with \((\nabla \mathbf{u})_{ij} = \partial u_i / \partial x_j\); they are the same object.
     \end{itemize}
 \end{frame}
 
@@ -240,7 +246,6 @@
     $$ \frac{\partial y_i}{\partial x_j} = \frac{\partial}{\partial x_j} (x_i + u_i) = \delta_{ij} + \frac{\partial u_i}{\partial x_j} = F_{ij} $$
     The rules of differentiation using index notation are described in more detail in Appendix C of https://solidmechanics.org/.
   \end{itemize}
-  % Space for figure
 \end{frame}
 
 \begin{frame}{Deformation Gradient Tensor and Infinitesimal Line Elements}
@@ -253,7 +258,6 @@
     \begin{center}
    \includegraphics[width=0.5\textwidth]{../pictures/2-3/infinitesimal.png} 
 \end{center}
-  % Space for figure: Add figure illustrating line elements (e.g., Fig. 2.2 from the document)
 \end{frame}
 
 \begin{frame}{Deformation Gradient Tensor and Infinitesimal Line Elements}
@@ -264,7 +268,6 @@
     \item   The infinitesimal line segments dx and dy are related by
     $$ dy = F \cdot dx \quad \text{or} \quad dy_i = F_{ik} dx_k $$
   \end{itemize}
-  % Space for figure: Add figure illustrating line elements (e.g., Fig. 2.2 from the document)
 \end{frame}
 
 \begin{frame}{Deformation Gradient Tensor as a Matrix Equation}
@@ -278,8 +281,8 @@
         \end{bmatrix} =
         \begin{bmatrix}
           1 + \frac{\partial u_1}{\partial x_1} & \frac{\partial u_1}{\partial x_2} & \frac{\partial u_1}{\partial x_3} \\
-          \frac{\partial u_2}{\partial x_1} & 1 + \frac{\partial u_2}{\partial x_2} & \frac{\partial u_2}{\partial x_2} \\
-          \frac{\partial u_2}{\partial x_1} & \frac{\partial u_2}{\partial x_1} & \frac{\partial u_2}{\partial x_1}
+          \frac{\partial u_2}{\partial x_1} & 1 + \frac{\partial u_2}{\partial x_2} & \frac{\partial u_2}{\partial x_3} \\
+          \frac{\partial u_3}{\partial x_1} & \frac{\partial u_3}{\partial x_2} & 1 + \frac{\partial u_3}{\partial x_3}
         \end{bmatrix}
         \begin{bmatrix}
           dx_1 \\
@@ -383,7 +386,7 @@
         \[
         J = det(F) = det\left(\delta_{ij} + \frac{\partial u_i}{\partial x_j}\right)
         \]
-    \item \textbf{Volume Change:** $J$ measures the volume change due to deformation}.
+    \item \textbf{Volume Change:} $J$ measures the volume change due to deformation.
 \end{itemize}
 \begin{figure}
     \centering
@@ -395,17 +398,17 @@
 \begin{itemize}
         \item \textbf{Infinitesimal Volume Element:}
         \begin{itemize}
-            \item   Consider an infinitesimal volume element with sides $dx$, $dy$, and $dz$.
-            \item   Original volume: $dV_0 = dz \cdot (dx \times dy) = \epsilon_{ijk} dz_i dx_j dy_k$
+            \item   Consider an infinitesimal volume element in the \emph{reference} configuration whose three edges are the line elements $d\mathbf{x}^{(1)}$, $d\mathbf{x}^{(2)}$, and $d\mathbf{x}^{(3)}$.
+            \item   Original volume: $dV_0 = d\mathbf{x}^{(1)} \cdot (d\mathbf{x}^{(2)} \times d\mathbf{x}^{(3)}) = \epsilon_{ijk}\, dx^{(1)}_i dx^{(2)}_j dx^{(3)}_k$
         \end{itemize}
     \item \textbf{Deformed Volume Element:}
         \begin{itemize}
-            \item   The element is mapped to a parallelepiped with sides $dr$, $dv$, and $dw$.
-            \item   Deformed volume: $dV = \epsilon_{ijk} dw_i dr_j dv_k$
+            \item   The element is mapped to a parallelepiped whose edges are the deformed images $d\mathbf{y}^{(1)}$, $d\mathbf{y}^{(2)}$, and $d\mathbf{y}^{(3)}$.
+            \item   Deformed volume: $dV = \epsilon_{ijk}\, dy^{(1)}_i dy^{(2)}_j dy^{(3)}_k$
         \end{itemize}
     \item \textbf{Relationship between deformed and undeformed elements:}
          \begin{itemize}
-            \item   $dr_i = F_{il} dx_l$,  $dv_j = F_{jm} dy_m$,  $dw_k = F_{kn} dz_n$
+            \item   $dy^{(1)}_i = F_{il} dx^{(1)}_l$,  $dy^{(2)}_j = F_{jm} dx^{(2)}_m$,  $dy^{(3)}_k = F_{kn} dx^{(3)}_n$
          \end{itemize}
 \end{itemize}
 \end{frame}
@@ -414,10 +417,10 @@
 \begin{itemize}
     \item \textbf{Volume Transformation:}
         \begin{itemize}
-            \item   $dV = \epsilon_{ijk} F_{il} F_{jm} F_{kn} dx_l dy_m dz_n$
+            \item   $dV = \epsilon_{ijk} F_{il} F_{jm} F_{kn}\, dx^{(1)}_l dx^{(2)}_m dx^{(3)}_n$
             \item   Using the identity $\epsilon_{ijk} A_{il} A_{jm} A_{kn} = \epsilon_{lmn} det(A)$:
                 \[
-                dV = det(F) \epsilon_{lmn} dx_l dy_m dz_n = det(F) dV_0
+                dV = det(F)\, \epsilon_{lmn}\, dx^{(1)}_l dx^{(2)}_m dx^{(3)}_n = det(F)\, dV_0
                 \]
         \end{itemize}
     \item \textbf{Volume Ratio:}

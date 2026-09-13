@@ -1,18 +1,25 @@
 \documentclass{beamer}
 
 \usepackage{graphicx}
+% Resolve ../pictures/... whether compiling in this folder or from the repo root.
+\graphicspath{{./}{../}{2-Solid-Mechanics-Under-Construction/}}
 \usepackage{amsmath}
 \usepackage[utf8]{inputenc}
 \usetheme{default}
 \usefonttheme{serif} 
 
 \title{Introduction to Solid Mechanics and Biomaterials}
-\author{Laura Miller and Gemini Advanced}
+\author{Laura A. Miller}
 \date{\today}
 
 \begin{document}
 
-\frame{\titlepage}
+\begin{frame}
+  \titlepage
+  \begin{center}
+    {\tiny AI tools were used to assist with formatting, organization, and clarification of the instructor's original notes.}
+  \end{center}
+\end{frame}
 
 \begin{frame}{Resources}
   \begin{itemize}
@@ -98,9 +105,7 @@
     \begin{figure}
         \includegraphics[width=0.9\textwidth]{../pictures/stress-strain-curve-001.png}
         \caption{Stress vs. Strain.
-        Note that the linear part of the graph represents a Hookean material that follows Hook's law. The plastic region is the area on a stress-strain curve that represents the material's behavior after it has yielded.
-
-}
+        Note that the linear part of the graph represents a Hookean material that follows Hooke's law. The plastic region is the area on a stress-strain curve that represents the material's behavior after it has yielded.}
     \end{figure}
 \end{frame}
 
@@ -162,6 +167,20 @@ Loading refers to the application of external forces or moments to a solid body.
     \end{figure}
 \end{frame}
 
+\begin{frame}{Relating the elastic constants}
+  \begin{itemize}
+    \item For an isotropic linear elastic solid, only two constants are independent. Given $E$ and $\nu$:
+      \begin{align*}
+        G = \mu &= \frac{E}{2(1+\nu)} \quad \text{(shear modulus)}\\
+        \lambda &= \frac{E\nu}{(1+\nu)(1-2\nu)} \quad \text{(first Lam\'e parameter)}\\
+        K &= \frac{E}{3(1-2\nu)} = \lambda + \frac{2\mu}{3} \quad \text{(bulk modulus)}
+      \end{align*}
+    \item Thermodynamic stability (positive strain energy) requires $-1 < \nu < 1/2$.
+    \item $\nu \to 1/2$ is the incompressible limit: $K \to \infty$ and $\lambda \to \infty$, while $\mu$ stays finite.
+    \item Soft biological tissue is often modeled as nearly incompressible, with $\nu \approx 0.45$--$0.4999$.
+  \end{itemize}
+\end{frame}
+
 \begin{frame}{Material Properties: Yield Strength}
   \begin{itemize}
     \item \textbf{Yield Strength ($\sigma_y$):} Stress at which permanent deformation occurs (important for implant design).
@@ -203,9 +222,9 @@ Loading refers to the application of external forces or moments to a solid body.
 
 \begin{frame}{Boundary Condition Rules}
   \begin{itemize}
-    \item \textbf{3D:} 3 components of displacement or traction (not both) at each boundary point.
+    \item \textbf{3D:} 3 components of displacement or traction (for each direction at a boundary point, exactly one of the conjugate pair is prescribed; different directions may differ) at each boundary point.
     \item \textbf{2D:} 2 components of displacement or traction at each boundary point.
-    \item Static problems with traction only: Total external force must be zero.
+    \item Static problems with traction only: The resultant force \emph{and} the resultant moment of all applied tractions and body forces must vanish.
   \end{itemize}
 \end{frame}
 
@@ -219,7 +238,7 @@ Loading refers to the application of external forces or moments to a solid body.
 
 \begin{frame}{Material Models}
     \begin{itemize}
-        \item \textbf{Isotropic Linear Elasticity:} Material properties are the same in all directions. $\sigma = C \epsilon$ (stiffness tensor), simplified to $\sigma = E \epsilon$ (1D).
+        \item \textbf{Isotropic Linear Elasticity:} Material properties are the same in all directions. $\sigma_{ij} = C_{ijkl}\,\varepsilon_{kl}$ (fourth-order stiffness tensor; 2 independent constants for isotropy), simplified to $\sigma = E \epsilon$ (1D).
         \item \textbf{Anisotropic Linear Elasticity:} Material properties vary with direction (e.g., bone). Requires a full stiffness tensor.
         \item \textbf{Hyperelasticity:} Large deformations, non-linear elastic behavior. Strain energy function $W(\epsilon)$ describes the material response (e.g., soft tissues).
         \item \textbf{Viscoelasticity:} Time-dependent deformation. Stress depends on strain rate. Generalized Maxwell or Kelvin-Voigt models. $\sigma(t) = \int_{-\infty}^{t} G(t-\tau) \frac{d\epsilon(\tau)}{d\tau} d\tau$

@@ -13,6 +13,13 @@ Immersed Boundary Method: Integral Transforms and Regularized Delta Functions}
 \begin{document}
 \maketitle
 
+Throughout, $\mathbf{q}\in U$ is a fixed material label and
+$\mathbf{X}(\mathbf{q},t)\in\Omega$ is its current position. This is the Peskin
+convention used in Module~1; Module~4 (IBFE) switches to continuum-mechanics
+notation $\boldsymbol{\chi}(\mathbf{X},t)$ with $\mathbf{X}$ the reference point.
+Lagrangian force densities are understood with respect to the explicitly stated
+reference measure. These conventions determine both units and Jacobian factors.
+
 \section*{Eulerian--Lagrangian Framework}
 
 \begin{enumerate}[label=\arabic*.]
@@ -20,37 +27,66 @@ Immersed Boundary Method: Integral Transforms and Regularized Delta Functions}
 \item \textbf{What are the Eulerian and Lagrangian variables in the immersed boundary method?}
 
 \textit{Sample answer:}  
-In the immersed boundary method, the fluid is described in Eulerian coordinates by the velocity $u(x,t)$ and pressure $p(x,t)$ defined on a fixed spatial grid.  
-The structure is described in Lagrangian (material) coordinates by a mapping $\chi(X,t)$ that gives the current physical position of each material point $X$ in the reference domain $U$.
+The fluid is described in Eulerian coordinates by velocity
+$\mathbf{u}(\mathbf{x},t)$ and pressure $p(\mathbf{x},t)$ on the fixed spatial
+domain $\Omega$. The structure is described in material coordinates by the map
+$\mathbf{X}(\mathbf{q},t)$, which gives the current physical position of
+the material label $\mathbf{q}$ in a reference domain $U$.
 
 \item \textbf{Why are integral transforms needed to couple Eulerian and Lagrangian variables?}
 
 \textit{Sample answer:}  
-Eulerian and Lagrangian variables live on different domains and discretizations. Integral transforms using delta functions allow information to be transferred between these descriptions in a consistent way: forces are spread from the structure to the fluid, and velocities are interpolated from the fluid back to the structure.
+Eulerian and Lagrangian fields live on different domains and usually different
+meshes. A delta distribution defines the push-forward of a Lagrangian force to
+Eulerian space and the pullback (evaluation along the motion) of Eulerian
+velocity to the structure. At the discrete level, regularized kernels and
+quadrature approximate this dual pairing.
 
 \item \textbf{Write the Eulerian--Lagrangian coupling equations used in IB.}
 
 \textit{Sample answer:}  
 Force spreading:
 \[
-f(x,t) = \int_U F(X,t)\,\delta(x-\chi(X,t))\,dX.
+\mathbf{f}(\mathbf{x},t) = \int_U \mathbf{F}(\mathbf{q},t)\,
+\delta\!\left(\mathbf{x}-\mathbf{X}(\mathbf{q},t)\right)\,d\mathbf{q}.
 \]
 Velocity interpolation:
 \[
-\frac{\partial \chi}{\partial t}(X,t) = \int_\Omega u(x,t)\,\delta(x-\chi(X,t))\,dx.
+\frac{\partial \mathbf{X}}{\partial t}(\mathbf{q},t)
+= \int_\Omega \mathbf{u}(\mathbf{x},t)\,
+\delta\!\left(\mathbf{x}-\mathbf{X}(\mathbf{q},t)\right)\,d\mathbf{x}.
 \]
-The delta function transfers quantities between material and physical space.
+The second equation is the no-slip kinematic relation for the classical
+massless IB structure; a structure with independent inertia requires its own
+momentum equation and a corresponding coupling law.
 
-\item \textbf{What is the physical meaning of the mapping $\chi : U \times [0,T] \to \Omega$?}
+\item \textbf{What is the physical meaning of the mapping $\mathbf{X} : U \times [0,T] \to \Omega$?}
 
-\textit{Sample answer:}  
-The mapping $\chi$ takes each material point in the undeformed reference configuration $U$ and maps it to its current position in physical space $\Omega$ at time $t$. It encodes the deformation and motion of the structure.
+\textit{Sample answer:}
+The map $\mathbf{X}$ takes a fixed material label in a chosen reference
+configuration to its current spatial position. It encodes deformation and
+rigid motion. The reference need not be stress-free or literally undeformed;
+that is an additional modeling choice. For a volumetric solid, the deformation
+gradient and its determinant,
+\[
+\mathbf{F}_{\rm def}(\mathbf{q},t)=\frac{\partial\mathbf{X}}{\partial\mathbf{q}},
+\qquad
+J=\det\mathbf{F}_{\rm def},
+\]
+describe local deformation. The subscript matters: $\mathbf{F}_{\rm def}$ is the
+deformation gradient, whereas the unsubscripted $\mathbf{F}$ denotes the
+Lagrangian force density elsewhere in these questions.
 
-\item \textbf{Why are two Lagrangian notations commonly used in IB: $X(s,t)$ and $\chi(X,t)$?}
+\item \textbf{Why are two Lagrangian notations commonly used in IB: $\mathbf{X}(\mathbf{q},t)$ and $\boldsymbol{\chi}(\mathbf{X},t)$?}
 
-\textit{Sample answer:}  
-The notation $X(s,t)$ emphasizes parameterized curves or surfaces, common in classical IB.  
-The notation $\chi(X,t)$ emphasizes the continuum mechanics viewpoint, where $X$ is a fixed material coordinate and $\chi$ defines a deformation map, which is especially useful for defining stresses and deformation gradients.
+\textit{Sample answer:}
+In classical IB (Peskin) notation, used in Module~1, $\mathbf{q}$ is a fixed
+material label and $\mathbf{X}(\mathbf{q},t)$ denotes the current position. In
+continuum-mechanics notation, used from Module~4 on, $\mathbf{X}$ is instead
+reserved for the fixed reference coordinate and $\boldsymbol{\chi}(\mathbf{X},t)$
+is the current-position map. Both are valid,
+but one must not let the same symbol mean both a material label and a current
+position in one derivation.
 
 \end{enumerate}
 
@@ -61,26 +97,49 @@ The notation $\chi(X,t)$ emphasizes the continuum mechanics viewpoint, where $X$
 \item \textbf{What is the Lagrangian reference domain $U$ and why is it fixed in time?}
 
 \textit{Sample answer:}  
-$U$ represents the undeformed material configuration of the structure. It is fixed because material coordinates label physical points of the structure, independent of deformation or motion.
+$U$ is a chosen material reference configuration. It is fixed because its
+coordinates label material points independently of their subsequent motion.
+It may be undeformed and stress-free, but neither property follows merely from
+using a reference description.
 
-\item \textbf{Explain the distinction between $U$, $\chi(U,t)$, and $\Omega$.}
+\item \textbf{Explain the distinction between $U$, $\mathbf{X}(U,t)$, and $\Omega$.}
 
-\textit{Sample answer:}  
-$U$ is the material reference domain, $\chi(U,t)$ is the current physical configuration of the structure, and $\Omega$ is the Eulerian fluid domain. These are distinct sets, and confusing them leads to errors such as incorrectly introducing Jacobians.
+\textit{Sample answer:}
+$U$ is the material reference domain,
+$\mathbf{X}(U,t)\subseteq\Omega$ is the current structural configuration,
+and $\Omega$ is the Eulerian spatial domain. Integrals over these sets use
+different measures. A Jacobian is required when changing between reference and
+current measures, but not when an integral is deliberately kept over $U$.
 
 \item \textbf{What is the first Piola--Kirchhoff stress and why is it used in IBFE?}
 
 \textit{Sample answer:}  
-The first Piola--Kirchhoff stress $P_e$ is a stress measure defined per unit reference area. It naturally arises from differentiating the elastic strain energy with respect to the deformation gradient, making it well suited for Lagrangian formulations like IBFE.
+The first Piola--Kirchhoff stress $\mathbf{P}_e$ maps a reference-area normal to
+a force measured in the current configuration per unit reference area. For a
+hyperelastic energy density $W(\mathbf{F}_{\rm def})$ per reference volume,
+$\mathbf{P}_e=\partial W/\partial\mathbf{F}_{\rm def}$. It is generally nonsymmetric and is
+work-conjugate to the deformation gradient, which makes it natural in IBFE's
+reference-domain weak form.
 
 \item \textbf{How is the Lagrangian elastic force density defined?}
 
 \textit{Sample answer:}  
-The Lagrangian elastic force density is given by
+In the interior of a smooth volumetric solid, one common sign convention gives
 \[
-F_e(X,t) = \nabla_X \cdot P_e(X,t),
+\mathbf{F}_e(\mathbf{q},t) = \nabla_{\!q} \cdot \mathbf{P}_e(\mathbf{q},t),
+\qquad
+(\nabla_{\!q}\cdot\mathbf{P}_e)_i=\frac{\partial (P_e)_{iJ}}{\partial q_J},
 \]
-which represents force per unit reference volume.
+which is force per unit reference volume. Note that the material divergence
+$\nabla_{\!q}\cdot$ contracts on the \emph{reference} (second) index of
+$\mathbf{P}_e$; the first index is a current-configuration index, so no
+contraction over it would be meaningful. Boundary tractions are also required:
+if elastic force is minus the variation of stored energy, the associated
+reference-boundary force is $-\mathbf{P}_e\mathbf{N}$ under this convention.
+IBFE often avoids forming either strong term and defines the force by
+$\int_U\mathbf{F}_e\cdot\mathbf{V}\,d\mathbf{q}
+=-\int_U\mathbf{P}_e:\nabla_{\!q}\mathbf{V}\,d\mathbf{q}$, with boundary conditions
+handled consistently.
 
 \end{enumerate}
 
@@ -92,23 +151,40 @@ which represents force per unit reference volume.
 
 \textit{Sample answer:}
 \[
-f(x,t) = \int_U F(X,t)\,\delta(x-\chi(X,t))\,dX.
+\mathbf{f}(\mathbf{x},t) = \int_U \mathbf{F}(\mathbf{q},t)\,
+\delta\!\left(\mathbf{x}-\mathbf{X}(\mathbf{q},t)\right)\,d\mathbf{q}.
 \]
 
 \item \textbf{Why does no Jacobian appear in this integral?}
 
-\textit{Sample answer:}  
-Because the integral is performed entirely over the reference domain $U$. There is no change of variables from $X$ to $x$, so no Jacobian arises. Geometry enters only through $\chi$ inside the delta function.
+\textit{Sample answer:}
+Because $\mathbf{F}$ is defined per unit reference measure and the integration
+variable remains $\mathbf{q}\in U$. No change of variables has been made. The
+geometry enters through $\mathbf{X}(\mathbf{q},t)$ inside the delta distribution, whose
+units also ensure that the resulting $\mathbf{f}$ has the correct Eulerian
+force-density units.
 
 \item \textbf{Why is force spreading not a change of variables?}
 
 \textit{Sample answer:}  
-A change of variables rewrites an integral in a new coordinate system. Force spreading instead defines an Eulerian force density as a distribution whose action on test functions matches that of the Lagrangian force under the mapping $\chi$.
+A change of variables rewrites the same integral using a new measure. Spreading
+instead defines a push-forward distribution. For a smooth test field
+$\boldsymbol{\varphi}$,
+\[
+\int_\Omega\mathbf{f}\cdot\boldsymbol{\varphi}\,d\mathbf{x}
+=\int_U\mathbf{F}\cdot
+\boldsymbol{\varphi}(\mathbf{X}(\mathbf{q},t))\,d\mathbf{q}.
+\]
+This defining identity contains no coordinate substitution.
 
 \item \textbf{Under what conditions would a Jacobian appear?}
 
 \textit{Sample answer:}  
-A Jacobian appears if forces are defined per unit current physical measure rather than per unit reference measure, such as for volumetric solids, surfaces, or fibers when modeling forces in deformed coordinates.
+A Jacobian appears when a current-configuration density is rewritten using a
+reference measure (or conversely). For a volumetric solid,
+$d\mathbf{x}=J\,d\mathbf{q}$; surface and curve measures use the corresponding
+surface or line Jacobians. The factor therefore depends on how the force density
+was defined, not merely on whether the object is a solid, surface, or fiber.
 
 \end{enumerate}
 
@@ -119,22 +195,47 @@ A Jacobian appears if forces are defined per unit current physical measure rathe
 \item \textbf{Interpret force spreading by integrating over a fluid region $\Gamma \subset \Omega$.}
 
 \textit{Sample answer:}  
-Integrating $f(x,t)$ over $\Gamma$ yields the total force applied to the fluid in that region, which equals the total Lagrangian force carried by material points whose current positions lie in $\Gamma$.
+For the exact delta distribution,
+\[
+\int_\Gamma\mathbf{f}(\mathbf{x},t)\,d\mathbf{x}
+=\int_U\mathbf{F}(\mathbf{q},t)\,
+\mathbf{1}_{\Gamma}(\mathbf{X}(\mathbf{q},t))\,d\mathbf{q},
+\]
+up to the usual convention for points on $\partial\Gamma$. With a regularized
+kernel, points within one kernel radius of $\partial\Gamma$ contribute only the
+fraction of the kernel support lying in $\Gamma$.
 
 \item \textbf{Why does IB conserve total force?}
 
 \textit{Sample answer:}  
-Because the delta function satisfies a partition-of-unity property, ensuring that the total Eulerian force equals the total Lagrangian force when integrated over space.
+In the continuum, $\int_\Omega\delta(\mathbf{x}-\mathbf{X}(\mathbf{q},t))\,d\mathbf{x}=1$
+when the support is contained in the domain, so total Eulerian and Lagrangian
+forces agree. Discretely, the analogous result requires the kernel's zeroth
+moment (partition-of-unity) condition, consistent quadrature weights, and
+appropriate treatment near physical or periodic boundaries.
 
 \item \textbf{Why is the Eulerian force density a distribution?}
 
 \textit{Sample answer:}  
-Because forces are supported on a lower-dimensional structure. In the continuum limit, this produces a delta-layer of force rather than a smooth function.
+For a codimension-one surface or codimension-two fiber, the force is supported
+on a set of zero Eulerian volume, so its Eulerian representation is a singular
+distribution. A force spread from a volumetric immersed solid need not be
+singular in its occupied volume, although jumps at its boundary can still be
+represented distributionally. Numerical regularization replaces these singular
+objects by grid-scale functions.
 
-\item \textbf{Why is velocity continuous but pressure discontinuous across the structure?}
+\item \textbf{Under what conditions is the velocity continuous across the structure while the pressure jumps?}
 
-\textit{Sample answer:}  
-Viscosity enforces velocity continuity, while singular forces applied at the structure generate jumps in pressure and stress.
+\textit{Sample answer:}
+Velocity is continuous whenever the classical no-slip kinematic coupling holds
+and the interface carries no singular mass or slip source; the pressure jumps
+only when the interfacial force has a nonzero normal component, so neither
+property is automatic. A singular interfacial force produces
+a traction jump; its normal component is often associated with a pressure jump,
+while tangential components can produce viscous-stress jumps. Pressure need not
+jump for every force distribution, and a regularized discrete method smooths
+all such jumps over the kernel width. Viscosity alone is not the kinematic
+constraint.
 
 \end{enumerate}
 
@@ -145,17 +246,31 @@ Viscosity enforces velocity continuity, while singular forces applied at the str
 \item \textbf{Why must the Dirac delta be regularized numerically?}
 
 \textit{Sample answer:}  
-The Dirac delta is singular and cannot be represented on a Cartesian grid. A regularized delta distributes forces smoothly over nearby grid points while preserving conservation properties.
+The Dirac delta has no finite point values and cannot be sampled as an ordinary
+grid function. A discrete regularized delta replaces it by a compact stencil
+whose width scales with the mesh. Conservation and interpolation properties are
+obtained only if the kernel satisfies the required discrete moments and is used
+with consistent quadrature and boundary treatment.
 
 \item \textbf{Why must the same kernel be used for spreading and interpolation?}
 
 \textit{Sample answer:}  
-Using the same kernel ensures discrete energy consistency: the work done on the fluid equals the work extracted from the structure.
+Using the same kernel is part of making interpolation the adjoint of spreading.
+With matching Eulerian and Lagrangian quadrature weights, this gives the power
+identity
+$\langle\mathbf{u},\mathcal{S}\mathbf{F}\rangle_E
+=\langle\mathcal{J}\mathbf{u},\mathbf{F}\rangle_L$.
+Using the same formula without consistent weights or inner products is not, by
+itself, sufficient.
 
 \item \textbf{What does it mean that force spreading is a local averaging operation?}
 
 \textit{Sample answer:}  
-Each Lagrangian force is distributed over a small neighborhood of grid points, producing a smooth, localized approximation to a singular force.
+Each Lagrangian quadrature force is distributed over the nearby grid points in
+the compact kernel support. Conversely, interpolation forms a kernel-weighted
+local average of grid velocity. This locality controls stencil cost and
+regularization width; it should not be confused with averaging in time or over
+an ensemble.
 
 \end{enumerate}
 
@@ -166,18 +281,48 @@ Each Lagrangian force is distributed over a small neighborhood of grid points, p
 \item \textbf{State Peskin’s zeroth and first moment conditions and their physical meaning.}
 
 \textit{Sample answer:}  
-The zeroth moment condition enforces force conservation.  
-The first moment condition ensures no spurious torque is introduced by force spreading.
+In one dimension, for every real shift $r$, representative discrete conditions
+are
+\[
+\sum_{j\in\mathbb{Z}}\phi(r-j)=1,
+\qquad
+\sum_{j\in\mathbb{Z}}(r-j)\phi(r-j)=0.
+\]
+Tensor-product versions apply in several dimensions. The zeroth moment gives
+partition of unity and hence total-force conservation. The first moment
+reproduces the force centroid; together with the zeroth moment it preserves the
+torque of spread point forces on an unbounded or suitably treated grid.
 
 \item \textbf{Why are symmetry and translational invariance important?}
 
 \textit{Sample answer:}  
-They ensure numerical results do not depend strongly on the structure’s position relative to the grid, reducing grid-induced artifacts.
+Kernel symmetry avoids a preferred direction and supports centered moment
+conditions. Exact continuous translational invariance is impossible for a
+compact stencil on a fixed grid; discrete moment, even--odd, and sum-of-squares
+conditions are used to reduce variation as a marker moves relative to grid
+lines. The \emph{even--odd condition} is the requirement that, for every real
+shift $r$,
+\[
+\sum_{j\ \mathrm{even}}\phi(r-j)
+=\sum_{j\ \mathrm{odd}}\phi(r-j)=\tfrac12 ;
+\]
+its purpose is to keep the even- and odd-indexed grid points from decoupling in
+the spread and interpolate operators, which would otherwise admit checkerboard
+(sawtooth) modes invisible to the interaction. It is distinct from the
+sum-of-squares condition $\sum_j\phi(r-j)^2=C$, which instead controls the
+approximate translation invariance of the interaction strength. Peskin's
+four-point kernel satisfies the even--odd condition; the three-point
+Roma--Peskin--Berger kernel does not need it, because a three-cell stencil
+always couples adjacent grid points. State which invariance property is meant
+rather than claiming exact grid independence.
 
 \item \textbf{What is the tradeoff between smoothness and cost?}
 
 \textit{Sample answer:}  
-Smoother kernels improve stability and accuracy but require wider stencils, increasing computational cost.
+Additional smoothness can reduce force and velocity jitter as markers cross the
+grid, but usually requires wider support. Wider stencils increase work and
+communication and thicken the numerical interface; they do not automatically
+increase the convergence order of the full IB scheme.
 
 \end{enumerate}
 
@@ -188,12 +333,22 @@ Smoother kernels improve stability and accuracy but require wider stencils, incr
 \item \textbf{Why is Peskin’s 4-point kernel commonly used?}
 
 \textit{Sample answer:}  
-It provides a good balance between smoothness, locality, stability, and computational efficiency while satisfying key moment conditions.
+Peskin's classical four-point tensor-product kernel has compact four-cell
+support in each coordinate and satisfies a useful collection of discrete
+moment, even--odd, and sum-of-squares conditions. It is a well-tested compromise
+between grid invariance, smoothness, and stencil cost, but it is not optimal for
+every accuracy, leakage, or conservation objective.
 
 \item \textbf{What happens as $h \to 0$?}
 
 \textit{Sample answer:}  
-The regularized delta converges to the Dirac delta, and the discrete immersed boundary method converges to the continuum formulation.
+A properly scaled kernel family can converge to the Dirac delta in the
+distributional sense: its support shrinks and its moments approach those of a
+point mass. Convergence of the \emph{full} discrete IB method additionally
+requires consistent spatial operators, Lagrangian quadrature and refinement,
+stable time integration, solver convergence, and appropriate treatment of the
+regularized interface. Kernel convergence alone is not a convergence proof for
+the coupled algorithm.
 
 \end{enumerate}
 

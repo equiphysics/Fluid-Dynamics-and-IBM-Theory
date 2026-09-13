@@ -17,7 +17,7 @@
 
 % === Title ===
 \title{\vspace{-2em}\textbf{Applied Mathematics Oral Exam Questions and Model Answers}\\
-\large From Euler to Navier--Stokes}
+\large Solid Mechanics Fundamentals}
 \author{Prepared for Graduate Oral Examination}
 \date{}
 
@@ -28,10 +28,11 @@
 \subsection*{1. What is stress, and how is it defined in 1D and 3D?}
 
 \textbf{Answer.}
-In 1D, stress is defined as force per area:
+For a uniform bar under axial loading, the nominal normal stress is the applied force $F_{\text{applied}}$ divided by the original cross-sectional area $A$:
 \[
-\sigma = \frac{F}{A}.
+\sigma = \frac{F_{\text{applied}}}{A}.
 \]
+(Here $F_{\text{applied}}$ is a scalar force; the symbol $\mathbf F_{\chi}$ is reserved for the deformation gradient in the questions below.)
 
 
 In 3D, stress becomes a \textbf{second-order tensor} whose components 
@@ -45,24 +46,20 @@ normal in the $j$-direction. Stress in 3D is written as
 \sigma_{31} & \sigma_{32} & \sigma_{33}
 \end{bmatrix}.
 \]
-This tensorial formulation is necessary because real materials experience 
-forces in multiple directions simultaneously.
+More generally, Cauchy's traction law is $\mathbf t(\mathbf n)=\boldsymbol\sigma\mathbf n$. The tensor is needed because the force per area depends on the orientation of the surface through its normal $\mathbf n$.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection*{2. What is strain, and what does it measure?}
 
 \textbf{Answer.}
-Strain measures deformation:
+The engineering strain of a uniformly stretched bar is
 \[
 \epsilon = \frac{\Delta L}{L_0}
 \]
 
 
-In multiple dimensions, strain is also a tensor reflecting how material
-line elements deform along and across coordinate directions.  
-The full strain tensor is used to capture shear, normal extension,
-and multidimensional changes in shape.
+for small or moderate axial extension. In several dimensions there is no single strain tensor for every regime. The infinitesimal strain $\boldsymbol\varepsilon=\tfrac12(\nabla\mathbf u+\nabla\mathbf u^T)$ is appropriate for small deformation, whereas finite-deformation models commonly use the deformation gradient $\mathbf F_{\chi}=\nabla_X\boldsymbol\chi$ and objective measures such as $\mathbf E=\tfrac12(\mathbf F_{\chi}^T\mathbf F_{\chi}-\mathbf I)$. A proper strain measure records extension and shear while excluding rigid-body rotation.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -73,44 +70,40 @@ In 1D, Hooke’s law is
 \[
 \sigma = E \epsilon,
 \]
-where $E$ is the Young’s modulus (p.~9–10).
+where $E$ is the Young’s modulus.
+
+This is a linear, small-strain constitutive law. In three-dimensional isotropic linear elasticity, stress depends on the full strain tensor through two independent elastic constants; the scalar relation $\sigma=E\epsilon$ applies to a uniaxial test under the corresponding lateral conditions.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection*{4. What types of stress are shown in the tutorial, and why do they matter in biomechanics?}
 
 \textbf{Answer.}
-
-
 In biomechanics:
 \begin{itemize}
     \item \textbf{Tensile}: ligaments and tendons (stretching).
     \item \textbf{Compressive}: bone and cartilage (weight-bearing).
     \item \textbf{Shear}: tissue sliding, muscle layers, arterial walls.
 \end{itemize}
-IBFE simulations often must capture all three simultaneously, especially
-for biological soft tissues which experience shear and tension together.
+These are loading modes rather than three different mathematical stress objects: a single stress tensor may contain tensile, compressive, and shear components. IBFE simulations often capture them simultaneously, especially in soft tissues subjected to combined loading.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection*{5. Define traction and explain how it differs from pressure.}
 
 \textbf{Answer.}
-Traction is the force per unit area acting on a surface with a specified
-
-It may include normal and tangential components.
-
-Pressure is always normal to the surface, whereas traction may have 
-shear components.  
-In IBFE, the traction from the fluid onto the solid determines the
-boundary loading on the Lagrangian solid mesh.
+For a surface with unit normal $\mathbf n$, traction is the force per unit current area
+\[
+\mathbf t(\mathbf n)=\boldsymbol\sigma\mathbf n.
+\]
+It may have both normal and tangential components. Pressure is a scalar; the isotropic pressure part of the Cauchy stress is $-p\mathbf I$ and therefore contributes traction $-p\mathbf n$. Viscous or elastic stresses can add normal and shear traction. In IBFE, one must also distinguish current-area traction from the reference-area traction $\mathbf P\mathbf N$ associated with the first Piola--Kirchhoff stress.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection*{6. What are the three main types of mechanical loading shown in the tutorial?}
 
 \textbf{Answer.}
-
+The tutorial uses three canonical loading modes:
 
 \begin{itemize}
     \item \textbf{Axial}: produces uniform tensile or compressive stress.
@@ -125,10 +118,11 @@ experience all of these depending on fluid forces and constraints.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection*{7. Describe Young’s modulus, Poisson’s ratio, and yield strength.}
 
-
+\textbf{Answer.}
+The three quantities are defined as follows.
 \begin{itemize}
     \item \textbf{Young's modulus $E$}: stiffness; slope of linear portion of the stress–strain curve.
-    \item \textbf{Poisson ratio $\nu$}: ratio of lateral to axial strain,
+    \item \textbf{Poisson's ratio $\nu$}: negative ratio of lateral to axial strain in a uniaxial small-strain test,
     \[
     \nu = -\epsilon_{\text{lateral}}/\epsilon_{\text{axial}}.
     \]
@@ -138,8 +132,8 @@ experience all of these depending on fluid forces and constraints.
 In IBFE:
 \begin{itemize}
     \item $E$ determines stiffness of structural elements and time-step limits.
-    \item $\nu$ governs incompressibility; many biological tissues have $\nu \approx 0.45$–0.49.
-    \item $\sigma_y$ is important when modeling non-linear or viscoplastic materials.
+    \item many soft biological tissues have $\nu \approx 0.45$--$0.49$ (nearly incompressible); values of $\nu$ near $0.5$ indicate a nearly incompressible isotropic linear response; exact incompressibility is a constraint rather than simply setting $\nu=0.5$ in a displacement-only formulation,
+    \item $\sigma_y$ is relevant only when the constitutive model includes yielding or permanent deformation.
 \end{itemize}
 
 
@@ -151,8 +145,8 @@ In IBFE:
 
 \begin{itemize}
     \item \textbf{Linear elastic}: $\sigma \propto \epsilon$; material returns to original shape.
-    \item \textbf{Nonlinear elastic}: stress–strain relation is nonlinear but reversible.
-    \item \textbf{Hyperelastic}: large deformations with a strain-energy function $W$.
+    \item \textbf{Nonlinear elastic}: stress--strain relation is nonlinear but reversible.
+    \item \textbf{Hyperelastic}: a nonlinear elastic model derived from a strain-energy density $W$; it is especially convenient for finite deformation.
     \item \textbf{Viscoelastic}: time-dependent response (creep, stress relaxation).
     \item \textbf{Viscoplastic}: time-dependent permanent deformation.
 \end{itemize}
@@ -167,12 +161,12 @@ soft tissues often require nonlinear or viscoelastic models rather than linear e
 \textbf{Answer.}
 
 \begin{enumerate}
-    \item Prescribed displacement
-    \item Pressure or traction
-    \item Mixed conditions
-    \item Body forces (e.g., gravity)
-    \item Contact between solids
-    \item Thermal or process-induced stresses
+    \item Prescribed displacement (an essential or Dirichlet condition)
+    \item Prescribed pressure or traction (a natural or Neumann condition)
+    \item Mixed displacement--traction conditions on different boundary portions
+    \item Body forces, such as gravity, included as volume loads rather than boundary conditions
+    \item Contact constraints and contact tractions between solids
+    \item Thermal strains or other process-induced loads, with matching thermal and mechanical boundary data
 \end{enumerate}
 
 IBFE uses:
@@ -205,12 +199,10 @@ In IBFE:
 \subsection*{11. How do stress and strain generalize in 3D, and why do we need tensors?}
 
 \textbf{Answer.}
-
-
-Thus:
+For finite deformation, $\mathbf F_{\chi}$ maps reference line elements to current line elements. Objective strain tensors constructed from $\mathbf F_{\chi}$, such as $\mathbf E=\tfrac12(\mathbf F_{\chi}^T\mathbf F_{\chi}-\mathbf I)$, quantify stretch and shear without treating a rigid rotation as strain. Stress tensors map a surface normal to its traction. Thus:
 \begin{itemize}
     \item Stress is a tensor describing forces acting on all possible surface orientations.
-    \item Strain is a tensor describing how material line elements stretch, shear, or rotate.
+    \item Strain is a tensor describing how material line elements stretch and shear; rigid-body rotation is represented by the motion or deformation gradient, not by an objective strain measure.
 \end{itemize}
 
 Tensors allow:

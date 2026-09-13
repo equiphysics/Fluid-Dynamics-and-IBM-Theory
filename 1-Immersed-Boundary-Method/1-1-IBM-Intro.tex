@@ -1,457 +1,620 @@
-\documentclass{beamer}
+% =====================================================================
+% IBFE Tutorials: motivation for the immersed boundary method
+% =====================================================================
+\documentclass[aspectratio=169,11pt]{beamer}
 
+% Match the visual language of the SIAM Waves talk.
+\usetheme{Boadilla}
+\usecolortheme{seahorse}
+\useinnertheme{rectangles}
+\useoutertheme{infolines}
+
+\setbeamercolor{structure}{fg=blue!55!black}
+\setbeamercolor{title}{fg=white,bg=blue!55!black}
+\setbeamercolor{frametitle}{fg=blue!55!black}
+\setbeamercolor{block title}{bg=blue!12,fg=blue!55!black}
+\setbeamercolor{block body}{bg=blue!4}
+\setbeamertemplate{navigation symbols}{}
+\setbeamerfont{frametitle}{series=\bfseries,size=\large}
+\setbeamerfont{title}{series=\bfseries,size=\Large}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\DeclareFontShape{T1}{cmss}{b}{n}{<->ssub*cmss/bx/n}{}
 \usepackage{graphicx}
-\usepackage{amsmath}
+\usepackage{amsmath,amssymb,bm}
+\usepackage{booktabs,tabularx,array}
+\usepackage{xcolor}
+\usepackage{tcolorbox}
+\tcbuselibrary{skins}
+\usepackage{hyperref}
 
-\title{Motivation for the Immersed Boundary Method}
-\author{Laura Miller}
-\date{\today}
+\graphicspath{{../pictures/}{pictures/}}
+\hypersetup{colorlinks=true,urlcolor=blue!55!black}
+
+\newcommand{\hi}[1]{\textcolor{blue!55!black}{\textbf{#1}}}
+\newcommand{\warn}[1]{\textcolor{red!70!black}{\textbf{#1}}}
+\newcommand{\soft}[1]{\textcolor{gray!50!black}{#1}}
+\newcommand{\xvec}{\bm{x}}
+\newcommand{\uvec}{\bm{u}}
+\newcommand{\Xvec}{\bm{X}}
+\newcommand{\Fvec}{\bm{F}}
+\newcommand{\fvec}{\bm{f}}
+\newcommand{\Uvec}{\bm{U}}
+\newcommand{\jump}[1]{\left[\!\left[#1\right]\!\right]}
+
+\newtcolorbox{punchbox}{
+  enhanced,
+  colback=blue!4,
+  colframe=blue!55!black,
+  boxrule=0.6pt,
+  arc=2pt,
+  left=4pt,right=4pt,top=3pt,bottom=3pt
+}
+
+\title[Immersed boundary method]{Motivation for the immersed boundary method}
+\subtitle{Classical Peskin formulation, tradeoffs, and method selection}
+\author[Miller]{Laura A. Miller}
+\institute[UArizona]{Department of Mathematics, University of Arizona}
+\date{}
 
 \begin{document}
 
-\frame{\titlepage}
-
-\begin{frame}{Resources}
-  \begin{itemize}
-    \item \href{https://www.youtube.com/watch?v=PJyQA0vwbgU}{Resource 1: Introduction to IBM by Nick Battista}
-    \item \href{https://drive.google.com/drive/folders/1G2bkEsv2Jz_R7165a5BqPbW4dU2hXBHb?usp=sharing}{Resource 2: Matea Santiago's lectures on IBM (mostly related to discretization)}
-  \end{itemize}
+% ----- 1. Title -----
+\begin{frame}[plain]
+  \begin{beamercolorbox}[sep=10pt,center]{title}
+    {\bfseries\Large Motivation for the immersed boundary method}\\[3pt]
+    {\normalsize Classical Peskin formulation, tradeoffs, and method selection}
+  \end{beamercolorbox}
+  \vspace{1.1em}
+  \begin{columns}[T,onlytextwidth]
+  \begin{column}{0.48\textwidth}
+    \textbf{\large Laura A. Miller}\\[4pt]
+    Department of Mathematics\\
+    University of Arizona\\[14pt]
+    {\small IBFE Tutorials}
+  \end{column}
+  \begin{column}{0.52\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{ImmersedBoundary_grid2.png}\\[2pt]
+    {\scriptsize Schematic after the Wikimedia Commons figure \emph{ImmersedBoundary grid} (Immersed boundary method article).}
+  \end{column}
+  \end{columns}
+  \vfill
+  \centering{\tiny\color{black!55}AI tools were used to assist with formatting, organization, and clarification of the instructor's original notes.}
 \end{frame}
 
-\begin{frame}{What is the Immersed Boundary Method?}
-    \begin{itemize}
-        \item The immersed boundary method is a computational approach for simulating fluid-structure interaction (FSI) problems.
-        \item It was originally developed by Charlie Peskin in the 1970s to study the flow of blood in the heart.
-        \item The method uses a Lagrangian description of the immersed structure (e.g., a heart valve) and an Eulerian description of the fluid (e.g., blood).
-    \end{itemize}
-\end{frame}
-
-\begin{frame}{Applications of the Immersed Boundary Method}
-\footnotesize
-The immersed boundary (IB) method has been applied to a wide range of
-fluid--structure interaction (FSI) problems where flexible or moving
-structures interact with a viscous fluid.
-
-\medskip
-\textbf{Classical and biological applications:}
-\begin{itemize}
-    \item Blood flow in the heart and vasculature (valves, chambers, embryonic hearts)
-    \item Swimming and propulsion of fish, jellyfish, and microorganisms
-    \item Cilia- and flagella-driven flows
-    \item Respiratory flows involving flexible airways
+% ----- 2. Definition -----
+\begin{frame}{What is the immersed boundary method?}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.53\textwidth}
+The immersed boundary (IB) method is a computational framework for fluid--structure interaction in which
+\begin{itemize}\itemsep6pt
+  \item fluid momentum is described on a fixed \hi{Eulerian} grid;
+  \item structure position and mechanics are described with moving \hi{Lagrangian} coordinates;
+  \item integral transforms transfer force to the fluid and velocity back to the structure.
 \end{itemize}
-
-\medskip
-\textbf{Engineering and physical systems:}
-\begin{itemize}
-    \item Flapping flags, membranes, and flexible beams
-    \item Flow-induced vibrations of elastic structures
-    \item Mixing and transport driven by moving boundaries
-\end{itemize}
-
-\medskip
-\textbf{Emerging and interdisciplinary applications:}
-\begin{itemize}
-    \item Soft robotics and bio-inspired propulsion
-    \item Tissue--fluid interactions and mechanobiology
-    \item Porous and compliant surfaces in turbulent flows
-\end{itemize}
-
-\end{frame}
-
-\begin{frame}{Advantages and Disadvantages of the IB Method}
+\end{column}
+\begin{column}{0.43\textwidth}
+\begin{punchbox}
+\centering
 \small
-
-\textbf{Advantages:}
-\begin{itemize}
-    \item Handles complex, moving, and highly deformable geometries
-    \item Avoids remeshing by using a fixed Cartesian fluid grid
-    \item Naturally accommodates large structural deformations
-    \item Unified framework for fibers, surfaces, and solids
-    \item Well-suited for biological and soft-matter systems
-\end{itemize}
-
-\medskip
-\textbf{Disadvantages and challenges:}
-\begin{itemize}
-    \item Interface is smeared over a few grid cells (limited sharpness)
-    \item Time-step restrictions for stiff elastic forces
-    \item Numerical slip at the fluid--structure interface
-    \item Higher computational cost than rigid-boundary solvers
-\end{itemize}
-
-\medskip
-\textbf{Important note:}
-Many of these limitations have motivated modern extensions such as
-implicit coupling, adaptive mesh refinement, and finite-element
-immersed boundary methods.
-\end{frame}
-
-\begin{frame}{Key Idea of the Immersed Boundary Method}
-\small
-
-The immersed boundary method models fluid--structure interaction
-by coupling a fluid solver with a force-based representation
-of the immersed structure.
-
-\medskip
-\textbf{Core concepts:}
-\begin{itemize}
-    \item The fluid is solved on a fixed Eulerian grid
-    \item The structure is represented by Lagrangian points or elements
-    \item Structural forces are computed from elasticity or constitutive laws
-    \item These forces are spread to the fluid as body forces
-    \item The fluid velocity is interpolated back to move the structure
-\end{itemize}
-
-\medskip
-\textbf{Physical interpretation:}
-\begin{itemize}
-    \item The structure influences the fluid through localized forces
-    \item The fluid transports and deforms the structure
-    \item No explicit boundary tracking is required
-\end{itemize}
-
-\medskip
-\textbf{In essence:}
 \[
-\text{Fluid dynamics} \;\;+\;\; \text{elastic forces} \;\;\Rightarrow\;\; \text{coupled motion}
+\begin{gathered}
+\text{structure force}\xrightarrow{\;S\;}\text{fluid force},\\[3pt]
+\text{fluid velocity}\xrightarrow{\;J\;}\text{structure motion}.
+\end{gathered}
 \]
+{\scriptsize The spreading operator $S$ and the interpolation operator $J$ are defined below.}
+\end{punchbox}
+\medskip
+\small Introduced by Charles S. Peskin for cardiac fluid dynamics, the framework now supports many thin-boundary and volumetric FSI models.
+\end{column}
+\end{columns}
 \end{frame}
 
-\begin{frame}{What the Immersed Boundary Method Is (and Is Not)}
-\small
-
-\textbf{What IBM \emph{is}:}
-\begin{itemize}
-    \item A \emph{force-based} formulation of fluid--structure interaction
-    \item A method that couples Lagrangian structures to an Eulerian fluid
-          through integral transforms
-    \item A framework that enforces kinematic constraints \emph{weakly}
-          via regularized delta functions
+% ----- 2. Motivation -----
+\begin{frame}{Why use an immersed formulation?}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.50\textwidth}
+\textbf{Body-fitted fluid meshes}
+\begin{itemize}\itemsep5pt
+  \item conform to the moving fluid--structure interface;
+  \item can resolve interfacial flow and stress sharply;
+  \item may require mesh smoothing or remeshing when motion, deformation, or contact degrades mesh quality.
 \end{itemize}
-
-\medskip
-
-\textbf{What IBM \emph{is not}:}
-\begin{itemize}
-    \item Not a sharp-interface or body-fitted method
-    \item Not a pointwise enforcement of no-slip boundary conditions
-    \item Not restricted to small deformations or simple geometries
-    \item Not ignoring stresses or elasticity (these are encoded in the
-          Lagrangian force density)
+\end{column}
+\begin{column}{0.50\textwidth}
+\textbf{The immersed alternative}
+\begin{itemize}\itemsep5pt
+  \item keeps the Eulerian fluid grid fixed;
+  \item moves a nonconforming Lagrangian representation of the structure through that grid;
+  \item couples the two descriptions by transferring force and velocity.
 \end{itemize}
-
+\end{column}
+\end{columns}
 \medskip
-
-\textbf{Key perspective:}  
-IBM trades sharp geometric resolution for robustness, simplicity, and
-the ability to handle large, complex motions.
-
+\begin{punchbox}
+\small Geometric flexibility comes from the nonconforming fluid and structure descriptions. The Lagrangian structure is still tracked explicitly.
+\end{punchbox}
 \end{frame}
 
-\begin{frame}{When Is the Immersed Boundary Method a Good Choice?}
-\small
+% ----- 3. Scope and history -----
+\begin{frame}{The classical Peskin IB method}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.43\textwidth}
+\centering
+\includegraphics[width=0.72\linewidth]{ImmersedBoundary_grid.png}
 
-The immersed boundary method is particularly effective when:
-\begin{itemize}
-    \item The structure undergoes large deformations or topological changes
-    \item The geometry is complex or time-dependent
-    \item Exact enforcement of sharp boundaries is less critical than robustness
-    \item The physics is dominated by viscous or moderately inertial flows
+{\scriptsize Blue: fixed Eulerian grid. Orange: moving Lagrangian points.
+Schematic after the Wikimedia Commons figure \emph{ImmersedBoundary grid} (Immersed boundary method article).}
+\end{column}
+\begin{column}{0.57\textwidth}
+\begin{itemize}\itemsep5pt
+  \item Charles S. Peskin introduced the method to study flow around heart valves in the 1970s.
+  \item The classical formulation couples an elastic boundary to a viscous incompressible fluid.
+  \item Velocity, pressure, and momentum use an \hi{Eulerian} description. Structure position and elasticity use a \hi{Lagrangian} description.
+  \item Later IB extensions treat volumetric solids, active materials, prescribed motion, and constrained rigid bodies.
 \end{itemize}
-
-\medskip
-It is less well-suited for:
-\begin{itemize}
-    \item Very high Reynolds number flows with thin boundary layers
-    \item Problems requiring exact stress resolution at sharp interfaces
-\end{itemize}
+\smallskip
+\soft{Applications include cardiac flow, cilia and flagella, animal locomotion, flexible beams, and membranes.}
+\end{column}
+\end{columns}
+\vfill
+{\scriptsize Peskin, \emph{Acta Numerica} 11 (2002); Griffith and Patankar, \emph{Annu. Rev. Fluid Mech.} 52 (2020).}
 \end{frame}
 
-\begin{frame}{Accuracy and Weak Enforcement of Boundary Conditions}
-\small
-
-In the immersed boundary method, boundary conditions are enforced
-\emph{weakly} rather than pointwise.
-
-\medskip
-
-\textbf{Consequences:}
-\begin{itemize}
-    \item Velocity is continuous across the immersed structure
-    \item Pressure and stress may be discontinuous
-    \item No-slip is satisfied in an averaged (integral) sense
+% ----- Applications -----
+\begin{frame}{Representative applications}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.49\textwidth}
+\hi{Biological fluid mechanics}
+\begin{itemize}\itemsep5pt
+  \item heart valves, chambers, and vascular flow;
+  \item cilia- and flagella-driven transport;
+  \item swimming by fish, jellyfish, and microorganisms;
+  \item flexible airways and tissue--fluid interaction.
 \end{itemize}
-
-\medskip
-
-\textbf{Accuracy depends on:}
-\begin{itemize}
-    \item Eulerian grid spacing $h$
-    \item Lagrangian mesh spacing
-    \item Smoothness and support of the regularized delta function
+\end{column}
+\begin{column}{0.49\textwidth}
+\hi{Engineering and soft matter}
+\begin{itemize}\itemsep5pt
+  \item flapping flags, membranes, and beams;
+  \item flow-induced vibration and mixing;
+  \item bio-inspired propulsion and soft robotics;
+  \item compliant or porous surfaces, with extensions tailored to the required physics.
 \end{itemize}
-
-\medskip
-
-As $h \rightarrow 0$ and the Lagrangian discretization is refined,
-the regularized formulation converges to the continuum IB equations.
-
-\medskip
-
-\textbf{Interpretation:}  
-IBM prioritizes stability and robustness over sharp interface resolution,
-which is often appropriate for soft, moving, or biological structures.
-
+\end{column}
+\end{columns}
+\begin{punchbox}
+\small The common feature is not a single Reynolds-number regime; it is a moving or deforming interface that benefits from a nonconforming fluid grid.
+\end{punchbox}
 \end{frame}
 
-\begin{frame}{Common Failure Modes and Practical Pitfalls}
-\small
-
-While robust, the immersed boundary method has several common pitfalls.
-
-\medskip
-
-\textbf{Discretization issues:}
-\begin{itemize}
-    \item Lagrangian spacing too coarse $\Rightarrow$ force leakage
-    \item Lagrangian spacing too fine $\Rightarrow$ stiff force response
-    \item Mismatch between Eulerian and Lagrangian resolutions
+% ----- Scope -----
+\begin{frame}{What the classical IB method is---and is not}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.49\textwidth}
+\textbf{It is}
+\begin{itemize}\itemsep6pt
+  \item a force-based FSI formulation;
+  \item an Eulerian--Lagrangian coupling framework;
+  \item a method whose standard discretization uses a regularized delta kernel;
+  \item compatible with large structural motion.
 \end{itemize}
-
-\medskip
-
-\textbf{Kernel-related issues:}
-\begin{itemize}
-    \item Using different kernels for spreading and interpolation
-    \item Kernels that violate moment conditions
-    \item Insufficient smoothness leading to grid-scale noise
+\end{column}
+\begin{column}{0.49\textwidth}
+\textbf{It is not}
+\begin{itemize}\itemsep6pt
+  \item a body-fitted or intrinsically sharp-interface method;
+  \item a method that discards elasticity or stress;
+  \item automatically topology changing---the structural representation must model any change;
+  \item restricted to one constitutive law.
 \end{itemize}
-
-\medskip
-
-\textbf{Time-stepping issues:}
-\begin{itemize}
-    \item Explicit treatment of stiff elastic forces
-    \item Severe time-step restrictions for strong elasticity
-\end{itemize}
-
-\medskip
-
-\textbf{Takeaway:}  
-Many IBM failures are not conceptual—they arise from inconsistent
-discretization choices.
-
+\end{column}
+\end{columns}
+\begin{punchbox}
+\small At the continuum level no slip is pointwise. ``Weak enforcement'' describes the regularized discrete interaction, not the singular continuum equations.
+\end{punchbox}
 \end{frame}
 
-
-\begin{frame}{Immersed Boundary Method vs.\ Other FSI Approaches}
-
-\small
-Fluid--structure interaction problems can be approached in several ways,
-depending on geometry, deformation, and accuracy requirements.
-
-\tiny
-\medskip
-\begin{center}
-\begin{tabular}{l|c|c|c}
-\textbf{Method} & \textbf{Geometry Handling} & \textbf{Deformation} & \textbf{Interface} \\
-\hline
-\textbf{Immersed Boundary (IB)} 
-& Fixed Cartesian grid 
-& Large, complex 
-& Diffuse (regularized) \\
-\textbf{ALE / Body-Fitted Mesh} 
-& Moving, fitted mesh 
-& Small--moderate 
-& Sharp \\
-\textbf{Immersed Interface / Ghost Fluid} 
-& Fixed grid 
-& Small--moderate 
-& Sharp \\
-\textbf{Fictitious Domain / Penalization} 
-& Fixed grid 
-& Moderate 
-& Diffuse or penalized \\
-\end{tabular}
-\end{center}
-
-\small
-\medskip
-\textbf{Key tradeoffs:}
-\begin{itemize}
-    \item IB prioritizes robustness and geometric flexibility over sharp interface resolution
-    \item Body-fitted methods offer higher accuracy near interfaces but require remeshing
-    \item Sharp-interface immersed methods improve accuracy but are harder to implement
-\end{itemize}
-
-\medskip
-\textbf{Bottom line:} IB excels when geometry moves and deforms more than accuracy demands sharp boundaries.
-\end{frame}
-
-\begin{frame}{Grid-Fitted (Body-Fitted) FSI Methods: Accuracy vs.\ Cost}
-\small
-
-In grid-fitted (or body-fitted) FSI methods, the computational mesh
-conforms exactly to the fluid--structure interface.
-
-\medskip
-\textbf{Key features:}
-\begin{itemize}
-    \item Fluid mesh aligns with the structure boundary
-    \item Sharp enforcement of boundary conditions (no-slip, traction continuity)
-    \item High accuracy near the interface
-\end{itemize}
-
-\medskip
-\textbf{Typical approaches:}
-\begin{itemize}
-    \item Arbitrary Lagrangian--Eulerian (ALE) methods
-    \item Moving mesh finite element / finite volume methods
-    \item Coupled fluid--solid solvers with interface matching
-\end{itemize}
-\end{frame}
-
-\begin{frame}{Grid-Fitted FSI Methods}
-\textbf{Primary costs and challenges:}
-\begin{itemize}
-    \item Mesh deformation and distortion as the structure moves
-    \item Frequent remeshing for large deformations
-    \item Complex data transfer between fluid and solid solvers
-    \item High implementation and maintenance complexity
-\end{itemize}
-
-\medskip
-\textbf{Bottom line:}
+% ----- 4. Continuum coupling -----
+\begin{frame}{Continuum force and velocity coupling}
+Let $q\in\mathcal U$ label a material point and let $\Xvec(q,t)$ be its position in the fluid domain $\Omega$.
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.50\textwidth}
+\textbf{Spread structural force to the fluid}
 \[
-\text{Grid-fitted methods trade geometric flexibility for interface accuracy.}
+  \fvec(\xvec,t)
+  =\int_{\mathcal U}\Fvec(q,t)\,
+  \delta\!\left(\xvec-\Xvec(q,t)\right)\,dq.
 \]
-
-They are most effective when:
-\begin{itemize}
-    \item Deformations are small to moderate
-    \item Interface accuracy is critical
-    \item Geometry changes are limited or predictable
-\end{itemize}
-
-\end{frame}
-
-\begin{frame}{The Immersed Interface Method (IIM)}
-\footnotesize
-
-The immersed interface method is a fixed-grid approach for
-fluid--structure interaction and multiphase flows with \textbf{sharp interfaces}.
-
-\medskip
-\textbf{Core idea:}
-\begin{itemize}
-    \item Use a Cartesian Eulerian grid (no body-fitted mesh)
-    \item Represent the interface explicitly (often via level sets or marker points)
-    \item Modify finite difference stencils near the interface to enforce jump conditions
-\end{itemize}
-
-\medskip
-\textbf{Key distinction from IBM:}
-\begin{itemize}
-    \item IBM spreads forces using regularized delta functions
-    \item IIM enforces \emph{exact jump conditions} across the interface
-\end{itemize}
-
-\medskip
-\textbf{Typical jump conditions enforced:}
-\begin{itemize}
-    \item Velocity continuity
-    \item Discontinuous pressure
-    \item Discontinuous stress proportional to interface forces
-\end{itemize}
-
-\medskip
-\textbf{Result:} Sharp interface representation on a fixed grid.
-
-\end{frame}
-
-\begin{frame}{Immersed Interface Method: Strengths and Tradeoffs}
-\footnotesize
-
-\textbf{Advantages:}
-\begin{itemize}
-    \item Sharp resolution of interfaces (no numerical smearing)
-    \item Higher accuracy near boundaries than regularized IB
-    \item Exact enforcement of jump conditions
-    \item Fixed Cartesian grid (no remeshing)
-\end{itemize}
-
-\medskip
-\textbf{Costs and limitations:}
-\begin{itemize}
-    \item Complex implementation
-    \item Requires analytic expressions for jump conditions
-    \item Difficult for large deformations or topological changes
-    \item Less flexible for highly elastic or active structures
-\end{itemize}
-
-\medskip
-\textbf{Best suited for:}
-\begin{itemize}
-    \item Interfaces with known physics and jump conditions
-    \item Problems requiring high accuracy near boundaries
-    \item Moderate interface motion without severe distortion
-\end{itemize}
-
-\medskip
-\textbf{Contrast with IBM:}
+$\Fvec$ is a force density per unit material measure. The Dirac distribution places that force at the current structure location.
+\end{column}
+\begin{column}{0.50\textwidth}
+\textbf{Interpolate fluid velocity to the structure}
 \[
-\text{IIM prioritizes interface accuracy; IBM prioritizes robustness and flexibility.}
+  \Uvec(q,t)=\frac{\partial\Xvec}{\partial t}
+  =\int_{\Omega}\uvec(\xvec,t)\,
+  \delta\!\left(\xvec-\Xvec(q,t)\right)\,d\xvec.
 \]
-
+For continuous $\uvec$, the Dirac identity gives
+\[
+  \frac{\partial\Xvec}{\partial t}(q,t)
+  =\uvec\!\left(\Xvec(q,t),t\right).
+\]
+\end{column}
+\end{columns}
+\begin{punchbox}
+\small At the continuum level, the kinematic equation imposes pointwise no slip on an impermeable material interface. It is not merely an averaged boundary condition.
+\end{punchbox}
 \end{frame}
 
-\begin{frame}{A Major Practical Advantage: Open-Source IBM Software}
+% ----- 5. Discrete coupling -----
+\begin{frame}{The standard discrete IB coupling}
+The numerical method replaces $\delta$ by a regularized kernel $\delta_h$ whose support is a few Eulerian grid cells wide:
+\[
+  \fvec_h=S_h\Fvec_h,
+  \qquad
+  \Uvec_h=J_h\uvec_h.
+\]
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.52\textwidth}
+\begin{itemize}\itemsep3pt
+  \item $S_h$ spreads Lagrangian forces to nearby grid points.
+  \item $J_h$ interpolates grid velocity to Lagrangian interaction points.
+  \item Kernel support and moment conditions control smoothness, localization, and grid dependence.
+\end{itemize}
+\end{column}
+\begin{column}{0.48\textwidth}
+Choose $J_h$ as the weighted discrete adjoint of $S_h$ so that the transferred power is consistent:
+\[
+  \left\langle \uvec_h,S_h\Fvec_h\right\rangle_E
+  =
+  \left\langle J_h\uvec_h,\Fvec_h\right\rangle_L.
+\]
+\end{column}
+\end{columns}
+\begin{punchbox}
+\small Regularization spreads a singular force layer and associated jump fields over $O(h)$. The Lagrangian boundary itself remains explicitly represented.
+\end{punchbox}
+\end{frame}
+
+% ----- 6. Strengths and limitations -----
+\begin{frame}{What regularized IB coupling buys and costs}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.50\textwidth}
+\textbf{Strengths}
+\begin{itemize}\itemsep5pt
+  \item No body-conforming fluid mesh or fluid-grid remeshing
+  \item Large structural motion and deformation
+  \item Thin immersed boundaries and transient contact
+  \item Efficient Cartesian-grid solvers and adaptive mesh refinement
+  \item Fiber, surface, and volumetric structural models
+\end{itemize}
+\end{column}
+\begin{column}{0.50\textwidth}
+\textbf{Numerical challenges}
+\begin{itemize}\itemsep5pt
+  \item Pressure and traction jumps are smoothed at finite $h$
+  \item Interfacial forces and stresses may converge slowly
+  \item Coarse interaction-point spacing can cause leakage or volume error
+  \item Stiff elastic forces can severely restrict explicit time steps
+\end{itemize}
+\end{column}
+\end{columns}
+\medskip
+\soft{AMR targets spatial resolution. Implicit or semi-implicit coupling targets stiffness. Sharp-interface corrections target jump accuracy. Finite-element structure models broaden constitutive and geometric choices.}
+\end{frame}
+
+% ----- Accuracy -----
+\begin{frame}{Accuracy and regularized boundary coupling}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.50\textwidth}
+At finite grid spacing, \(\delta_h\) averages information across a stencil several cells wide.
+\begin{itemize}\itemsep5pt
+  \item The interpolated velocity need not equal the pointwise trace of a sharply resolved field.
+  \item Pressure and stress jumps are represented over an \(O(h)\) layer.
+  \item Kernel moments, support, and smoothness influence conservation and grid dependence.
+\end{itemize}
+\end{column}
+\begin{column}{0.48\textwidth}
+\begin{punchbox}
+\small Accuracy depends jointly on
+\[
+h,\qquad \Delta s\ \text{or quadrature density},\qquad \Delta t,
+\]
+the fluid solver, the structural discretization, and solution regularity.
+\end{punchbox}
+\medskip
+\small A refinement study must vary every resolution that controls the coupled approximation.
+\end{column}
+\end{columns}
+\end{frame}
+
+% ----- Failure modes -----
+\begin{frame}{Common failure modes and practical checks}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.49\textwidth}
+\textbf{Interaction resolution}
+\begin{itemize}\itemsep5pt
+  \item Interaction points too far apart can leak.
+  \item A very fine structural mesh may add stiffness or poor conditioning without improving the fluid resolution.
+  \item Different spreading and interpolation kernels break the usual adjoint power identity.
+\end{itemize}
+\end{column}
+\begin{column}{0.49\textwidth}
+\textbf{Time integration and verification}
+\begin{itemize}\itemsep5pt
+  \item Explicit elastic forces can impose severe time-step limits.
+  \item Monitor volume, deformation, net force, and transferred power separately.
+  \item Refine Eulerian, Lagrangian, quadrature, and temporal resolutions systematically.
+\end{itemize}
+\end{column}
+\end{columns}
+\begin{punchbox}
+\small Many apparent ``IB failures'' are mismatches among the grid, interaction points, kernel, and time integrator rather than failures of the continuum formulation.
+\end{punchbox}
+\end{frame}
+
+% ----- 7. Method selection -----
+\begin{frame}{When is classical IB a good choice?}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.50\textwidth}
+\textbf{Strong fit}
+\begin{itemize}\itemsep5pt
+  \item Large or complicated structural motion
+  \item Thin, flexible, or actively deforming structures
+  \item Transient contact without a body-fitted fluid mesh
+  \item Quantities of interest that tolerate regularized interfacial fields
+\end{itemize}
+\end{column}
+\begin{column}{0.50\textwidth}
+\textbf{Requires special care}
+\begin{itemize}\itemsep5pt
+  \item Pointwise tractions or high-order interface stresses
+  \item Thin high-Reynolds-number boundary layers
+  \item Nearly rigid constraints or severe stiffness
+  \item Tearing, merging, or reconnection, which require an explicit topology model
+\end{itemize}
+\end{column}
+\end{columns}
+\begin{punchbox}
+\small High Reynolds number is not a formal exclusion. Published immersed FSI examples reach $\mathrm{Re}\approx 2\times10^4$, but thin shear layers and turbulence still require adequate resolution and modeling.
+\end{punchbox}
+{\scriptsize Griffith and Patankar, \emph{Annu. Rev. Fluid Mech.} 52 (2020).}
+\end{frame}
+
+% ----- 8. Numerical practice -----
+\begin{frame}{Discretization and convergence checklist}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.50\textwidth}
+\textbf{Interaction geometry}
+\begin{itemize}\itemsep5pt
+  \item Resolve the structure with enough Lagrangian interaction points or quadrature points relative to $h$.
+  \item Coarse nodal coupling can leak. Excessively fine structural meshes add cost and may worsen stiffness or conditioning.
+  \item Preserve weighted adjointness between spreading and interpolation.
+\end{itemize}
+\end{column}
+\begin{column}{0.50\textwidth}
+\textbf{Verification}
+\begin{itemize}\itemsep5pt
+  \item Refine $h$, the Lagrangian discretization or quadrature, and $\Delta t$ consistently.
+  \item Check velocity, deformation, volume, loads, and energy transfer separately.
+  \item Use an implicit or semi-implicit treatment when elastic stiffness controls stability.
+\end{itemize}
+\end{column}
+\end{columns}
+\begin{punchbox}
+\small If the support of $\delta_h$ scales with $h$ and the coupled scheme is stable and consistent, refinement recovers the singular IB formulation. Convergence rates depend on solution regularity; standard regularized methods are often only first order near stress jumps.
+\end{punchbox}
+{\scriptsize Peskin (2002); Griffith and Patankar (2020); Griffith and Luo (2017).}
+\end{frame}
+
+% ----- Body-fitted methods -----
+\begin{frame}{Body-fitted FSI: why conforming meshes are attractive}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.50\textwidth}
+A body-fitted fluid mesh conforms to the moving interface.
+\begin{itemize}\itemsep6pt
+  \item Boundary conditions and traction continuity can be imposed on the represented surface.
+  \item Boundary layers and interfacial stresses can be resolved without regularized smearing.
+  \item ALE, moving-mesh finite element, and moving-mesh finite volume schemes are common examples.
+\end{itemize}
+\end{column}
+\begin{column}{0.46\textwidth}
+\begin{punchbox}
+\centering
+\textbf{Geometric bargain}\\[5pt]
+sharp, conforming interface
+\[
+\Updownarrow
+\]
+fluid-mesh motion and quality control
+\end{punchbox}
+\end{column}
+\end{columns}
+\end{frame}
+
+% ----- Body-fitted costs -----
+\begin{frame}{Body-fitted FSI: cost under large motion}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.50\textwidth}
+\textbf{Typical numerical work}
+\begin{itemize}\itemsep6pt
+  \item solve for mesh motion or smoothing;
+  \item detect distortion and remesh when needed;
+  \item transfer fields between successive meshes;
+  \item maintain coupled fluid--solid interface data structures.
+\end{itemize}
+\end{column}
+\begin{column}{0.48\textwidth}
+\textbf{Best fit}
+\begin{itemize}\itemsep6pt
+  \item interface accuracy is central;
+  \item motion remains compatible with mesh quality;
+  \item the added geometric machinery is justified by the quantities of interest.
+\end{itemize}
+\end{column}
+\end{columns}
+\begin{punchbox}
+\small Large deformation is possible in sophisticated body-fitted schemes; it is the mesh-management burden, not a universal deformation cutoff, that distinguishes the tradeoff.
+\end{punchbox}
+\end{frame}
+
+% ----- 9. Comparison -----
+\begin{frame}{Comparison with other FSI approaches}
+\footnotesize
+\renewcommand{\arraystretch}{1.28}
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{0.20\textwidth}>{\raggedright\arraybackslash}p{0.34\textwidth}>{\raggedright\arraybackslash}X@{}}
+\toprule
+\textbf{Method family} & \textbf{Fluid and interface treatment} & \textbf{Typical numerical challenge} \\
+\midrule
+Regularized IB
+& Fixed, nonconforming grid; $\delta_h$ spreading and interpolation
+& Smeared jump fields, interfacial accuracy, leakage, and stiffness \\
+\addlinespace
+ALE / body-fitted
+& Moving, boundary-conforming fluid mesh
+& Mesh quality, mesh motion, and possible remeshing under large motion \\
+\addlinespace
+Immersed interface / sharp immersed
+& Fixed grid; interface-aware jump corrections
+& Geometric reconstruction and jump-dependent stencils or solvers \\
+\addlinespace
+Fictitious domain / penalization
+& Fixed background grid; distributed constraints or penalties
+& Conditioning, penalty or modeling error, and method-specific coupling \\
+\bottomrule
+\end{tabularx}
+\medskip
+\begin{punchbox}
+\small The deformation a method can handle depends on its interface representation, mesh strategy, solver, and implementation. Small, moderate, and large are not reliable method-family labels.
+\end{punchbox}
+\end{frame}
+
+% ----- 10. IIM -----
+\begin{frame}{The immersed interface method}
 \small
-
-One of the strongest advantages of the immersed boundary method is the
-availability of mature, open-source software—including for full 3D simulations.
-
-\medskip
-
-\textbf{Well-developed open-source IBM frameworks include:}
-\begin{itemize}
-    \item \textbf{IBAMR}: large-scale, parallel 3D simulations with AMR,
-          finite differences, and finite elements
-    \item \textbf{IB2d / IB2d-reloaded}: lightweight, accessible 2D implementations
-          for research and teaching
-    \item Research codes released alongside published studies
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.52\textwidth}
+The immersed interface method (IIM) keeps a fixed Eulerian grid and incorporates analytically derived jump conditions into nearby stencils.
+\begin{itemize}\itemsep4pt
+      \item It avoids regularized smearing of jump fields.
+  \item It can improve near-interface velocity, pressure, deformation, and traction accuracy.
+  \item It adds geometry reconstruction and jump-dependent stencils or solvers.
 \end{itemize}
-
-\medskip
-
-\textbf{Why this matters:}
-\begin{itemize}
-    \item Low barrier to entry for new researchers and students
-    \item Full access to algorithms, discretizations, and solver details
-    \item Reproducibility and transparency in computational studies
-    \item Rapid prototyping of new models and coupling strategies
-\end{itemize}
-
+\end{column}
+\begin{column}{0.45\textwidth}
+Define $\jump{a}=a^+-a^-$ and take $\bm n$ from $\Omega^-$ to $\Omega^+$. If $\bm f_\Gamma$ is the interface-on-fluid force in $+\bm f_\Gamma\delta_\Gamma$, then
+\[
+  \jump{\uvec}=0,
+  \qquad
+  \jump{\bm\sigma}\bm n=-\bm f_\Gamma.
+\]
+Traction balance determines jumps in pressure and velocity derivatives. Pressure may be continuous or discontinuous, depending on the interfacial force.
+\end{column}
+\end{columns}
+\begin{punchbox}
+\small Sharp means resolving jumps without regularized smearing; it does not mean the computed solution is exact. Large or topology-changing motion still depends on the interface and geometry algorithms.
+\end{punchbox}
+{\scriptsize Li and Lai, \emph{J. Comput. Phys.} 171 (2001); Griffith and Patankar (2020).}
 \end{frame}
 
-\begin{frame}{Open Source FSI}
-
-\textbf{Contrast with many FSI methods:}
-\begin{itemize}
-    \item Grid-fitted and ALE methods often rely on proprietary solvers
-    \item Sharp-interface methods may lack robust, public 3D implementations
-    \item Significant development effort required before doing science
+% ----- IIM tradeoffs -----
+\begin{frame}{Immersed interface methods: strengths and tradeoffs}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.49\textwidth}
+\textbf{Strengths}
+\begin{itemize}\itemsep6pt
+  \item fixed background grid;
+  \item sharp representation of pressure and stress jumps;
+  \item potentially higher near-interface accuracy;
+  \item no regularized force layer in the target continuum description.
 \end{itemize}
-
-\medskip
-
-\textbf{Takeaway:}  
-IBM is not only a mathematical framework—it is a well-supported
-\emph{computational ecosystem} for 3D fluid--structure interaction.
-
+\end{column}
+\begin{column}{0.49\textwidth}
+\textbf{Added requirements}
+\begin{itemize}\itemsep6pt
+  \item interface geometry and normals;
+  \item jump conditions consistent with the physical model;
+  \item corrected stencils or specialized solvers;
+  \item robust handling of large motion and topology changes.
+\end{itemize}
+\end{column}
+\end{columns}
+\begin{punchbox}
+\small IIM prioritizes sharp jump accuracy; regularized IB prioritizes a simple, robust transfer mechanism. The right choice follows the observable and geometry.
+\end{punchbox}
 \end{frame}
 
+% ----- 11. Software and tutorials -----
+\begin{frame}{Open-source software and tutorials}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.50\textwidth}
+\textbf{IBAMR}
+\begin{itemize}\itemsep4pt
+  \item Distributed-memory C++ framework
+  \item Cartesian adaptive mesh refinement
+  \item Examples for classical IB, IBFE, constrained IB, and IIM in two and three dimensions
+\end{itemize}
+\href{https://ibamr.github.io/}{\texttt{ibamr.github.io}}
+\end{column}
+\begin{column}{0.50\textwidth}
+\textbf{IB2d}
+\begin{itemize}\itemsep4pt
+  \item MATLAB and Python implementations in two dimensions
+  \item More than 75 examples for teaching and research
+  \item Introductory video tutorials linked from the repository
+\end{itemize}
+\href{https://github.com/nickabattista/IB2d}{\texttt{github.com/nickabattista/IB2d}}
+\end{column}
+\end{columns}
+\medskip
+\begin{punchbox}
+\small \href{https://www.youtube.com/watch?v=PJyQA0vwbgU}{Nick Battista's introduction to the IB method} is the first tutorial linked by IB2d. Course-specific \href{https://drive.google.com/drive/folders/1G2bkEsv2Jz_R7165a5BqPbW4dU2hXBHb?usp=sharing}{lectures by Matea Santiago} may require Google Drive access.
+\end{punchbox}
+\end{frame}
+
+% ----- Open-source value -----
+\begin{frame}{Why the open-source ecosystem matters}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.49\textwidth}
+\textbf{For learning and verification}
+\begin{itemize}\itemsep6pt
+  \item inspect the actual spreading and interpolation operators;
+  \item reproduce benchmark problems;
+  \item compare kernels, solvers, and time integrators;
+  \item trace continuum notation into implementation.
+\end{itemize}
+\end{column}
+\begin{column}{0.49\textwidth}
+\textbf{For research}
+\begin{itemize}\itemsep6pt
+  \item prototype new constitutive or active-force models;
+  \item use tested parallel solvers and AMR infrastructure;
+  \item document algorithmic choices for reproducibility;
+  \item separate model development from low-level solver development.
+\end{itemize}
+\end{column}
+\end{columns}
+\begin{punchbox}
+\small Software availability is a practical advantage, not a mathematical accuracy claim. Validation is still problem- and implementation-specific.
+\end{punchbox}
+\end{frame}
+
+% ----- 12. References -----
+\begin{frame}{Primary references}
+\small
+\begin{itemize}\itemsep7pt
+  \item C. S. Peskin, \emph{The immersed boundary method}, \emph{Acta Numerica} 11 (2002), 479--517. \href{https://doi.org/10.1017/S0962492902000077}{doi:10.1017/S0962492902000077}.
+  \item B. E. Griffith and N. A. Patankar, \emph{Immersed methods for fluid--structure interaction}, \emph{Annual Review of Fluid Mechanics} 52 (2020), 421--448. \href{https://doi.org/10.1146/annurev-fluid-010719-060228}{doi:10.1146/annurev-fluid-010719-060228}.
+  \item B. E. Griffith and X. Y. Luo, \emph{Hybrid finite difference/finite element immersed boundary method}, \emph{International Journal for Numerical Methods in Biomedical Engineering} 33 (2017), e2888. \href{https://doi.org/10.1002/cnm.2888}{doi:10.1002/cnm.2888}.
+  \item Z. Li and M.-C. Lai, \emph{The immersed interface method for the Navier--Stokes equations with singular forces}, \emph{Journal of Computational Physics} 171 (2001), 822--842. \href{https://doi.org/10.1006/jcph.2001.6813}{doi:10.1006/jcph.2001.6813}.
+\end{itemize}
+\begin{punchbox}
+\small Course copies of the first three papers are available in the repository's \texttt{papers/} directory.
+\end{punchbox}
+\end{frame}
 
 \end{document}

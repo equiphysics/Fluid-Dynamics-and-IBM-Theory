@@ -1,365 +1,749 @@
-\documentclass{beamer}
-\usetheme{Madrid}
-\usecolortheme{default}
-\usefonttheme{professionalfonts}
+% =====================================================================
+% IBFE Tutorials: motivation for the immersed boundary finite element method
+% =====================================================================
+\documentclass[aspectratio=169,11pt]{beamer}
 
+% Match the visual language of the SIAM Waves talk.
+\usetheme{Boadilla}
+\usecolortheme{seahorse}
+\useinnertheme{rectangles}
+\useoutertheme{infolines}
+
+\setbeamercolor{structure}{fg=blue!55!black}
+\setbeamercolor{title}{fg=white,bg=blue!55!black}
+\setbeamercolor{frametitle}{fg=blue!55!black}
+\setbeamercolor{block title}{bg=blue!12,fg=blue!55!black}
+\setbeamercolor{block body}{bg=blue!4}
+\setbeamertemplate{navigation symbols}{}
+\setbeamerfont{frametitle}{series=\bfseries,size=\large}
+\setbeamerfont{title}{series=\bfseries,size=\Large}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\DeclareFontShape{T1}{cmss}{b}{n}{<->ssub*cmss/bx/n}{}
 \usepackage{graphicx}
-\usepackage{amsmath}
-\usepackage{bm}        % bold vectors/tensors
-\usepackage{hyperref}  % robust \href
+\usepackage{amsmath,amssymb,bm,mathtools}
+\usepackage{booktabs,tabularx,array}
+\usepackage{xcolor}
+\usepackage{tcolorbox}
+\tcbuselibrary{skins}
+\usepackage{hyperref}
 
-\title{The Hybrid Immersed Boundary Finite Element Method Introduction}
-\author{Laura Miller}
-\date{\today}
+% These prefixes allow compilation from either the repository root or this folder.
+\graphicspath{{./}{../}{}}
+\hypersetup{colorlinks=true,urlcolor=blue!55!black}
+
+\newcommand{\hi}[1]{\textcolor{blue!55!black}{\textbf{#1}}}
+\newcommand{\warn}[1]{\textcolor{red!70!black}{\textbf{#1}}}
+\newcommand{\soft}[1]{\textcolor{gray!50!black}{#1}}
+\newcommand{\xvec}{\bm{x}}
+\newcommand{\Xvec}{\bm{X}}
+\newcommand{\uvec}{\bm{u}}
+\newcommand{\fvec}{\bm{f}}
+\newcommand{\Ften}{\bm{F}}
+\newcommand{\Pten}{\bm{P}^{e}}
+\newcommand{\stress}{\bm{\sigma}}
+\newcommand{\estress}{\bm{\sigma}^{e}}
+\newcommand{\lforce}{\bm{\mathcal{F}}}
+\newcommand{\normal}{\bm{N}}
+\newcommand{\currentnormal}{\bm{n}}
+\newcommand{\Identity}{\bm{I}}
+
+\newtcolorbox{punchbox}{
+  enhanced,
+  colback=blue!4,
+  colframe=blue!55!black,
+  boxrule=0.6pt,
+  arc=2pt,
+  left=4pt,right=4pt,top=3pt,bottom=3pt
+}
+
+\title[IBFE motivation]{Why combine immersed boundary and finite element methods?}
+\subtitle{The mechanics, coupling, and tradeoffs of IBFE}
+\author[Miller]{Laura A. Miller}
+\institute[UArizona]{Department of Mathematics, University of Arizona}
+\date{}
 
 \begin{document}
 
-\frame{\titlepage}
+% ----- 1. Title -----
+\begin{frame}[plain]
+  \begin{beamercolorbox}[sep=10pt,center]{title}
+    {\bfseries\Large Why combine immersed boundary and finite element methods?}\\[3pt]
+    {\normalsize The mechanics, coupling, and tradeoffs of IBFE}
+  \end{beamercolorbox}
+  \vspace{0.8em}
+  \begin{columns}[c,onlytextwidth]
+  \begin{column}{0.38\textwidth}
+    \textbf{\large Laura A. Miller}\\[4pt]
+    Department of Mathematics\\
+    University of Arizona\\[13pt]
+    {\small IBFE Tutorials}
+  \end{column}
+  \begin{column}{0.62\textwidth}
+    \centering
+    \includegraphics[width=0.95\linewidth]{pictures/4-3/IBFE-sketch.png}
+  \end{column}
+  \end{columns}
+  \vfill
+  \centering{\tiny\color{black!55}AI tools were used to assist with formatting, organization, and clarification of the instructor's original notes.}
+\end{frame}
 
-\begin{frame}{Resources}
-  \begin{itemize}
-    \item \href{https://www.youtube.com/watch?v=-1TlNJL93sc}{Boyce Griffith presents IBFE at 23-minute mark.}
-    \item \href{https://drive.google.com/drive/folders/1vkhrX0YInMm5pfUj3LcRA9TV0DZdFp1a?usp=sharing}{Matea presents solid mechanics and IBFE.}
-    \item \href{https://www.classcentral.com/classroom/youtube-aim-micde-seminar-boyce-griffith-immersed-methods-for-fluid-structure-interaction-323154}{Immersed Methods for FSI by Boyce Griffith}
+% ----- 2. Roadmap -----
+\begin{frame}{Roadmap}
+\large
+\begin{enumerate}\itemsep10pt
+  \item Why a fixed fluid grid helps with large structural motion
+  \item How finite elements represent the solid mechanics
+  \item How integral operators exchange velocity and force
+  \item Which approximations and tradeoffs matter in practice
+\end{enumerate}
+
+\vfill
+\begin{punchbox}
+\centering
+IBFE keeps the immersed interface treatment and uses a variational finite element model for solid mechanics.
+\end{punchbox}
+\end{frame}
+
+% ----- 3. FSI challenge -----
+\begin{frame}{The fluid--structure interaction challenge}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.48\textwidth}
+\hi{Fluid description}
+\begin{itemize}\itemsep6pt
+  \item A fixed Eulerian grid supports efficient incompressible-flow solvers.
+  \item Velocity and pressure live at spatial locations.
+  \item The grid should remain well shaped as the structure moves.
+\end{itemize}
+\end{column}
+\begin{column}{0.48\textwidth}
+\hi{Solid description}
+\begin{itemize}\itemsep6pt
+  \item A material mesh follows deformation and rotation.
+  \item Constitutive laws depend on strain relative to a reference state.
+  \item Large motion can severely distort a body-fitted fluid mesh.
+\end{itemize}
+\end{column}
+\end{columns}
+
+\medskip
+\begin{punchbox}
+The numerical method must enforce no slip and transmit elastic force without requiring the two meshes to conform.
+\end{punchbox}
+\end{frame}
+
+% ----- 4. Configurations: retain the original figure occurrence -----
+\begin{frame}{Reference and current configurations}
+\begin{columns}[c,onlytextwidth]
+\begin{column}{0.59\textwidth}
+  \centering
+  \includegraphics[width=0.98\linewidth]{pictures/lagrangian-eulerian-coordinate.png}
+
+  {\scriptsize Reference configuration \(B_0\), current configuration \(B_t\), and the motion \(\bm{\chi}\). Figure 1 of Griffith \& Luo (2017), \emph{Int. J. Numer. Methods Biomed. Eng.} 33:e2888. NB: the figure labels the reference domain \(U\); in this course it is \(B_0\).}
+\end{column}
+\begin{column}{0.39\textwidth}
+  \[
+    \bm{\chi}:B_0\times[0,T]\longrightarrow\Omega
+  \]
+  \[
+    \xvec=\bm{\chi}(\Xvec,t)
+  \]
+  \begin{itemize}\itemsep3pt
+    \item \(B_0\): reference solid domain
+    \item \(B_t=\bm{\chi}(B_0,t)\): current solid region
+    \item \(\Omega\): fixed Eulerian domain
+    \item \(\Xvec\): material coordinate
+    \item \(\xvec\): spatial coordinate
   \end{itemize}
+\end{column}
+\end{columns}
+
+\smallskip
+\begin{punchbox}
+\scriptsize
+Notation change from Module 1: there the current position of material point \(q\) was written \(\bm{X}(q,t)\). From here on we follow Griffith \& Luo: \(\bm{X}\) is the reference point in \(B_0\) and \(\bm{\chi}(\bm{X},t)\) is its current position in \(B_t\); \(\Omega\) is the Eulerian computational domain.
+\end{punchbox}
 \end{frame}
 
-\begin{frame}{Why IBFE? The core difficulty in fluid--structure interaction}
+% ----- 5. Method landscape -----
+\begin{frame}{Interface treatment in common FSI methods}
 \small
-In FSI we need to evolve:
-\begin{itemize}
-  \item an \textbf{incompressible viscous fluid} on an Eulerian grid (fixed mesh),
-  \item a \textbf{deformable solid} that can move and undergo large strains,
-  \item and enforce \textbf{kinematic coupling} (no-slip) and \textbf{dynamic coupling} (force balance) at the interface.
+\renewcommand{\arraystretch}{1.35}
+\begin{tabularx}{\textwidth}{
+  >{\bfseries\raggedright\arraybackslash}p{0.20\textwidth}
+  >{\raggedright\arraybackslash}X
+  >{\raggedright\arraybackslash}X}
+\toprule
+Method & Fluid mesh & Structural mechanics \\
+\midrule
+Body-fitted / ALE
+  & Conforms to the interface. Mesh motion or remeshing may be needed
+  & Standard finite elements and sharp boundary conditions \\
+Classical IB
+  & Fixed Cartesian grid with regularized interface coupling
+  & Lagrangian fibers, springs, or continuum energy models \\
+IBFE
+  & Fixed Cartesian grid with regularized interface coupling
+  & Standard finite elements with weak-form stress divergence \\
+\bottomrule
+\end{tabularx}
+
+\medskip
+\begin{punchbox}
+IBFE couples sophisticated solid mechanics to a fixed, nonconforming fluid grid while retaining a regularized interface.
+\end{punchbox}
+\end{frame}
+
+% ----- 6. Hybrid discretization -----
+\begin{frame}{The hybrid discretization}
+\vspace{0.4em}
+\begin{beamercolorbox}[wd=\textwidth,sep=9pt,center,rounded=true]{block body}
+{\Large \hi{Eulerian fluid solver}}
+\qquad \(+\) \qquad
+{\Large \hi{Lagrangian FE solid}}
+\end{beamercolorbox}
+
+\vspace{1.0em}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.47\textwidth}
+\textbf{Finite differences or finite volumes}
+\begin{itemize}\itemsep5pt
+  \item incompressible momentum equation
+  \item pressure projection or saddle-point solve
+  \item Cartesian-grid adaptivity when needed
 \end{itemize}
-
-\medskip
-\textbf{Main numerical bottleneck:} the structure can move a lot, change shape, and even self-contact.
-Body-fitted meshes must be updated or remeshed, which can be expensive and fragile.
-
-\medskip
-\textbf{IBFE idea:} keep the \emph{fluid grid fixed} (Eulerian) and represent the \emph{solid mechanics} with a \emph{Lagrangian finite element mesh}.
-Couple them with smooth integral operators.
-\end{frame}
-
-
-\begin{frame}{FSI strategies: where IBFE fits}
-\small
-\begin{itemize}
-  \item \textbf{Body-fitted / ALE methods:}
-  mesh conforms to the interface. Very accurate at boundaries, but large deformation can require remeshing.
-  \item \textbf{Classic Immersed Boundary (Peskin IBM):}
-  structure represented by Lagrangian markers/springs; forces spread to Eulerian grid with a regularized delta.
-  Great for moving boundaries, but \emph{structural model can be low-order} unless enhanced.
-  \item \textbf{IBFE (hybrid IB + FEM):}
-  keep the immersed coupling of IBM \emph{and} use FE to compute solid stress/forces with standard hyperelasticity.
+\end{column}
+\begin{column}{0.47\textwidth}
+\textbf{Finite elements}
+\begin{itemize}\itemsep5pt
+  \item large-deformation kinematics
+  \item anisotropic or nonlinear material response
+  \item consistent weak-form elastic forces
 \end{itemize}
+\end{column}
+\end{columns}
 
-\medskip
-\textbf{Takeaway:} IBFE is ``immersed coupling'' + ``finite-element solid mechanics''.
+\vfill
+\centering
+\hi{Regularized delta kernels connect the two discretizations.}
 \end{frame}
 
-\begin{frame}{What IBFE adds beyond classic IBM}
-\small
-Classic IBM often models the structure with springs/fibers/penalty forces on markers.
-IBFE replaces that piece with \textbf{continuum solid mechanics}:
+% ----- 7. One-field continuum model -----
+\begin{frame}{One velocity field for the coupled system}
+\begin{columns}[c,onlytextwidth]
+\begin{column}{0.51\textwidth}
+The original IBFE formulation uses a composite Eulerian velocity field \(\uvec(\xvec,t)\) throughout \(\Omega\).
 
 \medskip
-\begin{itemize}
-  \item \textbf{Constitutive modeling:} hyperelasticity/viscoelasticity via \(W(\bm{F})\), stresses \( \bm{P}=\partial W/\partial \bm{F}\).
-  \item \textbf{Accuracy/robustness:} FE representation supports higher-order elements, anisotropy, nearly incompressible solids, etc.
-  \item \textbf{Clean variational formulation:} internal forces come from weak form (stable and standard in FEM).
+The total Cauchy stress is
+\[
+\stress(\xvec,t)=
+\begin{cases}
+\stress^f(\xvec,t)+\estress(\xvec,t), & \xvec\in B_t,\\
+\stress^f(\xvec,t), & \xvec\notin B_t.
+\end{cases}
+\]
+\end{column}
+\begin{column}{0.45\textwidth}
+\begin{punchbox}
+The background viscous stress acts everywhere. The immersed solid contributes an additional elastic stress inside \(B_t\).
+\end{punchbox}
+
+\medskip
+For a Newtonian background fluid,
+\[
+\stress^f=-p\Identity
++\mu\left(\nabla\uvec+\nabla\uvec^{T}\right).
+\]
+\end{column}
+\end{columns}
+
+\vfill
+{\scriptsize Scope of Griffith--Luo (2017): common density and background viscosity. Later extensions treat material contrasts.}
+\end{frame}
+
+% ----- 8. Governing system -----
+\begin{frame}{Continuum equations}
+\begin{columns}[c,onlytextwidth]
+\begin{column}{0.56\textwidth}
+\begin{align*}
+\rho\left(\frac{\partial\uvec}{\partial t}
++\uvec\!\cdot\!\nabla\uvec\right)
+  &= -\nabla p+\mu\nabla^2\uvec+\fvec^{e},\\[2pt]
+\nabla\!\cdot\uvec&=0,\\[2pt]
+\frac{\partial\bm{\chi}}{\partial t}(\Xvec,t)
+  &=\uvec(\bm{\chi}(\Xvec,t),t).
+\end{align*}
+\end{column}
+\begin{column}{0.40\textwidth}
+\textbf{Three coupled ingredients}
+\begin{itemize}\itemsep7pt
+  \item incompressible momentum balance
+  \item Eulerian elastic force \(\fvec^e\)
+  \item material motion with the local fluid velocity
 \end{itemize}
+\end{column}
+\end{columns}
 
 \medskip
-\textbf{What does not change:} the coupling operators (spread/interpolate) and the fixed Eulerian fluid grid.
+\begin{punchbox}
+At the continuum level, the last equation imposes both no slip and no penetration on the immersed material.
+\end{punchbox}
 \end{frame}
 
-\begin{frame}{IBFE in one sentence (and one picture)}
-\small
-\textbf{IBFE = Eulerian fluid solver + Lagrangian FE solid + smooth coupling operators.}
+% ----- 9. Kinematic coupling -----
+\begin{frame}{Kinematic coupling as an integral transform}
+\[
+\frac{\partial\bm{\chi}}{\partial t}(\Xvec,t)
+=\int_{\Omega}\uvec(\xvec,t)\,
+\delta\!\left(\xvec-\bm{\chi}(\Xvec,t)\right)\,d\xvec.
+\]
+
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.47\textwidth}
+\hi{Continuum identity}
+
+The Dirac distribution evaluates the Eulerian velocity at the current material position.
+\end{column}
+\begin{column}{0.47\textwidth}
+\hi{Discrete approximation}
+
+A regularized kernel \(\delta_h\) averages velocity over several grid cells. No slip is therefore enforced in a regularized sense.
+\end{column}
+\end{columns}
+
+\vfill
+\begin{punchbox}
+The kernel width controls the numerical interface thickness. It does not represent a physical coating around the solid.
+\end{punchbox}
+\end{frame}
+
+% ----- 10. Stress measures -----
+\begin{frame}{Stress and traction in two configurations}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.48\textwidth}
+\hi{Current configuration}
+\[
+\bm{t}=\stress\currentnormal
+\]
+The Cauchy traction is force per unit current area. Its normal and tangential components describe pressure-like and shear loading.
+\end{column}
+\begin{column}{0.48\textwidth}
+\hi{Reference configuration}
+\[
+\bm{t}_0=\Pten\normal
+\]
+The first Piola--Kirchhoff traction \(\bm{t}_0\) is force per unit reference area. It is the natural surface quantity for a Lagrangian FE weak form.
+
+\smallskip
+{\scriptsize (we write \(\bm{P}^{e}\) to stress that it is the elastic stress; later decks drop the superscript)}
+\end{column}
+\end{columns}
 
 \medskip
-\begin{itemize}
-  \item Fluid: incompressible Navier--Stokes on a fixed grid (efficient and mature).
-  \item Solid: finite-strain continuum mechanics on a moving FE mesh (accurate material modeling).
-  \item Coupling: regularized delta / kernel operators that transfer \(\bm{u}\) and \(\bm{f}\) between meshes.
+\begin{punchbox}
+The fluid traction on a physical interface and the elastic transmission force used in the IB equations are related by momentum balance, but they are not interchangeable labels.
+\end{punchbox}
+\end{frame}
+
+% ----- 11. Piola transformation -----
+\begin{frame}{Why IBFE uses the first Piola--Kirchhoff stress}
+\begin{columns}[c,onlytextwidth]
+\begin{column}{0.55\textwidth}
+\[
+\Ften=\nabla_{\!X}\bm{\chi},
+\qquad J=\det\Ften,
+\]
+\[
+\boxed{\Pten(\Xvec,t)
+=J\,\estress(\bm{\chi}(\Xvec,t),t)\,\Ften^{-T}}
+\]
+\end{column}
+\begin{column}{0.41\textwidth}
+\begin{itemize}\itemsep7pt
+  \item \(\Ften\) maps material line elements to the current configuration.
+  \item \(J\) gives the local volume ratio.
+  \item \(\Pten\) need not be symmetric because it links reference normals to current forces.
 \end{itemize}
+\end{column}
+\end{columns}
 
 \medskip
-\textbf{Interpretation:} the FE mesh is \emph{not} used to remesh the fluid.
-It is an immersed ``computational skeleton'' that carries solid kinematics and constitutive laws.
+\begin{punchbox}
+The Piola transformation makes the reference-domain and current-domain traction resultants agree.
+\end{punchbox}
 \end{frame}
 
-\begin{frame}{IBFE pipeline: what gets computed each time step?}
+% ----- 12. Strong force -----
+\begin{frame}{Elastic stress becomes an Eulerian force}
 \small
-At time \(t^n\), we have the structure configuration \(\chi(\cdot,t^n)\) and fluid velocity \(\bm{u}(\cdot,t^n)\).
+\[
+\boxed{
+\begin{aligned}
+\fvec^{e}(\xvec,t)
+={}&\int_{B_0}\operatorname{Div}_{X}\Pten(\Xvec,t)\,
+\delta\!\left(\xvec-\bm{\chi}(\Xvec,t)\right)\,d\Xvec\\[-1pt]
+&-\int_{\partial B_0}\Pten(\Xvec,t)\normal\,
+\delta\!\left(\xvec-\bm{\chi}(\Xvec,t)\right)\,dA.
+\end{aligned}}
+\]
+
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.47\textwidth}
+\hi{Internal force}
+
+\(\operatorname{Div}_{X}\Pten\) acts throughout the reference solid and has units of force per reference volume.
+\end{column}
+\begin{column}{0.47\textwidth}
+\hi{Transmission force}
+
+\(-\Pten\normal\) acts on \(\partial B_0\) and has units of force per reference area. It produces interfacial stress jumps.
+\end{column}
+\end{columns}
+
+\vfill
+{\scriptsize Source: Griffith and Luo (2017), Eq.~(6) for the boxed force equation (strong form, Eqs. (4)--(7)).}
+\end{frame}
+
+% ----- 13. Unified weak form -----
+\begin{frame}{The unified weak force}
+Rather than differentiate a piecewise FE stress, define a Lagrangian force density \(\lforce\) by
+\[
+\boxed{
+\int_{B_0}\lforce\!\cdot\!\bm{V}\,d\Xvec
+=-\int_{B_0}\Pten:\nabla_{\!X}\bm{V}\,d\Xvec
+\qquad\text{for every FE test function }\bm{V}.}
+\]
+Then spread the result to the fluid:
+\[
+\fvec^{e}(\xvec,t)=\int_{B_0}\lforce(\Xvec,t)\,
+\delta\!\left(\xvec-\bm{\chi}(\Xvec,t)\right)\,d\Xvec.
+\]
+
+\begin{punchbox}
+The test function does not vanish on \(\partial B_0\). Consequently, this one weak equation contains both the internal and boundary transmission forces.
+\end{punchbox}
+\end{frame}
+
+% ----- 14. Two weak formulations -----
+\begin{frame}{Unified and partitioned weak formulations}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.48\textwidth}
+\hi{Unified form}
+\begin{itemize}\itemsep6pt
+  \item One volumetric weak force represents internal and boundary terms.
+  \item Adjoint coupling gives an exact discrete interaction-power identity.
+  \item The boundary contribution enters through the volume representation.
+\end{itemize}
+\end{column}
+\begin{column}{0.48\textwidth}
+\hi{Partitioned form}
+\begin{itemize}\itemsep6pt
+  \item Internal force and \(\bm{T}=-\Pten\normal\) are spread separately (the reference traction is \(\bm{t}_0=\Pten\normal\); the transmission force is its negative).
+  \item Coarse solid meshes can give better pressure accuracy and volume conservation.
+  \item The same discrete power identity does not hold.
+\end{itemize}
+\end{column}
+\end{columns}
 
 \medskip
-\begin{enumerate}
-  \item \textbf{Interpolate} Eulerian velocity to the Lagrangian mesh:
-  \(\ \partial_t\chi(\bm{X},t^n) = \int_{\Omega} \bm{u}(\bm{x},t^n)\,\delta_h(\bm{x}-\chi(\bm{X},t^n))\,d\bm{x}\).
-  \item \textbf{Compute} solid deformation measures on the FE mesh:
-  \(\bm{F}=\nabla_X\chi,\ J=\det\bm{F}\), etc.
-  \item \textbf{Compute} solid stress from a constitutive law:
-  \(\bm{P}=\partial W/\partial \bm{F}\) (plus viscosity/active terms if used).
-  \item \textbf{Assemble} the Lagrangian force density (weak form \(\Rightarrow\) nodal forces \(\Rightarrow\) \(\bm{F}(\bm{X},t^n)\)).
-  \item \textbf{Spread} Lagrangian force density to the Eulerian grid:
-  \(\ \bm{f}(\bm{x},t^n)=\int \bm{F}(\bm{X},t^n)\,\delta_h(\bm{x}-\chi(\bm{X},t^n))\,d\bm{X}\).
-  \item \textbf{Advance} the fluid (Navier--Stokes with body force \(\bm{f}\)).
+\begin{punchbox}
+The two forms are equivalent before discretization, but their numerical solutions need not coincide.
+\end{punchbox}
+
+\vfill
+{\scriptsize Source: Griffith and Luo (2017), Sections 2.2 and 7.}
+\end{frame}
+
+% ----- 15. FE approximation -----
+\begin{frame}{Finite elements carry the solid kinematics}
+\begin{columns}[c,onlytextwidth]
+\begin{column}{0.56\textwidth}
+\begin{align*}
+\bm{\chi}_h(\Xvec,t)
+  &=\sum_{a=1}^{M}\bm{\chi}_a(t)\,\phi_a(\Xvec),\\[3pt]
+\Ften_h(\Xvec,t)
+  &=\nabla_{\!X}\bm{\chi}_h
+   =\sum_{a=1}^{M}\bm{\chi}_a(t)\otimes\nabla_{\!X}\phi_a.
+\end{align*}
+\end{column}
+\begin{column}{0.40\textwidth}
+\begin{itemize}\itemsep7pt
+  \item Nodal positions define a continuous configuration.
+  \item \(C^0\) elements generally give elementwise-discontinuous \(\Ften_h\) and \(\Pten_h\).
+  \item The weak form avoids differentiating \(\Pten_h\) across element boundaries.
+\end{itemize}
+\end{column}
+\end{columns}
+
+\medskip
+For basis function \(\phi_b\), the unified force load is
+\[
+B_b=-\int_{B_0}\Pten_h:\nabla_{\!X}\phi_b\,d\Xvec,
+\qquad \bm{M}[\lforce]=[\bm{B}].
+\]
+\end{frame}
+
+% ----- 16. Quadrature coupling -----
+\begin{frame}{Quadrature points mediate force transfer}
+\small
+For each finite element \(B_0^e\), evaluate the FE force density at quadrature points \(\Xvec_Q^e\):
+\[
+\boxed{
+\fvec_h(\xvec,t)=
+\sum_{B_0^e}\sum_{Q=1}^{N_e}
+\lforce_h(\Xvec_Q^e,t)\,
+\delta_h\!\left(\xvec-\bm{\chi}_h(\Xvec_Q^e,t)\right)\,w_Q^e.}
+\]
+
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.47\textwidth}
+\hi{Classical nodal coupling}
+
+Sparse nodes can leave gaps in kernel support and permit numerical leakage.
+\end{column}
+\begin{column}{0.47\textwidth}
+\hi{IBFE quadrature coupling}
+
+The element mesh may be coarser than the fluid grid if the quadrature-point net remains sufficiently dense.
+\end{column}
+\end{columns}
+
+\vfill
+{\scriptsize Structural resolution still depends on the FE mesh. Denser quadrature improves coupling resolution, not the constitutive approximation.}
+\end{frame}
+
+% ----- 17. Adjoint coupling -----
+\begin{frame}{Adjoint coupling preserves interaction power}
+Write the discrete force-spreading and velocity-restriction operations as
+\[
+\fvec_h=\mathcal{S}[\bm{\chi}_h]\lforce_h,
+\qquad
+\frac{d\bm{\chi}_h}{dt}=\mathcal{R}[\bm{\chi}_h]\uvec_h.
+\]
+
+Choose \(\mathcal{R}=\mathcal{S}^{*}\) with respect to the Eulerian and FE inner products. Then
+\[
+\boxed{
+\left(\lforce_h,\frac{d\bm{\chi}_h}{dt}\right)_{B_0}
+=\left(\fvec_h,\uvec_h\right)_{\Omega}.}
+\]
+
+\begin{punchbox}
+The Eulerian and Lagrangian descriptions assign the same instantaneous power to the coupling force. This property alone does not guarantee stability of the full time integrator.
+\end{punchbox}
+\end{frame}
+
+% ----- 18. Computational cycle -----
+\begin{frame}{One IBFE time step}
+\begin{enumerate}\itemsep7pt
+  \item Restrict the Eulerian velocity to FE degrees of freedom.
+  \item Update the current configuration \(\bm{\chi}_h\).
+  \item Evaluate \(\Ften_h\), \(J_h\), and the constitutive stress \(\Pten_h\).
+  \item Assemble the Lagrangian weak force coefficients.
+  \item Spread quadrature-point forces to the Cartesian grid and advance the fluid.
 \end{enumerate}
 
 \medskip
-\textbf{Takeaway:} FE is used to compute \(\bm{P}\) and internal forces; the fluid is still solved on a fixed Eulerian grid.
+\begin{punchbox}
+Partitioned, semi-implicit, and fully implicit algorithms reorder or couple these operations differently. The transfer operators and variational solid mechanics remain the organizing ideas.
+\end{punchbox}
 \end{frame}
 
-
-\begin{frame}{Coupling the Methods}
-    \begin{itemize}
-        \item The coupling between the immersed boundary method and the finite element method is achieved through integral equations that relate the Lagrangian and Eulerian variables.
-        \item These integral equations involve:
-        \begin{itemize}
-            \item Force spreading: Distributing the Lagrangian forces from the immersed structure to the Eulerian fluid grid.
-            \item Velocity interpolation: Interpolating the Eulerian fluid velocities to the Lagrangian structure.
-        \end{itemize}
-        \item The integral equations ensure a smooth and accurate transfer of information between the two discretizations.
-    \end{itemize}
-\end{frame}
-
-
-\begin{frame}{Forces in immersed methods: what is actually coupled?}
-\small
-Immersed methods couple the fluid and structure through a \textbf{force density} added to the fluid momentum equation:
+% ----- 19. Material models -----
+\begin{frame}{Constitutive models in the FE solid}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.49\textwidth}
+\hi{Hyperelastic example}
 \[
-\rho\left(\partial_t\bm{u}+\bm{u}\cdot\nabla\bm{u}\right) = -\nabla p + \mu\Delta \bm{u} + \bm{f},
-\qquad \nabla\cdot\bm{u}=0.
+\Pten_{\mathrm{pas}}=\frac{\partial W}{\partial\Ften}
+\]
+The strain-energy density \(W\) may represent isotropic, fiber-reinforced, or nearly incompressible response.
+\end{column}
+\begin{column}{0.47\textwidth}
+\hi{More general stress laws}
+
+The numerical framework needs a routine that evaluates a Lagrangian stress. It can also accommodate history-dependent or viscoelastic response when the required internal variables are evolved.
+\end{column}
+\end{columns}
+
+\medskip
+\begin{punchbox}
+Griffith and Luo use hyperelastic examples for simplicity, but the method itself does not require an explicit strain-energy functional.
+\end{punchbox}
+\end{frame}
+
+% ----- 20. Active stress -----
+\begin{frame}{Active tension belongs in the stress model}
+For a passive material with an active fiber response, decompose
+\[
+\Pten=\Pten_{\mathrm{pas}}+\Pten_{\mathrm{act}}.
 \]
 
-\medskip
-\textbf{In IB/IBFE:}
-\begin{itemize}
-  \item The fluid sees an \textbf{Eulerian body force density} \(\bm{f}(\bm{x},t)\) (units: force per volume).
-  \item That force comes from a \textbf{Lagrangian force density} \(\bm{F}(\bm{X},t)\) computed from solid stress/elasticity (plus any active terms).
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.48\textwidth}
+\textbf{A common construction}
+\begin{itemize}\itemsep6pt
+  \item \(\bm{a}=\Ften\bm{f}_0\) (mapped fiber; \(\bm{f}_0\) a unit reference direction). Note \(\bm{a}\) is \emph{not} normalized.
+  \item prescribe an active Cauchy stress:
+  \(\estress_{\mathrm{act}}=T\,\bm{a}\otimes\bm{a}\).
+  \item map it to the reference configuration:
+  \(\Pten_{\mathrm{act}}=J\estress_{\mathrm{act}}\Ften^{-T}
+   =J\,T\,\bm{a}\otimes\bm{f}_0\).
 \end{itemize}
-
-\medskip
-\textbf{Traction viewpoint:} when needed, surface tractions satisfy \(\bm{t}=\boldsymbol{\sigma}\bm{n}\),
-but the numerical coupling is usually implemented via volumetric force densities and weak forms.
-\end{frame}
-
-
-\begin{frame}{Traction Forces}
-    \begin{itemize}
-        \item Traction forces are generated by the fluid's stress acting on the surface of the immersed structure.
-        \item The traction vector $\mathbf{t}$ at a point on the surface is given by:
-        \begin{equation*}
-        \mathbf{t} = \boldsymbol{\sigma} \mathbf{n}
-        \end{equation*}
-        where:
-        \begin{itemize}
-            \item $\boldsymbol{\sigma}$ is the Cauchy stress tensor in the fluid
-            \item $\mathbf{n}$ is the outward unit normal vector to the surface
-        \end{itemize}
-        \item The traction force can be decomposed into normal and tangential components:
-        \begin{itemize}
-            \item Normal traction: Acts perpendicular to the surface.
-            \item Tangential traction (shear stress): Acts parallel to the surface.
-        \end{itemize}
-    \end{itemize}
-\end{frame}
-
-\begin{frame}{Body Forces}
-    \begin{itemize}
-        \item Body forces act on the volume of the immersed structure.
-        \item Examples of body forces include:
-        \begin{itemize}
-            \item Gravity: Acts on the mass of the structure.
-            \item Active tension: Generated by muscle contraction or other active elements within the structure.
-            \item External forces: Applied to the structure from outside the fluid domain.
-        \end{itemize}
-        \item Body forces are incorporated into the equations of motion for the structure.
-    \end{itemize}
-\end{frame}
-
-\begin{frame}{Eulerian and Lagrangian Equations of Motion}
-\begin{itemize}
-\item In this formulation, the structural kinematics are described in Lagrangian form using the mapping $\chi: (\Omega_s^0, t) \to \Omega_s^t$, which connects the reference configuration to the current configuration at time $t$. 
-\item Specifically, $\chi(\mathbf{X}, t) \in \Omega_s^t$ is the position at time $t$ of material point $\mathbf{X} \in \Omega_s^0$. 
-\item A composite material velocity field is introduced on $\Omega$ so that $\mathbf{u}(\mathbf{x}, t)$ is the velocity of whichever material happens to be located at position $\mathbf{x}$ at time $t$. 
+\end{column}
+\begin{column}{0.48\textwidth}
+\textbf{Model choices}
+\begin{itemize}\itemsep6pt
+  \item \(T\) may depend on activation, stretch, and stretch rate.
+  \item Other conventions normalize \(\bm{a}\) or absorb stretch factors into \(T\); see deck 4-3.
 \end{itemize}
-\end{frame}
-
-\begin{frame}{Stress and Strain}
-    \begin{figure}
-        \includegraphics[width=0.9\textwidth]{pictures/lagrangian-eulerian-coordinate.png}
-        \caption{Lagrangian and Eulerian coordinate systems. The Lagrangian material coordinate domain is $U$, and the Eulerian physical coordinate domain is $\Omega$. The physical position of material point $X$ at time $t$ is $\chi(X, t)$, the physical region occupied by the structure is $\chi(U,t)$, and the physical region occupied by the fluid is $\Omega \setminus \chi(U,t)$.}
-    \end{figure}
-\end{frame}
-
-\begin{frame}{Why does IBFE use the first Piola--Kirchhoff stress $\bm{P}$?}
-\small
-The FE mesh lives in \textbf{reference coordinates} \(\bm{X}\in \Omega_s^0\).
-Internal forces are naturally written per \textbf{reference area/volume}.
+\end{column}
+\end{columns}
 
 \medskip
-\textbf{Hyperelasticity:} choose a strain energy density \(W(\bm{F})\) per reference volume, then
+\begin{punchbox}
+A stress-based activation law makes material-frame invariance and local momentum balance explicit.
+\end{punchbox}
+\end{frame}
+
+% ----- 21. Volume conservation -----
+\begin{frame}{Incompressibility and structural volume}
+At the continuum level, material motion with a divergence-free velocity gives
 \[
-\bm{P}(\bm{X},t) = \frac{\partial W}{\partial \bm{F}}(\bm{X},t).
+\frac{dJ}{dt}=J\,\nabla\!\cdot\uvec(\bm{\chi}(\Xvec,t),t)=0.
 \]
 
-\medskip
-\textbf{Bridge to spatial stress (if you want it):}
-\[
-\bm{P} = J\,\boldsymbol{\sigma}\,\bm{F}^{-T},
-\qquad J=\det\bm{F}.
-\]
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.47\textwidth}
+\hi{Continuum consequence}
+
+An initially volume-preserving deformation remains volume preserving under the exact incompressible velocity field.
+\end{column}
+\begin{column}{0.47\textwidth}
+\hi{Discrete reality}
+
+Kernel regularization, velocity projection, time integration, and under-resolution can introduce volume drift.
+\end{column}
+\end{columns}
 
 \medskip
-\textbf{IBFE takeaway:} we compute \(\bm{P}\) on the FE mesh, then convert it into nodal forces via the weak form.
+\begin{punchbox}
+Mesh refinement, compatible coupling, appropriate quadrature, and volumetric stabilization can reduce drift. None replaces a convergence study.
+\end{punchbox}
 \end{frame}
 
-
-\begin{frame}{First Piola-Kirchhoff Stress Tensor}
-\begin{itemize}
-\item The formulation uses the first Piola-Kirchhoff solid stress tensor $\mathbf{P}_s$, which is related to the corresponding Cauchy stress tensor $\boldsymbol{\sigma}_s$ by: 
-\begin{equation*}
-\mathbf{P}_s(\mathbf{X}, t) = J(\mathbf{X}, t) \boldsymbol{\sigma}_s[\chi(\mathbf{X}, t), t] \mathbf{F}(\mathbf{X}, t)^{-T}
-\end{equation*}
-where:
-\begin{itemize}
-\item $\mathbf{F} = \frac{\partial \chi}{\partial \mathbf{X}}$ is the deformation gradient tensor. 
-\item $J = \det(\mathbf{F})$ is the Jacobian determinant. 
+% ----- 22. Strengths -----
+\begin{frame}{What IBFE does especially well}
+\begin{itemize}\itemsep8pt
+  \item Handles large translations, rotations, and deformations without remeshing the fluid grid.
+  \item Reuses standard finite element ideas for nonlinear and anisotropic solid mechanics.
+  \item Separates structural mesh spacing from coupling-point density through element quadrature.
+  \item Fits naturally with Cartesian-grid solvers and block-structured adaptive mesh refinement.
 \end{itemize}
-\end{itemize}
+
+\vfill
+\begin{punchbox}
+The main benefit is a flexible division of labor: the Eulerian discretization handles incompressible flow, while the FE discretization handles material mechanics.
+\end{punchbox}
 \end{frame}
 
-\begin{frame}{Assumptions}
-\begin{itemize}
-\item The discussion is restricted to a neutrally buoyant, incompressible structure immersed in a viscous incompressible fluid, so that $\rho$ is the mass density of both the fluid and the solid. 
-\item The structure is assumed to be viscoelastic, and the form of the solid viscosity is the same as that of the fluid. 
-\end{itemize}
-\end{frame}
-
-
-
-\begin{frame}{Coupling Equations in Detail}
-    \begin{itemize}
-        \item The integral form of the coupling equations ensures a smooth and accurate transfer of information between the Lagrangian and Eulerian discretizations.
-        \item The Dirac delta function acts as a kernel that spreads the Lagrangian forces to the Eulerian grid and interpolates the Eulerian velocities to the Lagrangian structure.
-        \item The choice of the Dirac delta function or other interpolation kernels can affect the accuracy and stability of the method.
-    \end{itemize}
-\end{frame}
-
-\begin{frame}{Elasticity Models in the Immersed Boundary Method}
-\begin{itemize}
-\item The immersed boundary method can incorporate various elasticity models to describe the behavior of the immersed structure.
-\item These models typically involve a strain energy density function that relates the deformation of the structure to the stored elastic energy.
-\item The choice of elasticity model depends on the specific material properties and the type of deformation the structure undergoes.
-\end{itemize}
-\end{frame}
-
-\begin{frame}{Hyperelasticity}
-\begin{itemize}
-\item Hyperelastic materials are a class of materials that exhibit nonlinear elastic behavior and can undergo large deformations.
-\item Their constitutive behavior is described by a strain energy density function $W$ that depends on the deformation gradient tensor $\mathbf{F}$.
-\item The first Piola-Kirchhoff stress tensor $\mathbf{P}$ is given by the derivative of the strain energy density function with respect to the deformation gradient tensor:
-\begin{equation*}
-\mathbf{P} = \frac{\partial W}{\partial \mathbf{F}}
-\end{equation*}
-\end{itemize}
-\end{frame}
-
-
-
-\begin{frame}{Applying Active Tension}
-    \begin{itemize}
-        \item Active tension refers to the force generated by the active contraction of muscles or other actuators within the structure.
-        \item In the hybrid method, active tension can be incorporated by adding an active force term to the Lagrangian force density $\mathbf{F}$.
-        \item The active tension can be modeled using various constitutive laws or prescribed directly based on experimental data.
-    \end{itemize}
-\end{frame}
-
-\begin{frame}{Advantages of the Hybrid Approach}
-    \begin{itemize}
-        \item The hybrid method offers several advantages, including:
-        \begin{itemize}
-            \item Ability to handle complex geometries and large deformations
-            \item Improved accuracy and efficiency compared to the original immersed boundary method
-            \item Versatility in handling a wide range of material properties and boundary conditions
-        \end{itemize}
-    \end{itemize}
-\end{frame}
-
-\begin{frame}{Applications of the Hybrid Method}
-    \begin{itemize}
-        \item The hybrid method has been successfully applied to various fluid-structure interaction problems, such as:
-        \begin{itemize}
-            \item Simulation of blood flow in the heart
-            \item Flapping of insect wings
-            \item Deformation of soft tissues
-            \item Interaction of fluids with flexible structures
-        \end{itemize}
-    \end{itemize}
-\end{frame}
-
-\begin{frame}{Limitations and Future Directions}
-    \begin{itemize}
-        \item Despite its advantages, the hybrid method has some limitations, such as:
-        \begin{itemize}
-            \item Computational cost can be high for complex problems
-            \item Numerical stability can be challenging to maintain for certain parameter regimes
-        \end{itemize}
-        \item Future research directions include:
-        \begin{itemize}
-            \item Developing more efficient and stable numerical algorithms
-            \item Extending the method to handle more complex material properties and boundary conditions
-            \item Applying the method to new and challenging fluid-structure interaction problems
-        \end{itemize}
-    \end{itemize}
-\end{frame}
-
-\begin{frame}{When to use IBFE (and when not to)}
-\small
-\textbf{IBFE shines when:}
-\begin{itemize}
-  \item large deformation or moving boundaries make body-fitted meshing painful,
-  \item you need serious solid mechanics (anisotropy, nearly incompressible solids, active stress),
-  \item topology stays fixed (no tearing/merging of the solid mesh).
+% ----- 23. Limitations -----
+\begin{frame}{Persistent numerical challenges}
+\begin{itemize}\itemsep7pt
+  \item The regularized kernel spreads the interface over several grid cells, which limits sharp stress and pressure resolution.
+  \item Stiff elastic response can impose severe time-step restrictions in explicit or loosely coupled schemes.
+  \item Contact, self-contact, tearing, and topology change require additional models or algorithms.
+  \item Density and viscosity contrast require extensions beyond the simplest one-field formulation.
+  \item Accurate results still require adequate fluid resolution, FE resolution, and coupling quadrature.
 \end{itemize}
 
 \medskip
-\textbf{Tradeoffs:}
-\begin{itemize}
-  \item Interface is \emph{regularized} by the kernel \(\delta_h\): sharp boundary layers are smeared over a few grid cells.
-  \item Nearly incompressible solids can be stiff \(\Rightarrow\) time-step restrictions or need for implicit/semi-implicit treatment.
-  \item Contact/self-contact needs special handling (as in many FSI methods).
+\begin{punchbox}
+IBFE improves geometric flexibility, but sharp interfaces and stiff material laws remain costly.
+\end{punchbox}
+\end{frame}
+
+% ----- 24. Method selection -----
+\begin{frame}{When IBFE is a good match}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.48\textwidth}
+\hi{Strong fit}
+\begin{itemize}\itemsep6pt
+  \item large solid motion or deformation
+  \item detailed nonlinear constitutive behavior
+  \item fixed material topology
+  \item tolerance for a regularized interface
 \end{itemize}
+\end{column}
+\begin{column}{0.48\textwidth}
+\hi{Consider another formulation when}
+\begin{itemize}\itemsep6pt
+  \item pointwise surface stresses or thin boundary layers dominate the objective
+  \item rupture or changing topology is central
+  \item a reliable body-fitted mesh remains inexpensive to maintain
+\end{itemize}
+\end{column}
+\end{columns}
 
 \medskip
-\textbf{Rule of thumb:}
-IBFE is a great default for soft-tissue-type FSI where geometry moves a lot and constitutive modeling matters.
+\begin{punchbox}
+Method choice should follow the required observables: bulk motion and deformation, or sharply resolved interfacial fields.
+\end{punchbox}
 \end{frame}
 
+% ----- 25. Applications -----
+\begin{frame}{Representative IBFE problems}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.48\textwidth}
+\textbf{Benchmarks in Griffith--Luo}
+\begin{itemize}\itemsep6pt
+  \item anisotropic elastic shells
+  \item an elastic disc in a lid-driven cavity
+  \item pressure-driven collapsible-channel flow
+  \item the Turek--Hron cylinder-and-flap benchmark
+\end{itemize}
+\end{column}
+\begin{column}{0.48\textwidth}
+\textbf{Broader application areas}
+\begin{itemize}\itemsep6pt
+  \item heart valves and cardiovascular flow
+  \item deformable biological tissues
+  \item flexible structures in viscous flow
+  \item actively contracting materials
+\end{itemize}
+\end{column}
+\end{columns}
 
-\begin{frame}{Conclusion}
-    \begin{itemize}
-        \item The hybrid immersed boundary finite element method is a powerful tool for simulating complex fluid-structure interaction problems.
-        \item It combines the strengths of both the immersed boundary method and the finite element method, offering improved accuracy, efficiency, and versatility.
-        \item This method has broad applications in various fields and continues to be an active area of research and development.
-    \end{itemize}
+\vfill
+{\scriptsize See Griffith and Luo (2017) and Griffith and Patankar, \emph{Annu. Rev. Fluid Mech.} 2020.}
 \end{frame}
 
-\begin{frame}{Glossary of Terms}
-  \begin{description}
-    \item[Stress] A measure of the force acting per unit area within a deformable body.
-    \item[Tensor] A mathematical object that describes a multilinear relationship between sets of algebraic objects related to a vector space.
-    \item[Cauchy Stress Tensor ($\boldsymbol{\sigma}$)] A second-order tensor that describes the state of stress at a point within a material.
-    \item[Normal Stress] Stress acting perpendicular to a surface.
-    \item[Shear Stress] Stress acting parallel to a surface.
-    \item[Pascal (Pa)] The SI unit of pressure or stress, equal to one newton per square meter.
-    \item[Pound per Square Inch (psi)] A unit of pressure or stress in the imperial and US customary systems.
-    \item[Continuum Mechanics] The branch of mechanics that deals with the analysis of the kinematics and mechanical behavior of materials modeled as a continuous mass rather than as discrete particles.
-  \end{description}
+% ----- 26. Resources -----
+\begin{frame}{Resources}
+\begin{itemize}\itemsep8pt
+  \item \href{https://doi.org/10.1002/cnm.2888}{Griffith and Luo (2017): hybrid finite difference / finite element IB method}
+  \item \href{https://doi.org/10.1146/annurev-fluid-010719-060228}{Griffith and Patankar (2020): immersed methods for FSI}
+  \item \href{https://ibamr.github.io/}{IBAMR software and documentation}
+  \item \href{https://www.youtube.com/watch?v=-1TlNJL93sc}{Boyce Griffith presentation on IBFE}
+  \item \href{https://drive.google.com/drive/folders/1vkhrX0YInMm5pfUj3LcRA9TV0DZdFp1a?usp=sharing}{Solid mechanics and IBFE tutorial by Matea}
+  \item \href{https://www.classcentral.com/classroom/youtube-aim-micde-seminar-boyce-griffith-immersed-methods-for-fluid-structure-interaction-323154}{AIM/MICDE seminar: immersed methods for FSI}
+\end{itemize}
+\end{frame}
+
+% ----- 27. Closing -----
+\begin{frame}{Three ideas to carry forward}
+\begin{enumerate}\itemsep11pt
+  \item \hi{Mechanics:} finite elements provide the deformation map, stress, and weak elastic force.
+  \item \hi{Coupling:} regularized integral operators exchange force and velocity between nonconforming grids.
+  \item \hi{Numerics:} quadrature density, adjointness, and resolution determine whether the hybrid method realizes its continuum properties.
+\end{enumerate}
+
+\vfill
+\begin{beamercolorbox}[wd=\textwidth,sep=10pt,center,rounded=true]{title}
+{\Large Questions?}
+\end{beamercolorbox}
 \end{frame}
 
 \end{document}

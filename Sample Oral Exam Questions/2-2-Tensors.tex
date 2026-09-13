@@ -17,16 +17,16 @@
 
 % === Title ===
 \title{\vspace{-2em}\textbf{Applied Mathematics Oral Exam Questions and Model Answers}\\
-\large From Euler to Navier--Stokes}
+\large Tensors in Fluid--Structure Interaction}
 \author{Prepared for Graduate Oral Examination}
 \date{}
 
 \begin{document}
 
 
-\section*{Sample Oral Exam Questionson tensors}
+\section*{Sample Oral Exam Questions on Tensors}
 
-\subsection*{1. What is the material derivative and why is it important in fluid–structure interaction?}
+\subsection*{1. What is the material derivative, and why is it important\\in fluid--structure interaction?}
 
 \textbf{Answer.}
 The material derivative measures the rate of change of a quantity as experienced
@@ -40,25 +40,22 @@ and for a vector field,
 \frac{D\mathbf{u}}{Dt}
 = \frac{\partial \mathbf{u}}{\partial t} + (u\cdot\nabla) \mathbf{u}.
 \]
-This combines local (Eulerian) time dependence with convective effects
-(\cite{file:turn4file0}, pp.\ 6–10).
+This combines local (Eulerian) time dependence with convective transport.
 
 In IBFE, the material derivative appears in:
 \begin{itemize}
     \item the \emph{fluid} momentum equation (left-hand side of Navier--Stokes),
-    \item the \emph{Lagrangian} update of solid configuration when computing 
-          structural velocities and deformation gradients,
+    \item the evolution of the solid configuration along material trajectories,
     \item coupling the Eulerian fluid velocity to the Lagrangian mesh velocity.
 \end{itemize}
 
-It expresses the fact that immersed structures respond to forces determined by
-the fluid motion \emph{along their trajectories}.
+For a no-slip immersed material, $\partial_t\boldsymbol\chi(X,t)=\mathbf u(\boldsymbol\chi(X,t),t)$; this is a Lagrangian time derivative of the motion, whereas $D\mathbf u/Dt$ is the acceleration field evaluated along a fluid trajectory.
 
 \subsection*{2. Explain the Cauchy stress tensor and how traction arises from it.}
 
 \textbf{Answer.}
-The Cauchy stress tensor $\boldsymbol{\sigma}$ describes how internal surface
-forces act within a deforming fluid (\cite{file:turn4file0}, pp.\ 25–32).
+The Cauchy stress tensor $\boldsymbol{\sigma}$ describes internal surface
+forces per unit current area in a fluid or solid.
 For a surface with outward normal $\mathbf{n}$, the traction vector is
 \[
 \mathbf{t} = \boldsymbol{\sigma}\mathbf{n}.
@@ -68,19 +65,15 @@ whose outward normal is in the $j$-direction.
 
 In IBFE:
 \begin{itemize}
-    \item This traction represents the \emph{fluid stress} acting on the
-          immersed structure.
-    \item The traction is used to compute boundary forces on the solid mesh,
-          often through surface integrals that feed the structural finite element
-          formulation.
-    \item Conversely, structural stresses generate elastic forces that are
-          spread back to the fluid grid.
+    \item fluid and elastic contributions combine in the Eulerian momentum balance,
+    \item structural constitutive laws are commonly written with a reference-area stress $\mathbf P$,
+    \item the Piola relation $\mathbf P=J\boldsymbol\sigma^{e}\mathbf F^{-T}$ connects elastic Cauchy and first Piola--Kirchhoff stresses.
 \end{itemize}
 
 \subsection*{3. Derive the form of the Navier--Stokes equations used in IBFE.}
 
 \textbf{Answer.}
-Starting from Cauchy’s equation of motion (\cite{file:turn4file0}, p.\ 28),
+Starting from Cauchy’s equation of motion,
 \[
 \rho\frac{D\mathbf{u}}{Dt} = \nabla\cdot\boldsymbol{\sigma} + \rho\mathbf{g},
 \]
@@ -92,11 +85,9 @@ For a Newtonian, incompressible fluid,
 \[
 \boldsymbol{\tau} = 2\mu \mathbf{D},
 \qquad
-\mathbf{D} = \tfrac{1}{2}(\nabla \mathbf{u} + \nabla \mathbf{u}^\top)
+\mathbf{D} = \tfrac{1}{2}(\nabla \mathbf{u} + \nabla \mathbf{u}^\top).
 \]
-(\cite{file:turn4file0}, pp.\ 30–33).
-
-This yields
+When $\mu$ is constant, $\nabla\cdot(2\mu\mathbf{D})=\mu\nabla^2\mathbf{u}$, and this yields
 \[
 \rho\left( \frac{\partial \mathbf{u}}{\partial t}
 + (\mathbf{u}\cdot\nabla)\mathbf{u} \right)
@@ -104,8 +95,11 @@ This yields
 \qquad 
 \nabla\cdot \mathbf{u} = 0.
 \]
-This is the fluid equation solved in IBFE, with structural forces added as
-immersed boundary forcing terms.
+The coupled IBFE momentum equation adds an Eulerian elastic force density $\mathbf f^e$ (and any other body force):
+\[
+\rho\frac{D\mathbf u}{Dt}=-\nabla p+\mu\nabla^2\mathbf u+\mathbf f^e+\rho\mathbf g.
+\]
+The simple one-field formulation assumes compatible treatment of density and background viscosity. General material contrasts require extensions.
 
 \subsection*{4. How does IBFE represent the deformation of an immersed structure?}
 
@@ -116,9 +110,7 @@ The deformation gradient is
 \[
 \mathbf{F}(X,t) = \nabla_X \chi(X,t).
 \]
-The solid finite-element formulation provides a constitutive model
-(\emph{hyperelastic}, \emph{neo-Hookean}, \emph{fiber-reinforced}, etc.) giving
-the first Piola--Kirchhoff stress $\mathbf{P}(X,t)$.
+The solid finite-element formulation supplies a constitutive law. Examples include hyperelastic, neo-Hookean, and fiber-reinforced materials. The law determines the first Piola--Kirchhoff stress $\mathbf{P}(X,t)$.
 
 In IBFE:
 \begin{itemize}
@@ -132,16 +124,13 @@ In IBFE:
 \subsection*{5. Explain how the force-spreading step works in IBFE.}
 
 \textbf{Answer.}
-Given Lagrangian force density $\mathbf{F}(X,t)$ (often from finite element
-quadrature),
+Given a Lagrangian force density $\boldsymbol{\mathcal F}(X,t)$ per unit reference measure,
 the Eulerian force density is
 \[
-\mathbf{f}(x,t) = \int_{\Omega_s}
-\mathbf{F}(X,t)\,\delta(x - \chi(X,t))\,dX.
+\mathbf{f}(x,t) = \int_{B_0}
+\boldsymbol{\mathcal F}(X,t)\,\delta(x - \chi(X,t))\,dX.
 \]
-This maps structural forces to the fluid grid in a conservation-preserving way.
-Typically in code, the Dirac delta is replaced by a regularized IB kernel
-(e.g., Peskin 4-pt).
+In IBFE, $\boldsymbol{\mathcal F}$ is normally defined by a finite-element weak form rather than by pointwise differentiation of a discontinuous stress. Code evaluates the corresponding interaction integrals at quadrature points and replaces the Dirac delta by a regularized IB kernel. Conservation or power consistency follows only when spreading and velocity restriction use compatible weights and adjoint operators.
 
 This step couples the solid’s internal stresses to the fluid’s momentum
 equation.
@@ -158,19 +147,16 @@ the solid moves with the local fluid velocity.
 This is implemented by \emph{interpolation} from Eulerian velocity to the
 Lagrangian mesh via the same IB kernel used for force spreading.
 
-No explicit boundary conditions are applied on the Eulerian grid;
-instead, structural forces modify the fluid so that this kinematic condition
-is satisfied.
+The immersed interface does not have to conform to the Eulerian grid; its kinematic condition is imposed through interpolation and force coupling. The outer Eulerian domain still requires its own physical boundary conditions (or periodic conditions), and constraints such as contact or prescribed solid motion require additional modeling.
 
 \subsection*{7. What conditions ensure that a matrix of components represents a tensor?}
 
 \textbf{Answer.}
-A $3\times 3$ array $A_{ij}$ represents a tensor if it obeys the tensor
-transformation law under a change of orthonormal basis:
+A $3\times 3$ component array $A_{ij}$ represents a second-order tensor if it obeys the appropriate transformation law under a change of orthonormal basis. If the same orthogonal basis change $Q$ is used in the domain and codomain,
 \[
 A^{(m)} = Q A^{(e)} Q^T.
 \]
-If it does not transform this way, it is just a matrix.
+If it does not transform covariantly with the bases, it is merely an array of numbers tied to a coordinate choice. For a two-point tensor such as the deformation gradient, reference and current bases may change independently, giving $F^{\rm new}=Q_{\rm current}F^{\rm old}Q_{\rm reference}^{T}$.
 This is essential in IBFE because deformation gradients, stresses, and rate-of-strain
 tensors must be genuine geometric objects independent of the coordinate
 representation.
@@ -178,15 +164,12 @@ representation.
 \subsection*{8. Why must the viscous stress tensor be symmetric?}
 
 \textbf{Answer.}
-In fluids without couple stresses,
+For a classical continuum without body couples or couple stresses, balance of angular momentum implies symmetry of the total Cauchy stress:
 \[
-T_{ij} = T_{ji}.
+\sigma_{ij} = \sigma_{ji}.
 \]
-Symmetry ensures angular momentum conservation at the infinitesimal level.
-This is needed for the derivation of Navier--Stokes from Cauchy momentum
-equation.
+For a Newtonian fluid, the viscous Cauchy stress is therefore symmetric as well.
 
-In IBFE, symmetric stress ensures that structural forces do not artificially
-inject or remove angular momentum from the fluid.
+In IBFE, the elastic Cauchy stress is symmetric for a classical non-polar material, but the first Piola--Kirchhoff stress $\mathbf P$ is generally not symmetric because it maps reference normals to current forces. Angular-momentum checks must therefore be made using the correct stress measure and configuration.
 
 \end{document}

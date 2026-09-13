@@ -1,1934 +1,2312 @@
-\documentclass[aspectratio=169]{beamer}
-\usepackage{capt-of}
+% =====================================================================
+% IBFE Tutorials: solid mechanics preparation
+% =====================================================================
+\documentclass[aspectratio=169,11pt]{beamer}
 
-% -------------------- Theme / packages --------------------
-\usetheme{Madrid}
-\usecolortheme{default}
-\usefonttheme{professionalfonts}
+% Match the visual language of the SIAM Waves talk.
+\usetheme{Boadilla}
+\usecolortheme{seahorse}
+\useinnertheme{rectangles}
+\useoutertheme{infolines}
 
-\usepackage{amsmath, amssymb, bm}
-\usepackage{mathtools}
-\usepackage{physics} % optional; remove if you prefer
-\usepackage{siunitx}
-\usepackage{centernot}
+\setbeamercolor{structure}{fg=blue!55!black}
+\setbeamercolor{title}{fg=white,bg=blue!55!black}
+\setbeamercolor{frametitle}{fg=blue!55!black}
+\setbeamercolor{block title}{bg=blue!12,fg=blue!55!black}
+\setbeamercolor{block body}{bg=blue!4}
+\setbeamertemplate{navigation symbols}{}
+\setbeamerfont{frametitle}{series=\bfseries,size=\large}
+\setbeamerfont{title}{series=\bfseries,size=\Large}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\DeclareFontShape{T1}{cmss}{b}{n}{<->ssub*cmss/bx/n}{}
+\usepackage{graphicx}
+% These prefixes allow compilation from either the repository root or this folder.
+\graphicspath{{./}{../}}
+\usepackage{amsmath,amssymb,bm,mathtools}
+\usepackage{booktabs}
+\usepackage{xcolor}
 \usepackage{tikz}
-\usepackage{hyperref}  % robust \href
+\usetikzlibrary{arrows.meta,calc}
+\usepackage{tcolorbox}
+\tcbuselibrary{skins}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true,urlcolor=blue!55!black}
 
-% -------------------- Handy macros --------------------
+\newcommand{\hi}[1]{\textcolor{blue!55!black}{\textbf{#1}}}
+\newcommand{\warn}[1]{\textcolor{red!70!black}{\textbf{#1}}}
+\newcommand{\soft}[1]{\textcolor{gray!50!black}{#1}}
 \newcommand{\R}{\mathbb{R}}
-\newcommand{\x}{\bm{x}}
 \newcommand{\X}{\bm{X}}
+\newcommand{\x}{\bm{x}}
 \newcommand{\I}{\bm{I}}
 \newcommand{\uEuler}{\bm{u}}
-
-% Differential operators (Eulerian vs Lagrangian)
-\newcommand{\gradx}{\nabla_{\!x}}
-\newcommand{\divx}{\nabla_{\!x}\cdot}
+\newcommand{\Fdef}{\bm{F}_{\chi}}
+\newcommand{\Cten}{\bm{C}}
+\newcommand{\Bten}{\bm{B}}
+\newcommand{\Eten}{\bm{E}}
+\newcommand{\eten}{\bm{e}}
+\newcommand{\sigmaC}{\bm{\sigma}}
+\newcommand{\Pten}{\bm{P}}
+\newcommand{\Sten}{\bm{S}}
+\newcommand{\Nvec}{\bm{N}}
+\newcommand{\nvec}{\bm{n}}
+\newcommand{\tvec}{\bm{t}}
+\newcommand{\FLag}{\bm{F}}
+\newcommand{\fEuler}{\bm{f}}
 \newcommand{\gradX}{\nabla_{\!X}}
-\newcommand{\divX}{\nabla_{\!X}\cdot}
+\newcommand{\gradx}{\nabla_{\!x}}
+\newcommand{\divx}{\nabla_{\!x}\!\cdot}
 
+\newtcolorbox{punchbox}{
+  enhanced,
+  colback=blue!4,
+  colframe=blue!55!black,
+  boxrule=0.6pt,
+  arc=2pt,
+  left=4pt,right=4pt,top=3pt,bottom=3pt
+}
 
-
-
-% Derivatives
-
-% --- More solid-mechanics tensors (Modules 2--3) ---
-\newcommand{\Cten}{\bm{C}}     % right Cauchy-Green
-\newcommand{\Bten}{\bm{B}}     % left Cauchy-Green
-\newcommand{\Eten}{\bm{E}}     % Green-Lagrange strain
-\newcommand{\eten}{\bm{e}}     % Euler-Almansi strain
-\newcommand{\sigmaC}{\bm{\sigma}} % Cauchy stress
-\newcommand{\Sten}{\bm{S}}     % 2nd Piola-Kirchhoff stress
-\newcommand{\Nvec}{\bm{N}}     % reference outward unit normal
-\newcommand{\nvec}{\bm{n}}     % current outward unit normal
-\newcommand{\tvec}{\bm{t}}     % traction
-
-
-% --- IMPORTANT NOTATION CHOICE ---
-% In IB/IBFE, many authors use F(X,t) for Lagrangian force density.
-% To avoid that conflict, we denote the deformation gradient by F_chi.
-\newcommand{\Fdef}{\bm{F}_{\chi}}  % deformation gradient = grad_X chi
-\newcommand{\Pten}{\bm{P}}         % 1st Piola stress (later)
-
-% IB force densities (used in later modules, reserved here for consistency)
-\newcommand{\fEuler}{\bm{f}}       % Eulerian force density on fluid grid
-\newcommand{\FLag}{\bm{F}}         % Lagrangian force density on solid mesh
-
-\title[Solid Mechanics for IBFE]{Solid Mechanics You Need for IBFE}
-\author{Laura Miller}
-\institute{University of Arizona}
-\date{\today}
+\title[Solid mechanics for IBFE]{Solid mechanics for IBFE}
+\subtitle{Kinematics, strain, stress, and hyperelasticity}
+\author[Miller]{Laura A. Miller}
+\institute[UArizona]{Department of Mathematics, University of Arizona}
+\date{}
 
 \begin{document}
 
-% ============================================================
-% Title
-% ============================================================
-\begin{frame}
-  \titlepage
+% ----- 1. Title -----
+\begin{frame}[plain]
+  \begin{beamercolorbox}[sep=10pt,center]{title}
+    {\bfseries\Large Solid mechanics for IBFE}\\[3pt]
+    {\normalsize Kinematics, strain, stress, and hyperelasticity}
+  \end{beamercolorbox}
+  \vspace{1.35em}
+  \begin{columns}[T,onlytextwidth]
+  \begin{column}{0.55\textwidth}
+    \textbf{\large Laura A. Miller}\\[4pt]
+    Department of Mathematics\\
+    University of Arizona\\[14pt]
+    {\small IBFE Tutorials}
+  \end{column}
+  \begin{column}{0.45\textwidth}
+    \begin{punchbox}
+      \centering
+      \[
+        \chi
+        \;\longrightarrow\;
+        \Fdef
+        \;\longrightarrow\;
+        W
+        \;\longrightarrow\;
+        \Pten
+      \]
+      \small motion, deformation, energy, stress
+    \end{punchbox}
+  \end{column}
+  \end{columns}
+  \vfill
+  \centering{\tiny\color{black!55}AI tools were used to assist with formatting, organization, and clarification of the instructor's original notes.}
 \end{frame}
 
-\begin{frame}{Resources}
-  \begin{itemize}
-    \item \href{https://web.iitd.ac.in/~ajeetk/APL104.html}{Solid Mechanics Foundations: UG Solid Mechanics (APL104) – Ajeet Kumar (IIT Delhi).}
-    \item \href{https://onlinecourses.nptel.ac.in/noc19_ch27/preview}{NPTEL: Continuum Mechanics and Transport Phenomena (IIT Madras).}
-    \item \href{https://www.classcentral.com/course/youtube-modeling-hyperelastic-material-344875}{NPTEL: Computational Continuum Mechanics}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}{Overview}
-\tableofcontents
-\end{frame}
-% ============================================================
-% MODULE 0
-% ============================================================
-\section{Module 0: What we are doing + notation}
-
-\begin{frame}{Module 0: What this tutorial is (and is not)}
-\small
-\textbf{Goal:} Build the minimum solid-mechanics toolkit needed to follow IBFE derivations.
-
-\medskip
-\textbf{Audience:} advanced undergrads + grad students who are new to continuum mechanics.
-
-\medskip
-\textbf{Scope for Modules 0--1:}
-\begin{itemize}
-\item Set notation and tensor bookkeeping (what is a scalar/vector/tensor; indices).
-\item Define reference vs current configuration and the deformation map.
-\item Define the deformation gradient \(\Fdef\) and \(J=\det \Fdef\), and what they \emph{mean}.
-\item Show how FE approximates \(\chi\) and \(\Fdef\) in IBFE.
-\end{itemize}
-
-\end{frame}
-
-\begin{frame}{Notation: configurations, coordinates, and fields}
-\small
+% ----- 3. Overview -----
+\begin{frame}{Roadmap}
 \begin{columns}[T,onlytextwidth]
-  \begin{column}{0.58\textwidth}
-    We will use two coordinate systems (two ``worlds''):
+\begin{column}{0.49\textwidth}
+\begin{enumerate}\itemsep6pt
+  \item Notation and tensor bookkeeping
+  \item Configurations and the deformation map
+  \item Finite strain measures
+  \item Stress measures and transformations
+\end{enumerate}
+\end{column}
+\begin{column}{0.49\textwidth}
+\begin{enumerate}\setcounter{enumi}{4}\itemsep6pt
+  \item Hyperelasticity and the IBFE force pipeline
+  \item Worked axial-deformation example
+  \item Neo-Hookean stress derivation and checks
+\end{enumerate}
+\end{column}
+\end{columns}
+\begin{punchbox}
+\centering
+\[
+  \chi\longrightarrow\Fdef,J
+  \longrightarrow\Cten,\Eten
+  \longrightarrow W
+  \longrightarrow\Pten
+  \longrightarrow\FLag
+  \longrightarrow\fEuler .
+\]
+\end{punchbox}
+\end{frame}
 
-    \begin{itemize}
-    \item \textbf{Reference/material:} \(B_0\subset\R^d\), \(\X=(X_1,\dots,X_d)\).
-    \item \textbf{Current/spatial:} \(B_t\subset\R^d\), \(\x=(x_1,\dots,x_d)\).
-    \item \textbf{Motion:} \(\chi(\X,t):B_0\to B_t\), \(\x=\chi(\X,t)\).
-    \end{itemize}
+\section{Notation and tensor bookkeeping}
 
-    \medskip
-    \textbf{Bookkeeping:} \(\X\)-fields live on \(B_0\); \(\x\)-fields live on \(B_t\).
-  \end{column}
+% ----- 4. Module 0 -----
+\begin{frame}{Module 0: purpose and scope}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.57\textwidth}
+\textbf{Goal}
 
-  \begin{column}{0.42\textwidth}
-    \centering
-    \vspace{-0.5em} % tweak if needed
-    \includegraphics[width=\linewidth]{pictures/4-2/ref-current.png}\\
-    \scriptsize Reference point \(\X\in B_0\) maps to \(\x=\chi(\X,t)\in B_t\).
-  \end{column}
+Build the minimum solid-mechanics toolkit needed to follow IBFE derivations.
+
+\medskip
+\textbf{Audience}
+
+Advanced undergraduates and graduate students who are new to continuum mechanics.
+\end{column}
+\begin{column}{0.43\textwidth}
+\begin{punchbox}
+\small
+This module establishes:
+\begin{itemize}\itemsep4pt
+  \item reference and current coordinates,
+  \item tensor types and indices,
+  \item material and spatial derivatives,
+  \item distinct symbols for deformation and force.
+\end{itemize}
+\end{punchbox}
+\end{column}
 \end{columns}
 \end{frame}
 
-
-\begin{frame}{Tensor types and component notation (so you can survive IBFE papers)}
+% ----- 5. Coordinates -----
+\begin{frame}{Configurations, coordinates, and fields}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.54\textwidth}
+\begin{itemize}\itemsep6pt
+  \item \hi{Reference configuration}: \(B_0\subset\R^d\), with material coordinate \(\X\).
+  \item \hi{Current configuration}: \(B_t\subset\R^d\), with spatial coordinate \(\x\).
+  \item \hi{Motion}: \(\chi(\cdot,t):B_0\to B_t\), with
+  \[
+    \x=\chi(\X,t).
+  \]
+\end{itemize}
+\begin{punchbox}
 \small
-
-\textbf{Scalars:} \(a \in \R\).
-
-\medskip
-\textbf{Vectors:} \(\bm{v}\in \R^d\), components \(v_i\) (spatial) or \(v_I\) (material).
-
-\medskip
-\textbf{2nd-order tensors (matrices):}
-\begin{itemize}
-\item \textbf{Spatial (Eulerian) tensor:} \(\bm{A}\), components \(A_{ij}\) (both indices spatial).
-\item \textbf{Material (Lagrangian) tensor:} \(\bm{A}\), components \(A_{IJ}\) (both indices material).
-\item \textbf{Mixed / two-point tensor:} components \(A_{iI}\) (maps material directions to spatial directions).
-\end{itemize}
-
-\medskip
-\textbf{Index convention:}
-\begin{itemize}
-\item Spatial indices: \(i,j,k \in \{1,\dots,d\}\) (attached to \(\x\)-coordinates).
-\item Material indices: \(I,J,K \in \{1,\dots,d\}\) (attached to \(\X\)-coordinates).
-\item Summation convention: repeated indices are summed unless stated otherwise.
-\end{itemize}
+Material fields use \(\X\) as their independent coordinate. Spatial fields use \(\x\).
+\end{punchbox}
+\end{column}
+\begin{column}{0.46\textwidth}
+\centering
+\includegraphics[width=\linewidth]{pictures/4-2/ref-current.png}\\
+\soft{\scriptsize A material point keeps its label \(\X\) while its current position changes.}
+\end{column}
+\end{columns}
 \end{frame}
 
-\begin{frame}{Tensor types and component notation (so you can survive IBFE papers)}
-\small
-\medskip
+% ----- 6. Tensor primer -----
+\begin{frame}{Scalars, vectors, and second-order tensors}
 \begin{center}
-\renewcommand{\arraystretch}{1.15}
-\setlength{\tabcolsep}{6pt}
-\begin{tabular}{p{0.44\textwidth} p{0.50\textwidth}}
-\hline
-\textbf{Lives on \(B_0\) (material)} & \textbf{Lives on \(B_t\) (spatial)} \\
-\hline
-\(\X\) (material coordinate) & \(\x\) (spatial coordinate) \\
-\(\chi(\X,t)\) (motion, mapping \(B_0\to B_t\)) & \(\uEuler(\x,t)\) (fluid velocity) \\
-\(\Fdef(\X,t)=\gradX\chi(\X,t)\) (mixed tensor, \(F_{iI}\)) & \(\sigmaC(\x,t)\) (Cauchy stress, \(\sigma_{ij}\)) \\
-\(J(\X,t)=\det \Fdef\) & \(p(\x,t)\) (pressure) \\
-\(\Pten(\X,t)\) (PK1 stress, mixed \(P_{iI}\)) & \(\fEuler(\x,t)\) (Eulerian force density) \\
-\hline
+\renewcommand{\arraystretch}{1.28}
+\begin{tabular}{lll}
+\toprule
+Object & Components & Example \\
+\midrule
+Scalar & \(a\) & energy density \(W\) \\
+Vector & \(v_i\) or \(v_I\) & velocity, normal, force \\
+Spatial tensor & \(A_{ij}\) & Cauchy stress \(\sigma_{ij}\) \\
+Material tensor & \(A_{IJ}\) & Green strain \(E_{IJ}\) \\
+Two-point tensor & \(A_{iI}\) & \((F_\chi)_{iI}\), \(P_{iI}\) \\
+\bottomrule
 \end{tabular}
 \end{center}
-
-\end{frame}
-
-
-\begin{frame}{Material vs spatial derivatives (very common confusion)}
+\begin{punchbox}
 \small
-\textbf{Material gradient:} \(\gradX(\cdot)\) means derivatives w.r.t. \(\X\) (reference coordinates).
-
-\medskip
-\textbf{Spatial gradient:} \(\gradx(\cdot)\) means derivatives w.r.t. \(\x\) (current coordinates).
-
-\medskip
-\textbf{Component forms:}
+A two-point tensor maps a material direction into a spatial direction. Both the deformation gradient and first Piola stress have one spatial and one material index.
 \[
-(\gradX \chi)_{iI} = \pdv{\chi_i}{X_I}, \qquad (\gradx u)_{ij} = \pdv{u_i}{x_j}.
-\]
-
-\medskip
-\textbf{IBFE heads-up:} Structural kinematics and stresses are typically defined on \(B_0\), so you will often see \(\gradX(\cdot)\) and \(\gradX \cdot (\cdot)\).
-
-\end{frame}
-
-
-\begin{frame}{Notation note: \(\Fdef\) vs \(\FLag\) in IB/IBFE}
-\small
-Many immersed boundary (IB) and IBFE papers use \(\FLag(\X,t)\) to denote the \textbf{Lagrangian force density}
-defined on the structure mesh. For example, Griffith \& Luo (2017) write the unified weak form as
-\[
-\int_U \FLag(\X,t)\cdot\bm{V}(\X)\,d\X
-= -\int_U \Pten^{\,e}(\X,t)\!:\!\gradX \bm{V}(\X)\,d\X
-\]
-where \(\Pten^{\,e}=\partial W^e/\partial \bm{F}\) and the symbol \(\bm{F}\) appears \emph{twice} --- once as the deformation gradient and once (as \(\bm{F}(\X,t)\)) as the Lagrangian force density.
-
-\medskip
-In solid mechanics, the symbol \(\bm{F}\) is traditionally used for the \textbf{deformation gradient}.
-To avoid confusion, in this tutorial we write:
-\[
-\Fdef(\X,t) := \gradX \chi(\X,t)
-\]
-for the \textbf{deformation gradient}, and we reserve \(\FLag(\X,t)\) for the \textbf{Lagrangian force density}
-(later modules).
-
-\medskip
-\textbf{Takeaway:} \(\Fdef\) is kinematics; \(\FLag\) is forcing.
-\end{frame}
-
-% ============================================================
-% MODULE 1
-% ============================================================
-\section{Module 1: Configurations and the deformation map}
-
-\begin{frame}{Module 1: Two configurations and a map}
-\small
-\textbf{Reference configuration:} \(B_0 \subset \R^d\) with material coordinates \(\X\).
-
-\medskip
-\textbf{Current configuration:} \(B_t \subset \R^d\) with spatial coordinates \(\x\).
-
-\medskip
-\textbf{Motion / deformation map:}
-\[
-\chi(\X,t): B_0 \to B_t, \qquad \x=\chi(\X,t).
-\]
-
-\medskip
-\textbf{Displacement:}
-\[
-\bm{d}(\X,t) = \chi(\X,t) - \X.
-\]
-
-\medskip
-
-\end{frame}
-
-% (Preamble reminder if needed)
-% \usepackage{graphicx}
-
-\begin{frame}{The deformation gradient $\bm{F}_{\chi}$: differential map and its inverse}
-\footnotesize
-\begin{columns}[T,onlytextwidth]
-  \begin{column}{0.52\textwidth}
-
-  \textbf{Two nearby material points:}
-  \[
-  \X \in B_0,\qquad \X+d\X \in B_0,
-  \qquad d\X := (\X+d\X)-\X.
-  \]
-
-  \medskip
-  \textbf{Their images under the motion:}
-  \[
-  \x=\chi(\X,t),\qquad \x+d\chi=\chi(\X+d\X,t),
-  \]
-  so the \emph{increment} in the current configuration is
-  \[
-  d\chi := \chi(\X+d\X,t)-\chi(\X,t).
-  \]
-
-
-  \end{column}
-
-  \begin{column}{0.48\textwidth}
-  \medskip
-  \medskip
-  \medskip
-  \centering
-  % Replace the filename below with wherever you saved the attached image
-  \includegraphics[width=\linewidth]{pictures/4-2/def-tensor.png}
-
-  \vspace{0.25em}
-  \scriptsize
-  Differential picture: \(\X \mapsto \chi(\X,t)\) and \(\X+d\X \mapsto \chi(\X+d\X,t)\).
-  \end{column}
-\end{columns}
-\end{frame}
-
-\begin{frame}{The deformation gradient $\bm{F}_{\chi}$: differential map and its inverse}
-\footnotesize
-\begin{columns}[T,onlytextwidth]
-  \begin{column}{0.52\textwidth}
-
-  \medskip
-  \textbf{Linearization (definition of $\bm{F}_{\chi}$):}
-  \[
-  \begin{aligned}
-  d\chi &\approx \bm{F}_{\chi}(\X,t)\, d\X,\\
-  \bm{F}_{\chi}(\X,t) &= \nabla_{\!X}\chi(\X,t).
-  \end{aligned}
-  \]
-  with components
-  \[
-  (\bm{F}_{\chi})_{iI}(\X,t)=\frac{\partial \chi_i}{\partial X_I}(\X,t).
-  \]
-
-  \medskip
-  \textbf{Inverse map (when $\chi(\cdot,t)$ is locally invertible):}
-  \[
-  \begin{aligned}
-  d\X &\approx \bm{F}_{\chi}(\X,t)^{-1}\, d\chi,\\
-  \bm{F}_{\chi}^{-1}(\x,t) &= \nabla_{\!x}\chi^{-1}(\x,t).
-  \end{aligned}
-  \]
-
-  \end{column}
-
-  \begin{column}{0.48\textwidth}
-  \medskip\medskip\medskip
-  \centering
-  \includegraphics[width=\linewidth]{pictures/4-2/def-tensor.png}
-
-  \vspace{0.25em}
-  \scriptsize
-  Differential picture: \(\X \mapsto \chi(\X,t)\) and \(\X+d\X \mapsto \chi(\X+d\X,t)\).
-  \end{column}
-\end{columns}
-\end{frame}
-
-
-
-\begin{frame}{Jacobian \(J=\det\Fdef\): local volume change}
-\small
-\textbf{Definition:}
-\[
-J(\X,t)=\det \Fdef(\X,t).
-\]
-
-\medskip
-\textbf{Meaning:} \(J\) measures local volume ratio (how much a tiny material volume expands/compresses).
-
-\medskip
-\textbf{Volume-element transformation:}
-\[
-dv = J\, dV,
-\]
-where \(dV\) is a small volume in \(B_0\) and \(dv\) is the corresponding volume in \(B_t\).
-
-\medskip
-\textbf{Physical admissibility:} typically require \(J>0\) (no local inversion).
-
-\end{frame}
-
-\begin{frame}{Jacobian determinant $J=\det\Fdef$: area/volume change (stretch)}
-\footnotesize
-\begin{columns}[T,onlytextwidth]
-  \begin{column}{0.45\textwidth}
-  \textbf{Idea:} the deformation map sends a small material neighborhood to a small spatial neighborhood.
-
-  \[
-  \Fdef(\X,t)=\gradX\chi(\X,t), \qquad
-  J(\X,t)=\det\Fdef(\X,t).
-  \]
-
-  \textbf{Measure scaling:}
-  \[
-  da = J\, dA.
-  \]
-  \scriptsize (In 3D: $dv = J\, dV$.)
-
-  \textbf{Stretch example (2D):} if \(\Fdef=\mathrm{diag}(\lambda_1,\lambda_2)\), then
-  \[
-  J=\lambda_1\lambda_2.
-  \]
-
-  \textbf{Interpretation:}
-  \begin{itemize}
-    \item \(J>1\): local expansion
-    \item \(J<1\): local compression
-    \item \(J=1\): locally measure-preserving (volume-preserving in 3D)
-  \end{itemize}
-  \end{column}
-
-  \begin{column}{0.55\textwidth}
-  \centering
-\medskip
-\medskip
-\medskip
-\medskip
-\medskip
-\medskip
-  % ---- TikZ picture: explicit bounding box to avoid clipping ----
-  \begin{tikzpicture}[scale=0.92, every node/.style={font=\small}]
-    % Make sure Beamer reserves enough space (prevents cut-off)
-    \useasboundingbox (-3.6,-1.6) rectangle (4.2,2.8);
-
-    % Left: square in B0
-    \node at (-2.4,2.35) {$B_0$};
-    \draw[line width=1.1pt] (-3.2,0.1) rectangle (-1.6,1.7);
-    \node[font=\scriptsize] at (-2.4,-0.25) {small square, area $dA$};
-
-    % Arrow labeled chi
-    \draw[->, line width=1.2pt] (-0.95,1.85) .. controls (0.4,2.55) .. (1.75,1.85);
-    \node at (0.4,2.65) {$\chi(\cdot,t)$};
-
-    % Right: rectangle in Bt (pure stretch)
-    \node at (3.0,2.35) {$B_t$};
-    % Stretch factors: wider and taller than the square
-    \draw[line width=1.1pt] (2.1,0.1) rectangle (3.9,2.1);
-    \node[font=\scriptsize] at (3.0,-0.25) {stretched rectangle, area $da$};
-
-    % Scaling label
-    \node[font=\normalsize] at (0.35,-1.05) {$da = J\, dA$};
-  \end{tikzpicture}
-
-  \end{column}
-\end{columns}
-\end{frame}
-
-
-
-\begin{frame}{Micro-check: compute \(\Fdef\) and \(J\) for simple maps}
-\small
-\textbf{(A) Uniform stretch in 3D:} \(\chi(\X) = (\lambda X_1, \lambda X_2, \lambda X_3)\).
-\begin{itemize}
-\item What is \(\Fdef\)?
-\item What is \(J\)?
-\end{itemize}
-
-\medskip
-\textbf{(B) Simple shear in 3D:} \(\chi(\X) = (X_1 + \gamma X_2, X_2, X_3)\).
-\begin{itemize}
-\item Compute \((\Fdef)_{iI}=\partial \chi_i/\partial X_I\).
-\item Compute \(J=\det(\Fdef)\).
-\end{itemize}
-
-
-\end{frame}
-
-\begin{frame}{Micro-check: compute \(\Fdef\) and \(J\) for simple maps (solutions)}
-\small
-
-\textbf{Recall:} \(\Fdef = \gradX \chi\) with components \((\Fdef)_{iI}=\partial \chi_i/\partial X_I\), and \(J=\det(\Fdef)\).
-
-\medskip
-\textbf{(A) Uniform stretch in 3D:} \(\chi(\X) = (\lambda X_1, \lambda X_2, \lambda X_3)\).
-
-\medskip
-\emph{Compute \(\Fdef\):}
-\[
-\Fdef =
-\begin{pmatrix}
-\frac{\partial \chi_1}{\partial X_1} & \frac{\partial \chi_1}{\partial X_2} & \frac{\partial \chi_1}{\partial X_3}\\
-\frac{\partial \chi_2}{\partial X_1} & \frac{\partial \chi_2}{\partial X_2} & \frac{\partial \chi_2}{\partial X_3}\\
-\frac{\partial \chi_3}{\partial X_1} & \frac{\partial \chi_3}{\partial X_2} & \frac{\partial \chi_3}{\partial X_3}
-\end{pmatrix}
-=
-\begin{pmatrix}
-\lambda & 0 & 0\\
-0 & \lambda & 0\\
-0 & 0 & \lambda
-\end{pmatrix}
-= \lambda \I.
-\]
-
-\emph{Compute \(J\):}
-\[
-J=\det(\Fdef)=\det(\lambda \I)=\lambda^3.
-\]
-\end{frame}
-
-\begin{frame}{Micro-check: compute \(\Fdef\) and \(J\) for simple maps (solutions)}
-\medskip
-\textbf{(B) Simple shear in 3D:} \(\chi(\X) = (X_1 + \gamma X_2, X_2, X_3)\).
-
-\medskip
-\emph{Compute \((\Fdef)_{iI}\):}
-\[
-\chi_1 = X_1 + \gamma X_2,\quad \chi_2=X_2,\quad \chi_3=X_3.
-\]
-So
-\[
-\Fdef=
-\begin{pmatrix}
-\frac{\partial \chi_1}{\partial X_1} & \frac{\partial \chi_1}{\partial X_2} & \frac{\partial \chi_1}{\partial X_3}\\
-\frac{\partial \chi_2}{\partial X_1} & \frac{\partial \chi_2}{\partial X_2} & \frac{\partial \chi_2}{\partial X_3}\\
-\frac{\partial \chi_3}{\partial X_1} & \frac{\partial \chi_3}{\partial X_2} & \frac{\partial \chi_3}{\partial X_3}
-\end{pmatrix}
-=
-\begin{pmatrix}
-1 & \gamma & 0\\
-0 & 1 & 0\\
-0 & 0 & 1
-\end{pmatrix}.
-\]
-
-\emph{Compute \(J\):} this matrix is upper triangular, so its determinant is the product of diagonal entries:
-\[
-J=\det(\Fdef)=1\cdot 1\cdot 1 = 1.
-\]
-
-\medskip
-\textbf{Takeaway:} uniform stretch changes volume by \(\lambda^3\), while simple shear preserves volume (\(J=1\)).
-
-\end{frame}
-
-
-\begin{frame}{Important pitfall: \(\Fdef-\I\) is not ``the strain''}
-\small
-You will often see (or be tempted to write) \(\Fdef-\I\). Be careful:
-
-\medskip
-\textbf{Displacement gradient:}
-\[
-\gradX \bm{d} = \Fdef - \I.
-\]
-This is a first derivative of displacement; it is \emph{not} the strain tensor in general.
-
-\medskip
-\textbf{Small-deformation (linearized) strain:}
-\[
-\bm{\varepsilon} = \frac{1}{2}\left(\gradX \bm{d} + (\gradX \bm{d})^{T}\right).
-\]
-
-\medskip
-\textbf{Takeaway:} For finite deformation, we use nonlinear strain measures (next modules).
-
-\end{frame}
-
-
-
-\begin{frame}{Module 1 wrap-up (what you should be fluent with)}
-\small
-By the end of Module 1, you should be able to:
-\begin{itemize}
-\item State what \(B_0, B_t, \X, \x, \chi(\X,t)\) mean.
-\item Write \(\Fdef=\gradX \chi\) and interpret it as mapping line elements: \(d\x=\Fdef d\X\).
-\item Explain \(J=\det\Fdef\) and \(dv = J\,dV\).
-\item Keep \(\gradX\) and \(\gradx\) straight.
-\item Explain how FE approximates \(\chi\) and \(\Fdef\) in IBFE.
-\end{itemize}
-
-\medskip
-\textbf{Quick check question:} If \(\chi(\X)=\lambda \X\) in 3D (uniform stretch), what are \(\Fdef\) and \(J\)?
-\end{frame}
-
-% ============================================================
-% MODULE 2
-% ============================================================
-\section{Module 2: Strain measures (small vs finite)}
-
-\begin{frame}{Module 2: Why we need nonlinear strain measures}
-\small
-From Module 1 we have the deformation map \(\chi(\X,t)\) and deformation gradient
-\[
-\Fdef(\X,t)=\gradX \chi(\X,t).
-\]
-
-\medskip
-\textbf{Key point:} For \emph{finite} deformations, ``strain'' must:
-\begin{itemize}
-\item separate stretch from rigid-body rotation (objectivity),
-\item behave well under large deformation,
-\item reduce to the familiar small-strain tensor when \(\|\gradX \bm{d}\|\ll 1\).
-\end{itemize}
-
-\end{frame}
-
-\begin{frame}{Micro-check: rotation vs stretch (what strain should ``feel like'')}
-\small
-  \centering
-  \begin{tikzpicture}[scale=0.95, every node/.style={font=\scriptsize}]
-    \useasboundingbox (-3.2,-2.2) rectangle (3.2,2.2);
-
-    % ---------- Panel (i): rotation ----------
-    \node[font=\small] at (-2.1,2.0) {(i) Pure rotation: Rotation should produce zero strain.};
-
-    % reference square
-    \draw[line width=1.0pt] (-3.0,0.1) rectangle (-1.6,1.5);
-    \node at (-2.3,-0.25) {reference};
-
-    % arrow to rotated
-    \draw[->, line width=1.0pt] (-1.2,0.8) -- (-0.2,0.8);
-    \node at (-0.7,1.05) {$R$};
-
-    % rotated square (same size, rotated)
-    \begin{scope}[shift={(0.6,0.8)}, rotate=25]
-      \draw[line width=1.0pt] (-0.7,-0.7) rectangle (0.7,0.7);
-    \end{scope}
-    \node at (0.6,-0.25) {rotated};
-
-
-    % ---------- Panel (ii): stretch ----------
-    \node[font=\small] at (-2.1,-1.55) {(ii) Stretch: Stretch should produce nonzero strain.};
-
-    % reference square (bottom left)
-    \draw[line width=1.0pt] (-3.0,-3.4) rectangle (-1.6,-2.0);
-    \node at (-2.3,-3.75) {reference};
-
-    % arrow to stretched
-    \draw[->, line width=1.0pt] (-1.2,-2.7) -- (-0.2,-2.7);
-    \node at (-0.7,-2.45) {$F$};
-
-    % stretched rectangle (bottom right)
-    \draw[line width=1.0pt] (0.0,-3.4) rectangle (2.0,-2.0);
-    \node at (1.0,-3.75) {stretched};
-  \end{tikzpicture}
-
-
-\end{frame}
-
-
-\begin{frame}{Reminder: displacement gradient and small (linearized) strain}
-\small
-Displacement \(\bm{d}(\X,t)=\chi(\X,t)-\X\).
-
-\medskip
-Displacement gradient:
-\[
-\gradX \bm{d} = \Fdef - \I.
-\]
-
-\medskip
-Small (linearized) strain:
-\[
-\bm{\varepsilon}=\frac12\left(\gradX \bm{d}+(\gradX \bm{d})^T\right).
-\]
-
-\medskip
-\textbf{When is this valid?} Roughly when \(\|\gradX \bm{d}\|\ll 1\) (small displacement gradients).
-
-
-\end{frame}
-
-\begin{frame}{Right and left Cauchy--Green tensors (\(\Cten\) and \(\Bten\))}
-\small
-Two fundamental stretch tensors built from \(\Fdef\):
-
-\medskip
-\textbf{Right Cauchy--Green (reference-friendly):}
-\[
-\Cten = \Fdef^{T}\Fdef.
-\]
-
-\medskip
-\textbf{Left Cauchy--Green (current-friendly):}
-\[
-\Bten = \Fdef \Fdef^{T}.
-\]
-
-\medskip
-\textbf{Interpretation:} both encode stretch; rigid-body rotations cancel out.
-
-\medskip
-\textbf{Frame reminder:} \(\Cten\) naturally pairs with \(\X\)-based descriptions; \(\Bten\) with \(\x\)-based ones.
-
-\end{frame}
-
-\begin{frame}{Green--Lagrange strain \(\Eten\) (reference-frame finite strain)}
-\small
-\textbf{Definition:}
-\[
-\Eten = \frac12(\Cten-\I)=\frac12(\Fdef^{T}\Fdef-\I).
-\]
-
-\medskip
-\textbf{Component form:}
-\[
-E_{IJ}=\frac12\left(C_{IJ}-\delta_{IJ}\right), \qquad
-C_{IJ}=\sum_{i=1}^{d} (\Fdef)_{iI}(\Fdef)_{iJ}.
-\]
-\medskip
-Here \(\delta_{IJ}\) is the Kronecker delta, i.e. \((\I)_{IJ}=\delta_{IJ}\).
-
-
-\medskip
-\textbf{Why it’s useful for IBFE:} \(\Eten\) is defined on the reference configuration and is standard in large-deformation elasticity.
-
-\end{frame}
-
-\begin{frame}{Green--Lagrange strain $\Eten$: geometric meaning}
-\small
-\begin{columns}[T,onlytextwidth]
-  \begin{column}{0.56\textwidth}
-  \textbf{Definition:}
-  \[
-  \Eten=\tfrac12(\Cten-\I),\qquad \Cten = \Fdef^{T}\Fdef,\qquad \Fdef=\gradX\chi.
-  \]
-
-  \medskip
-  \textbf{Key interpretation: change in squared length.}
-
-  For a material line element \(d\X\),
-  \[
-  d\x = \Fdef\, d\X,
+  i,j,k:\ \text{spatial},
   \qquad
-  |d\x|^2 - |d\X|^2
-  \;=\;
-  2\, d\X^T \Eten\, d\X.
-  \]
+  I,J,K:\ \text{material}.
+\]
+Repeated indices are summed unless stated otherwise.
+\end{punchbox}
+\end{frame}
 
-  \medskip
-  \textbf{So:} \(\Eten=0\) means all small material lengths are preserved (rigid motion: rotation + translation).
-  \end{column}
+% ----- 7. Field table -----
+\begin{frame}{Material and spatial fields}
+\small
+\begin{center}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{ll}
+\toprule
+Reference domain \(B_0\) & Current domain \(B_t\) or fluid domain \(\Omega\) \\
+\midrule
+\(\X\): material coordinate & \(\x\): spatial coordinate \\
+\(\chi(\X,t)\): motion & \(\uEuler(\x,t)\): velocity \\
+\(\Fdef=\gradX\chi\): deformation gradient & \(\sigmaC(\x,t)\): Cauchy stress \\
+\(J=\det\Fdef\): volume ratio & \(p(\x,t)\): pressure \\
+\(\Pten(\X,t)\): first Piola stress & \(\fEuler(\x,t)\): Eulerian force density \\
+\(\FLag(\X,t)\): Lagrangian force density & \\
+\bottomrule
+\end{tabular}
+\end{center}
+\begin{punchbox}
+\small
+Always check the independent coordinate before differentiating or integrating a field.
+\end{punchbox}
+\end{frame}
 
-  \begin{column}{0.44\textwidth}
-  \centering
-  \includegraphics[width=\linewidth]{pictures/4-2/Green-Lagrange.png}\\
-  \end{column}
+% ----- 9. Derivatives -----
+\begin{frame}{Material and spatial derivatives}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.50\textwidth}
+\begin{block}{Material gradient}
+\[
+  \gradX(\cdot)
+\]
+differentiates with respect to \(\X\). For the motion,
+\[
+  (\gradX\chi)_{iI}
+  =\frac{\partial\chi_i}{\partial X_I}.
+\]
+\end{block}
+\end{column}
+\begin{column}{0.48\textwidth}
+\begin{block}{Spatial gradient}
+\[
+  \gradx(\cdot)
+\]
+differentiates with respect to \(\x\). For velocity,
+\[
+  (\gradx\uEuler)_{ij}
+  =\frac{\partial u_i}{\partial x_j}.
+\]
+\end{block}
+\end{column}
 \end{columns}
-\end{frame}
-
-
-
-\begin{frame}{Euler--Almansi strain \(\eten\) (current-frame finite strain)}
+\begin{punchbox}
 \small
-A commonly used \emph{spatial} (current-frame) finite strain is the Euler--Almansi strain:
-\[
-\eten = \frac12\left(\I-\Bten^{-1}\right)
-      = \frac12\left(\I-(\Fdef\Fdef^T)^{-1}\right).
-\]
-
-\medskip
-\textbf{Rule of thumb for IBFE derivations:} it is often more convenient to work in the reference frame with \(\Fdef\), \(\Cten\), and \(\Eten\).
-
+IBFE structural kinematics and constitutive stress are normally evaluated on \(B_0\), so \(\gradX\) appears throughout the finite-element formulation.
+\end{punchbox}
 \end{frame}
 
-\begin{frame}{Euler--Almansi strain $\bm{e}$: geometric meaning (spatial strain)}
-\small
-
-\textbf{Definition (lives on $B_t$):}
+% ----- 10. Symbol distinction -----
+\begin{frame}{Deformation gradient and Lagrangian force}
+IB and IBFE papers often use bold \(F\) for a Lagrangian force density, while solid-mechanics texts use bold \(F\) for the deformation gradient.
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.49\textwidth}
+\begin{block}{Kinematics}
 \[
-\bm{e} = \tfrac12\bigl(\bm{I} - \bm{B}^{-1}\bigr),
-\qquad
-\bm{B} = \bm{F_\chi}\,\bm{F_\chi}^{T}.
+  \Fdef(\X,t):=\gradX\chi(\X,t)
 \]
-
-\medskip
-\textbf{Key interpretation: change in squared length, expressed in the current configuration.}
-
-Take a small \emph{spatial} line element \(d\bm{x}\) in \(B_t\). The corresponding material line element is
+is a two-point tensor.
+\end{block}
+\end{column}
+\begin{column}{0.49\textwidth}
+\begin{block}{Forcing}
 \[
-d\bm{X} = \bm{F_\chi}^{-1}\, d\bm{x}.
+  \FLag(\X,t)
 \]
-Compare squared lengths:
-\[
-|d\bm{x}|^2 - |d\bm{X}|^2
-= d\bm{x}\cdot(\bm{I}-\bm{B}^{-1})\,d\bm{x}
-= 2\, d\bm{x}\cdot \bm{e}\, d\bm{x}.
-\]
-
-\medskip
-\textbf{Sanity check:} if \(\bm{F}= \bm{R}\) is a pure rotation, then \(\bm{B}=\bm{R}\bm{R}^T=\bm{I}\) and \(\bm{e}=\bm{0}\).
-
-\medskip
-\textbf{Bridge to Green--Lagrange strain:}
-\[
-\bm{e} = \bm{F_\chi}^{-T}\,\bm{E}\,\bm{F_\chi}^{-1}.
-\]
-\end{frame}
-
-
-
-\begin{frame}{Micro-check 1: pure rotation should give zero strain}
-\small
-Let \(\chi(\X)=\bm{R}\X\), where \(\bm{R}\) is a rotation matrix (\(\bm{R}^T\bm{R}=\I\), \(\det\bm{R}=1\)).
-
-\medskip
-Compute:
-\[
-\Fdef=\gradX\chi=\bm{R},\qquad
-\Cten=\Fdef^T\Fdef=\bm{R}^T\bm{R}=\I,\qquad
-\Eten=\frac12(\Cten-\I)=\bm{0}.
-\]
-
-\medskip
-\textbf{Takeaway:} \(\Eten\) is objective (it ignores rigid-body rotations).
-
-\end{frame}
-
-
-
-
-\begin{frame}{Micro-check 2: simple shear}
-\small
-Consider simple shear in 2D (extend to 3D by adding \(x_3=X_3\)):
-\[
-\chi(\X) = \begin{pmatrix} X_1+\gamma X_2 \\ X_2 \end{pmatrix}.
-\]
-
-Then
-\[
-\Fdef=
-\begin{pmatrix}
-1 & \gamma \\
-0 & 1
-\end{pmatrix},
-\qquad
-\Cten=\Fdef^T\Fdef=
-\begin{pmatrix}
-1 & \gamma \\
-\gamma & 1+\gamma^2
-\end{pmatrix}.
-\]
-
-So
-\[
-\Eten=\frac12(\Cten-\I)=\frac12
-\begin{pmatrix}
-0 & \gamma \\
-\gamma & \gamma^2
-\end{pmatrix}.
-\]
-
-\medskip
-\textbf{Observation:} off-diagonal terms scale like \(\gamma\), but \emph{finite strain} also includes the \(\gamma^2\) term.
-
-\end{frame}
-
-\begin{frame}{Strain invariants (for isotropic hyperelasticity)}
-\small
-For isotropic hyperelastic models, energies are often written in terms of invariants of \(\Cten\) (or \(\Bten\)).
-
-\medskip
-Standard invariants of \(\Cten\):
-\[
-I_1 = \mathrm{tr}(\Cten), \qquad
-I_2 = \frac12\left[(\mathrm{tr}\,\Cten)^2 - \mathrm{tr}(\Cten^2)\right], \qquad
-I_3 = \det(\Cten)=J^2,
-\]
-where \(J=\det(\Fdef)\).
-
-\medskip
-\textbf{Interpretation:}
-\begin{itemize}
-\item \(I_3\) encodes volume change (\(J\)).
-\item \(I_1, I_2\) encode distortional (shape) changes.
-\end{itemize}
-
-
-\end{frame}
-
-\begin{frame}{Module 2 wrap-up}
-\small
-You should now be able to:
-\begin{itemize}
-\item distinguish \(\gradX\bm{d}=\Fdef-\I\) from strain,
-\item define \(\Cten=\Fdef^T\Fdef\) and \(\Bten=\Fdef\Fdef^T\),
-\item compute \(\Eten=\tfrac12(\Cten-\I)\) for finite strain in the reference frame,
-\item recognize the spatial strain \(\eten=\tfrac12(\I-\Bten^{-1})\),
-\item use invariants \(I_1,I_2,I_3\) (and remember \(I_3=J^2\)).
-\end{itemize}
-
-\medskip
-\textbf{Quick check:} If \(J=1\), what is \(I_3\)?
-\end{frame}
-
-% ============================================================
-% MODULE 3
-% ============================================================
-\section{Module 3: Stress measures and transformations}
-
-\begin{frame}{Module 3: Why so many stresses?}
-\small
-In fluid mechanics you typically use the Cauchy stress \(\sigmaC(\x,t)\) (defined on the current configuration).
-
-\medskip
-In IBFE, the structural mechanics is often computed in the \emph{reference} frame using:
-\begin{itemize}
-\item first Piola--Kirchhoff stress \(\Pten(\X,t)\) (reference-frame traction mapping),
-\item sometimes second Piola--Kirchhoff stress \(\Sten(\X,t)\) (pairs naturally with \(\Eten\)).
-\end{itemize}
-
-\medskip
-\textbf{Goal of this module:} connect \(\sigmaC\), \(\Pten\), and \(\Sten\) cleanly, and keep track of frames.
-
-\end{frame}
-
-\begin{frame}{Cauchy stress \(\sigmaC\) and traction}
-\small
-\textbf{Cauchy stress:} \(\sigmaC(\x,t)\) is defined in the current configuration \(B_t\).
-
-\medskip
-\textbf{Traction on a surface:} if \(\nvec\) is the outward unit normal (current configuration),
-\[
-\tvec(\x,t;\nvec) = \sigmaC(\x,t)\,\nvec.
-\]
-
-\medskip
-\textbf{Differential force on an area element \(da\):}
-\[
-d\bm{f} = \sigmaC \nvec \, da.
-\]
-\end{frame}
-
-\begin{frame}{Traction vectors and Cauchy's stress law}
+is a Lagrangian vector force density.
+\end{block}
+\end{column}
+\end{columns}
+\begin{punchbox}
 \centering
-
-\includegraphics[width=0.6\textwidth]{pictures/4-2/traction-vectors.png}
-
-\vspace{0.5em}
-\scriptsize
-Source: \href{https://pkel015.connect.amazon.auckland.ac.nz/SolidMechanicsBooks/Part_III/Chapter_3_Stress_Mass_Momentum/Stress_Balance_Principles_03_The_Cauchy_Stress_Tensor.pdf}{Solid Mechanics Books, Part III: Chapter 3 (Auckland)}.
-\end{frame}
-
-
-\begin{frame}{First Piola--Kirchhoff stress \(\Pten\) (PK1)}
-\small
-\textbf{First Piola--Kirchhoff stress:} \(\Pten(\X,t)\) is defined on the reference configuration \(B_0\).
-
-\medskip
-It maps \emph{reference} normals/areas to force. If \(\Nvec\) is the outward unit normal in the reference configuration and \(dA\) is reference area,
 \[
-d\bm{f} = \Pten(\X,t)\,\Nvec\, dA.
+  \Fdef\neq\FLag .
 \]
-
-\medskip
-\textbf{Important note:} \(\Pten\) is generally \emph{not symmetric}.
-
+\small The subscript on \(\Fdef\) keeps kinematics distinct from forcing.
+\end{punchbox}
 \end{frame}
 
-\begin{frame}{Traction on matching surface patches: Cauchy vs. Piola stress}
-\small
+\section{Configurations and the deformation map}
+
+% ----- 10. Module 1 -----
+\begin{frame}{Module 1: configurations and motion}
 \begin{columns}[T,onlytextwidth]
-  \begin{column}{0.50\textwidth}
-  \textbf{Same physical force on a corresponding surface patch}
-
-  \medskip
-  \textbf{Current (spatial) configuration $B_t$:}
-  \[
-  d\bm{f} = \bm{t}\,da,
+\begin{column}{0.52\textwidth}
+\[
+  \chi(\cdot,t):B_0\to B_t,
   \qquad
-  \bm{t}(\bm{n}) = \sigmaC\,\bm{n}.
-  \]
-  (\(\bm{t}\) is traction per \emph{current} area \(da\).)
-
-  \medskip
-  \textbf{Reference (material) configuration $B_0$:}
-  \[
-  d\bm{f} = \bm{T}\,dA,
-  \qquad
-  \bm{T}(\bm{N}) = \Pten\,\bm{N}.
-  \]
-  (\(\bm{T}\) is traction per \emph{reference} area \(dA\).)
-
-  \medskip
-  \textbf{Full bridge (stress measure conversion):}
-  \[
-  \Pten = J\,\sigmaC\,\Fdef^{-T},
+  \x=\chi(\X,t).
+\]
+The displacement is
+\[
+  \bm{d}(\X,t)=\chi(\X,t)-\X.
+\]
+\end{column}
+\begin{column}{0.46\textwidth}
+\begin{punchbox}
+\small
+This module develops two local measures from the motion:
+\[
+  \Fdef=\gradX\chi,
   \qquad
   J=\det\Fdef.
-  \]
-
-  \end{column}
-
-  \begin{column}{0.50\textwidth}
-  \medskip
-\medskip
-\medskip
-\medskip
-\medskip
-\medskip
-\medskip
-\medskip
-  \centering
-  \includegraphics[width=\linewidth]{pictures/4-2/traction-vectors-B0-B1.png}
-
-  \vspace{0.4em}
-  \scriptsize
-  Source: \href{https://pkel015.connect.amazon.auckland.ac.nz/SolidMechanicsBooks/Part_III/Chapter_3_Stress_Mass_Momentum/Stress_Balance_Principles_03_The_Cauchy_Stress_Tensor.pdf}{Solid Mechanics Books, Part III: Chapter 3 (Auckland)}.
-  \end{column}
+\]
+\(\Fdef\) maps line elements and \(J\) maps volume elements.
+\end{punchbox}
+\end{column}
 \end{columns}
 \end{frame}
 
-
-\begin{frame}{Nanson's formula: how oriented area transforms}
-\small
-
-\textbf{Why we need it:} To equate the \emph{same physical force} written on corresponding patches:
-\[
-d\bm{f} = \sigmaC\,\nvec\,da
-\qquad \text{and} \qquad
-d\bm{f} = \Pten\,\Nvec\,dA.
-\]
-So we need a relation between the \emph{oriented area vectors} \(\nvec\,da\) and \(\Nvec\,dA\).
-
-\medskip
-\textbf{Nanson's formula (area transformation):}
-\[
-\nvec\, da = J\, \Fdef^{-T}\, \Nvec\, dA,
-\qquad J=\det(\Fdef).
-\]
-
-\medskip
-\textbf{Geometric interpretation:}
-\begin{itemize}
-\item The vector \(\Nvec\,dA\) is the \emph{oriented area} of a tiny patch in \(B_0\).
-\item Under the map \(d\x=\Fdef\,d\X\), the patch edges transform by \(\Fdef\).
-\item The mapped cross product gives the new oriented area:
-      \(\;(\Fdef\,d\X_1)\times(\Fdef\,d\X_2)=J\,\Fdef^{-T}(d\X_1\times d\X_2)\).
-\end{itemize}
-
-\medskip
-\textbf{Takeaway:} Nanson is exactly the tool that converts \(\sigmaC\,\nvec\,da\) into a reference-area form.
-\end{frame}
-
-
-\begin{frame}{Piola transform: relation between \(\sigmaC\) and \(\Pten\)}
-\small
-Start from equality of the same physical force:
-\[
-d\bm{f}=\sigmaC\nvec\, da = \Pten\Nvec\, dA.
-\]
-Using Nanson's formula \(\nvec da = J\Fdef^{-T}\Nvec dA\), we obtain:
-\[
-\Pten = J\,\sigmaC\,\Fdef^{-T}.
-\]
-
-Equivalently,
-\[
-\sigmaC = \frac{1}{J}\,\Pten\,\Fdef^{T}.
-\]
-\end{frame}
-
-\begin{frame}{Second Piola--Kirchhoff stress \(\Sten\) (useful with \(\Eten\))}
-\small
-Define the second Piola--Kirchhoff stress:
-\[
-\Sten = \Fdef^{-1}\Pten.
-\]
-
-Equivalently,
-\[
-\Pten = \Fdef\,\Sten.
-\]
-
-\medskip
-\textbf{Why it’s useful:} \(\Sten\) lives in the reference frame and is often symmetric for many hyperelastic materials
-(because it pairs naturally with \(\Eten\)).
-
-\end{frame}
-
-\begin{frame}{Micro-check: dimensional and symmetry sanity checks}
-\small
-\textbf{Check 1 (units):}
-\begin{itemize}
-\item \(\sigmaC\) is force per \emph{current} area.
-\item \(\Pten\) is force per \emph{reference} area (because \(\Pten \Nvec dA\) is a force).
-\end{itemize}
-
-\medskip
-\textbf{Check 2 (symmetry):}
-\begin{itemize}
-\item \(\sigmaC\) is symmetric in standard (non-polar) continua --- this follows from balance of angular momentum.
-\item \(\Pten\) is generally \emph{not} symmetric even when \(\sigmaC\) is symmetric (because of the \(\Fdef^{-T}\) mapping in \(\Pten = J\sigmaC\Fdef^{-T}\)). The symmetry condition for \(\Pten\) reads \(\Pten\Fdef^T = \Fdef\Pten^T\).
-\item \(\Sten = \Fdef^{-1}\Pten\) \emph{is} symmetric whenever \(\sigmaC\) is symmetric (one reason it pairs naturally with \(\Eten\)).
-\end{itemize}
-
-\end{frame}
-
-\begin{frame}{Module 3 wrap-up}
-\small
-You should now be able to:
-\begin{itemize}
-\item define traction \(\tvec=\sigmaC\nvec\) on \(B_t\),
-\item interpret \(\Pten\) via \(d\bm{f}=\Pten\Nvec dA\) on \(B_0\),
-\item use Nanson's formula \(\nvec da = J\Fdef^{-T}\Nvec dA\),
-\item convert stresses using the Piola transform:
-\[
-\Pten = J\sigmaC\Fdef^{-T}, \qquad \sigmaC = \frac{1}{J}\Pten\Fdef^T,
-\]
-\item define the second Piola stress \(\Sten=\Fdef^{-1}\Pten\) (and \(\Pten=\Fdef\Sten\)).
-\end{itemize}
-
-\medskip
-\textbf{Quick check:} If \(J=1\), how does \(\Pten\) relate to \(\sigmaC\)?
-\end{frame}
-
-
-% -----------------------------------------------------------
-% ------------------------------------------------------------
-% ============================================================
-% Add this slide inside Module 3 (right after "Module 3: Why so many stresses?"
-% is a good spot).
-% ============================================================
-
-\begin{frame}{IBFE notation bridge}
-\small
-Different communities reuse the same symbols. Here is the translation map we will use in this tutorial.
-
-\medskip
-\textbf{Kinematics (solid mechanics):}
-\[
-\Fdef(\X,t) := \gradX \chi(\X,t)
-\quad\text{(deformation gradient).}
-\]
-
-\medskip
-\textbf{Forcing (IB/IBFE):}
-\begin{itemize}
-\item \(\FLag(\X,t)\): \textbf{Lagrangian force density} defined on the structure mesh (many IB/IBFE papers write this as \(\bm{F}(\X,t)\)).
-\item \(\fEuler(\x,t)\): \textbf{Eulerian force density} applied in the fluid momentum equation.
-\end{itemize}
-
-\medskip
-\textbf{Stresses (this module):}
-\[
-\sigmaC(\x,t)\ \text{(Cauchy, current)};\qquad
-\Pten(\X,t)\ \text{(PK1, reference)};\qquad
-\Sten(\X,t)\ \text{(PK2, reference)}.
-\]
-
-\medskip
-\textbf{Takeaway:} In what follows, \(\Fdef\) is always kinematics, while \(\FLag\) and \(\fEuler\) are always forces.
-\end{frame}
-
-% ============================================================
-% MODULE 4
-% ============================================================
-\section{Module 4: Hyperelasticity (energy \texorpdfstring{$\to$}{->} stress)}
-
-\begin{frame}{Module 4: What is hyperelasticity?}
-\small
-\textbf{Hyperelastic material:} stress is derived from a stored-energy (strain-energy) density.
-
-\medskip
-We prescribe a scalar energy density per \emph{reference volume}:
-\[
-W(\Fdef) \quad \left[\frac{\text{energy}}{\text{reference volume}}\right],
-\]
-and define the first Piola--Kirchhoff stress by
-\[
-\Pten(\X,t) = \pdv{W}{\Fdef}\big(\Fdef(\X,t)\big).
-\]
-
-\medskip
-\textbf{Key idea:} the constitutive law is encoded in one scalar function \(W\).
-
-
-\end{frame}
-
-% -------------------------
-% Slide 1: What is dW/dF? Component form + "shape check"
-% -------------------------
-\begin{frame}{What does $\partial W/\partial \bm{F}_{\chi}$ mean? (components and shapes)}
-\footnotesize
-
-\textbf{Setup:} The strain energy density is a scalar-valued function of a matrix:
-\[
-W:\R^{d\times d}\to \R,\qquad \bm{F}_{\chi}\mapsto W(\bm{F}_{\chi}).
-\]
-
-\medskip
-\textbf{Component definition:} The derivative \(\dfrac{\partial W}{\partial \bm{F}_{\chi}}\) is a \emph{2nd-order tensor}
-(same shape as \(\bm{F}_{\chi}\)) with components
-\[
-\left(\frac{\partial W}{\partial \bm{F}_{\chi}}\right)_{iI}
-\;:=\;
-\frac{\partial W}{\partial (\bm{F}_{\chi})_{iI}}.
-\]
-
-\medskip
-Equivalently, if we view \(W\) as a function of the \(d^2\) scalar variables \((\bm{F}_{\chi})_{iI}\), then
-\[
-\frac{\partial W}{\partial \bm{F}_{\chi}}
-=
-\begin{pmatrix}
-\frac{\partial W}{\partial (\bm{F}_{\chi})_{11}} & \cdots & \frac{\partial W}{\partial (\bm{F}_{\chi})_{1d}}\\
-\vdots & \ddots & \vdots\\
-\frac{\partial W}{\partial (\bm{F}_{\chi})_{d1}} & \cdots & \frac{\partial W}{\partial (\bm{F}_{\chi})_{dd}}
-\end{pmatrix}.
-\]
-
-\medskip
-\textbf{Shape check (dimensions):}
-\[
-W\in\R,\qquad \bm{F}_{\chi}\in\R^{d\times d},\qquad
-\frac{\partial W}{\partial \bm{F}_{\chi}}\in\R^{d\times d}.
-\]
-
-\medskip
-\textbf{In IBFE:} the first Piola--Kirchhoff stress is $\bm{P} := \frac{\partial W}{\partial \bm{F}_{\chi}}.$
-\end{frame}
-
-
-% -------------------------
-% Slide 2: Directional derivative + meaning of ":" (Frobenius inner product)
-% -------------------------
-\begin{frame}{Directional derivative viewpoint and the meaning of ``$: $''}
-\footnotesize
-
-\textbf{Directional derivative viewpoint:} perturb \(\bm{F}_{\chi}\) in a direction \(\delta\bm{F}_{\chi}\) and look at the first-order change:
-\[
-\delta W
-\;:=\;
-\left.\frac{d}{d\varepsilon}W\!\left(\bm{F}_{\chi}+\varepsilon\,\delta\bm{F}_{\chi}\right)\right|_{\varepsilon=0}.
-\]
-
-\medskip
-\textbf{Definition of the gradient w.r.t.\ a matrix:} \(\dfrac{\partial W}{\partial \bm{F}_{\chi}}\) is defined to be the unique matrix satisfying
-\[
-\delta W
-=
-\frac{\partial W}{\partial \bm{F}_{\chi}} : \delta\bm{F}_{\chi}
-\qquad \text{for all } \delta\bm{F}_{\chi}.
-\]
-
-\medskip
-\textbf{What does ``$: $'' mean here?} It is the \emph{double contraction} (Frobenius inner product) of two matrices:
-\[
-\bm{A}:\bm{B}
-\;:=\;
-\sum_{i,I} A_{iI}B_{iI}
-\;=\;
-\mathrm{tr}(\bm{A}^{T}\bm{B}).
-\]
-
-\medskip
-\textbf{So in components:}
-\[
-\delta W
-=
-\sum_{i,I}\left(\frac{\partial W}{\partial (\bm{F}_{\chi})_{iI}}\right)\delta(\bm{F}_{\chi})_{iI}.
-\]
-
-\medskip
-\textbf{Takeaway (IBFE notation):} $\bm{P}=\frac{\partial W}{\partial \bm{F}_{\chi}}
-\quad\Longleftrightarrow\quad
-\delta W = \bm{P}:\delta\bm{F}_{\chi}.$
-\end{frame}
-
-
-\begin{frame}{Objectivity (frame indifference) and isotropy}
-\small
-A basic physical requirement:
-
-\medskip
-\textbf{Objectivity:} superposing a rigid-body rotation should not change stored energy:
-\[
-W(\bm{R}\Fdef)=W(\Fdef)\quad \text{for all rotations }\bm{R}\in SO(d).
-\]
-
-\medskip
-A common way to guarantee objectivity is to write \(W\) as a function of \(\Cten=\Fdef^T\Fdef\):
-\[
-W(\Fdef)=\widehat{W}(\Cten).
-\]
-
-\medskip
-\textbf{Isotropy:} material has no preferred directions (in reference frame). For isotropic hyperelasticity,
-\[
-\widehat{W}(\Cten)=\widehat{W}(I_1,I_2,I_3),
-\]
-where \(I_1,I_2,I_3\) are invariants of \(\Cten\) (Module 2).
-
-\end{frame}
-
-\begin{frame}{Compressible vs (nearly) incompressible response}
-\small
-Recall \(J=\det(\Fdef)\).
-
-\medskip
-\textbf{Compressible:} volume changes are allowed; \(W\) penalizes compression/expansion through terms involving \(J\).
-
-\medskip
-\textbf{Incompressible:} enforce
-\[
-J=1
-\]
-exactly (constraint), typically via a Lagrange multiplier (pressure-like field) in the solid.
-
-\medskip
-\textbf{Nearly incompressible (common in IBFE):} use a \emph{penalty} that strongly discourages \(J\neq 1\):
-\[
-W(\Fdef) = W_{\mathrm{iso}}(\text{shape change}) + W_{\mathrm{vol}}(J).
-\]
-
-\medskip
-\textbf{Note (IBFE-specific):} Because the fluid is incompressible (\(\divx\uEuler = 0\)) and the structure moves with the fluid (\(\partial \chi/\partial t = \uEuler\circ\chi\)), the continuous IBFE formulation already implies \(J\equiv 1\). However, the \emph{discrete} scheme typically allows volumetric drift, so the volumetric energy \(W_{\mathrm{vol}}(J)\) is best viewed as a \textbf{stabilization} term and \(\kappa\) as a stabilization parameter rather than a true bulk modulus (Griffith \& Patankar 2020).
-
-\end{frame}
-
-\begin{frame}{Modified deformation gradient \(\bar{\bm{F}}\) (volume--deviatoric split)}
-\small
-A useful trick for nearly incompressible IBFE: multiplicatively split \(\Fdef\) into volumetric and isochoric (volume-preserving) parts,
-\[
-\Fdef = J^{1/3}\,\bar{\Fdef},\qquad
-\bar{\Fdef} := J^{-1/3}\,\Fdef,
-\qquad \det \bar{\Fdef} = 1.
-\]
-
-\medskip
-\textbf{Why this matters in IBFE:} Build the shearing energy from \emph{modified} invariants
-\[
-\bar{I}_1 = \mathrm{tr}(\bar{\Cten}),\quad \bar{I}_2 = \tfrac12\bigl((\mathrm{tr}\,\bar{\Cten})^2-\mathrm{tr}(\bar{\Cten}^2)\bigr),\qquad \bar{\Cten} = \bar{\Fdef}^T \bar{\Fdef},
-\]
-so that the shearing part \(W(\bar{\Fdef})\) is by construction insensitive to volume change, and the volumetric stabilization \(W_{\mathrm{vol}}(J)\) is the \emph{only} term that responds to \(J\neq 1\).
-
-\medskip
-\textbf{Result reported by Griffith \& Patankar (2020):} For nearly incompressible IBFE, using both modified invariants \emph{and} a volumetric stabilization yields accuracy comparable to standard stabilized FEM for incompressible elasticity (e.g., the twisted beam / Mooney--Rivlin benchmark of Bonet et al.\ 2015).
-
-\end{frame}
-
-\begin{frame}{Volumetric penalty $W_{\mathrm{vol}}(J)$: enforcing near-incompressibility}
-\small
-
+% ----- 11. Nearby points -----
+\begin{frame}{Nearby material points under the motion}
 \begin{columns}[T,onlytextwidth]
-  \begin{column}{0.50\textwidth}
-  \textbf{Idea:} add a volumetric energy that strongly penalizes volume change.
-  \[
-  J=\det(\bm{F}),\qquad
-  W_{\mathrm{vol}}(J)\ \text{has a sharp minimum at } J=1.
-  \]
-
-  \medskip
-  \textbf{Interpretation:}
-  \begin{itemize}
-    \item \(J=1\): locally volume-preserving (incompressible limit)
-    \item \(J>1\): local expansion \(\Rightarrow\) penalty increases
-    \item \(J<1\): local compression \(\Rightarrow\) penalty increases
-  \end{itemize}
-
-  \medskip
-  \textbf{Two common choices:}
-  \[
-  W_{\mathrm{vol}}(J)=\frac{\kappa}{2}(J-1)^2
-  \quad\text{or}\quad
-  W_{\mathrm{vol}}(J)=\frac{\kappa}{2}(\ln J)^2.
-  \]
-  \scriptsize Both satisfy \(W_{\mathrm{vol}}(1)=W'_{\mathrm{vol}}(1)=0\), so no extra energy/stress is added at \(J=1\). We use the \(\ln J\) form for the neo-Hookean below; it is the choice used in the IBFE literature (Griffith \& Patankar 2020).
-  \end{column}
-
-  \begin{column}{0.50\textwidth}
-  \centering
-  \includegraphics[width=\linewidth]{pictures/4-2/Wvol_J_plot.png}
-  \end{column}
+\begin{column}{0.48\textwidth}
+Choose neighboring material points
+\[
+  \X,\qquad \X+d\X .
+\]
+Their current positions are
+\[
+  \x=\chi(\X,t),
+  \qquad
+  \x+d\x=\chi(\X+d\X,t).
+\]
+Thus
+\[
+  d\x
+  =
+  \chi(\X+d\X,t)-\chi(\X,t).
+\]
+\begin{punchbox}
+\small
+The deformation gradient is the linear map that approximates this change for small \(d\X\).
+\end{punchbox}
+\end{column}
+\begin{column}{0.52\textwidth}
+\centering
+\includegraphics[width=\linewidth]{pictures/4-2/def-tensor.png}
+\end{column}
 \end{columns}
 \end{frame}
 
-
-\begin{frame}{A standard example: compressible neo-Hookean energy}
-\small
-One widely used compressible neo-Hookean model (per reference volume):
+% ----- 12. F definition -----
+\begin{frame}{Deformation-gradient definition}
+Linearizing the motion about \(\X\) gives
 \[
-W(\Fdef)=\frac{\mu}{2}(I_1-3)-\mu\ln J+\frac{\kappa}{2}(\ln J)^2,
-\]
-where
-\[
-I_1=\mathrm{tr}(\Cten),\quad \Cten=\Fdef^T\Fdef,\quad J=\det(\Fdef).
-\]
-
-\medskip
-Parameters:
-\begin{itemize}
-\item \(\mu>0\): shear modulus (controls distortional stiffness),
-\item \(\kappa>0\): bulk modulus (controls volumetric stiffness).
-\end{itemize}
-
-\end{frame}
-
-\begin{frame}{Neo-Hookean stress: a useful closed form for \(\Pten\)}
-\small
-For the neo-Hookean energy
-\[
-W(\Fdef)=\frac{\mu}{2}(I_1-3)-\mu\ln J+\frac{\kappa}{2}(\ln J)^2,
-\]
-a standard expression for the first Piola stress is:
-\[
-\Pten = \mu\left(\Fdef-\Fdef^{-T}\right)+\kappa(\ln J)\,\Fdef^{-T}.
-\]
-
-\medskip
-\textbf{Shape check:} \(\Pten\in\R^{d\times d}\), same as \(\Fdef\).
-
-\medskip
-\textbf{Special case:} if \(J=1\), this reduces to \(\Pten=\mu(\Fdef-\Fdef^{-T})\).
-
-\end{frame}
-
-\begin{frame}{From \(\Pten\) to other stresses (connect to Module 3)}
-\small
-Once \(\Pten\) is known, we can map between stress measures.
-
-\medskip
-Second Piola:
-\[
-\Sten = \Fdef^{-1}\Pten.
-\]
-
-\medskip
-Cauchy stress:
-\[
-\sigmaC = \frac{1}{J}\,\Pten\,\Fdef^T
-       = \frac{1}{J}\,\pdv{W}{\Fdef}\,\Fdef^T.
-\]
-\scriptsize (The right-hand expression goes directly from energy to Cauchy stress, bypassing \(\Pten\); see Griffith \& Patankar 2020.)
-
-\medskip
-\small
-\textbf{Interpretation:} \(\Pten\) is convenient to compute in the reference frame; \(\sigmaC\) is what appears naturally in current-frame balance laws.
-
-\end{frame}
-
-
-
-% ============================================================
-% Add this as the LAST slide of Module 4 (right before Module 4 wrap-up,
-% or replace the "Next:" line in the wrap-up slide).
-% ============================================================
-
-\begin{frame}{IBFE pipeline preview: energy \texorpdfstring{$\to$}{->} stress \texorpdfstring{$\to$}{->} nodal forces \texorpdfstring{$\to$}{->} fluid forcing}
-\footnotesize
-Here is the end-to-end IBFE ``force pipeline'' you should keep in mind:
-
-\medskip
-\textbf{(1) Kinematics from the FE deformation map}
-\[
-\chi_h(\X,t)\ \Rightarrow\ \Fdef{}_h(\X,t)=\gradX\chi_h(\X,t)\ \Rightarrow\ J_h=\det(\Fdef{}_h).
-\]
-
-\medskip
-\textbf{(2) Constitutive law via a hyperelastic energy}
-\[
-W(\Fdef{}_h)\ \Rightarrow\ \Pten_h(\X,t)=\pdv{W}{\Fdef}\Big|_{\Fdef=\Fdef{}_h(\X,t)}.
-\]
-
-\medskip
-\textbf{(3) Convert stress to \emph{nodal forces} using the weak form (finite elements)}
-\[
-\text{weak form:}\quad \int_{B_0} \Pten_h : \gradX \bm{\phi}_m\, dV
-\ \Rightarrow\ \text{nodal force vector(s)}.
-\]
-
-\medskip
-\textbf{(4) IB coupling: spread to the fluid and interpolate velocities back}
-\[
-\text{nodal forces} \Rightarrow \FLag(\X,t)\Rightarrow \fEuler(\x,t)
-\quad\text{(via a regularized delta function)},
-\]
-and conversely
-\[
-\bm{u}(\x,t)\Rightarrow \pdv{\chi_h}{t}(\X,t)\quad\text{(velocity interpolation)}.
-\]
-
-\end{frame}
-
-
-
-\begin{frame}{How FE approximates \(\chi\) and \(\Fdef\) (concrete picture)}
-\footnotesize
-Triangulate the reference body \(B_0\) with elements \(B_0^{\,e}\) and \(C^0\) interpolatory basis functions \(\{\phi_l(\X)\}_{l=1}^{M}\) attached to nodes \(\{\X_l\}\). Let \(\chi_l(t):=\chi(\X_l,t)\) be the \emph{moving} positions of the nodes.
-
-\medskip
-\textbf{Approximate the deformation map:}
-\[
-\chi_h(\X,t) \;=\; \sum_{l=1}^{M} \chi_l(t)\,\phi_l(\X).
-\]
-
-\medskip
-\textbf{Take the material gradient (just a sum of derivatives of basis functions):}
-\[
-\Fdef{}_h(\X,t)
-\;=\; \gradX \chi_h(\X,t)
-\;=\; \sum_{l=1}^{M} \chi_l(t)\,\gradX \phi_l(\X),
-\quad
-J_h = \det \Fdef{}_h.
-\]
-
-\medskip
-\textbf{Where things ``live'':}
-\begin{itemize}
-\item \(\chi_h\) is continuous on \(B_0\) (because we use \(C^0\) elements).
-\item \(\Fdef{}_h\) is generally \emph{piecewise} continuous: smooth inside each element, with jumps across element boundaries.
-\item Therefore \(\Pten_h = \partial W/\partial \Fdef\big|_{\Fdef = \Fdef{}_h}\) is also generally piecewise continuous (Griffith \& Luo 2017, \S3.2).
-\end{itemize}
-
-\medskip
-\textbf{Why this matters for IBFE:} forces are typically evaluated at \emph{quadrature points} inside each element (where \(\Fdef{}_h\) is well defined), \emph{not} only at nodes. This is what enables the use of Lagrangian meshes that can be coarser than the background Eulerian grid.
-\end{frame}
-
-
-\begin{frame}{Module 4 wrap-up}
-\small
-You should now be able to:
-\begin{itemize}
-\item define hyperelastic energy density \(W(\Fdef)\) (per reference volume),
-\item interpret \(\Pten=\partial W/\partial \Fdef\) via \(\delta W=\Pten:\delta\Fdef\),
-\item state objectivity \(W(\bm{R}\Fdef)=W(\Fdef)\) and the \(\Cten\)-based strategy,
-\item explain the role of \(J=\det(\Fdef)\) and how incompressibility/penalties enter,
-\item use a standard model (neo-Hookean) and its \(\Pten\) formula,
-\item map to \(\sigmaC\) and \(\Sten\) using Module 3 formulas.
-\end{itemize}
-
-\medskip
-\textbf{Next:} we turn \(\Pten\) into nodal forces via the weak form (IBFE’s workhorse step).
-\end{frame}
-
-
-
-%-------------------------------------------------------
-% ============================================================
-% WORKED EXAMPLE: AXIAL (UNIAXIAL) STRETCH
-% Drop this block after Module 3 (or right after Module 2 if you prefer).
-% ============================================================
-
-\section{Worked example: axial stretch}
-
-\begin{frame}{Worked example: 3D axial (uniaxial) stretch --- setup}
-\small
-We will carry one deformation all the way through:
-\[
-\chi(\X) = 
-\begin{pmatrix}
-\lambda X_1\\
-X_2\\
-X_3
-\end{pmatrix}
-\qquad (\text{axial stretch along }X_1\text{ by factor }\lambda).
-\]
-
-\medskip
-\textbf{Interpretation:}
-\begin{itemize}
-\item Material points are stretched in the \(e_1\) direction.
-\item No shear; transverse directions are unchanged (for this simplest example).
-\end{itemize}
-
-\end{frame}
-
-\begin{frame}{Axial stretch: deformation gradient \(\Fdef\) and Jacobian \(J\)}
-\small
-Recall \(\Fdef = \gradX \chi\), with components \((\Fdef)_{iI}=\partial \chi_i/\partial X_I\).
-
-\medskip
-For \(\chi(\X)=(\lambda X_1, X_2, X_3)\),
-\[
-\Fdef =
-\begin{pmatrix}
-\pdv{\chi_1}{X_1} & \pdv{\chi_1}{X_2} & \pdv{\chi_1}{X_3}\\
-\pdv{\chi_2}{X_1} & \pdv{\chi_2}{X_2} & \pdv{\chi_2}{X_3}\\
-\pdv{\chi_3}{X_1} & \pdv{\chi_3}{X_2} & \pdv{\chi_3}{X_3}
-\end{pmatrix}
-=
-\begin{pmatrix}
-\lambda & 0 & 0\\
-0 & 1 & 0\\
-0 & 0 & 1
-\end{pmatrix}.
-\]
-
-\medskip
-Jacobian (local volume ratio):
-\[
-J=\det(\Fdef)=\lambda.
-\]
-
-\medskip
-\textbf{Quick takeaway:} This stretch changes volume unless \(\lambda=1\).
-
-\end{frame}
-
-\begin{frame}{Axial stretch: right Cauchy--Green \(\Cten\) and Green--Lagrange strain \(\Eten\)}
-\small
-Right Cauchy--Green:
-\[
-\Cten=\Fdef^T\Fdef
-=
-\begin{pmatrix}
-\lambda & 0 & 0\\
-0 & 1 & 0\\
-0 & 0 & 1
-\end{pmatrix}^T
-\begin{pmatrix}
-\lambda & 0 & 0\\
-0 & 1 & 0\\
-0 & 0 & 1
-\end{pmatrix}
-=
-\begin{pmatrix}
-\lambda^2 & 0 & 0\\
-0 & 1 & 0\\
-0 & 0 & 1
-\end{pmatrix}.
-\]
-
-\medskip
-Green--Lagrange strain:
-\[
-\Eten=\frac12(\Cten-\I)
-=
-\frac12\begin{pmatrix}
-\lambda^2-1 & 0 & 0\\
-0 & 0 & 0\\
-0 & 0 & 0
-\end{pmatrix}.
-\]
-
-\medskip
-\textbf{Component statement:} \(E_{11}=\tfrac12(\lambda^2-1)\), all other \(E_{IJ}=0\).
-
-\end{frame}
-
-\begin{frame}{Axial stretch: invariants \(I_1,I_3\) (and why they matter)}
-\small
-For isotropic materials we often use invariants of \(\Cten\).
-
-\medskip
-Compute:
-\[
-I_1=\mathrm{tr}(\Cten)=\lambda^2+1+1=\lambda^2+2.
-\]
-
-Also,
-\[
-I_3=\det(\Cten)=J^2=\lambda^2.
-\]
-
-\medskip
-\textbf{Interpretation:}
-\begin{itemize}
-\item \(I_1\) captures distortional/stretch information.
-\item \(I_3\) captures volume change (through \(J\)).
-\end{itemize}
-
-\end{frame}
-
-\begin{frame}{(Worked example cont'd) Choose a simple hyperelastic energy \(W(\Fdef)\)}
-\small
-To compute stress, we need a constitutive model. A common compressible neo-Hookean form is:
-\[
-W(\Fdef)=\frac{\mu}{2}(I_1-3)-\mu\ln J+\frac{\kappa}{2}(\ln J)^2,
-\]
-where \(\mu>0\) is the shear modulus and \(\kappa>0\) is the bulk modulus.
-
-\medskip
-For our axial stretch, we already computed:
-\[
-I_1=\lambda^2+2,\qquad J=\lambda.
-\]
-
-
-\end{frame}
-
-\begin{frame}{(Worked example cont'd) First Piola stress \(\Pten = \partial W/\partial \Fdef\) for this diagonal \(\Fdef\)}
-\small
-For the neo-Hookean \(W\) above, one standard expression for the first Piola stress is:
-\[
-\Pten = \mu\left(\Fdef-\Fdef^{-T}\right)+\kappa(\ln J)\,\Fdef^{-T}.
-\]
-
-\medskip
-For \(\Fdef=\mathrm{diag}(\lambda,1,1)\):
-\[
-\Fdef^{-T}=\Fdef^{-1}=\mathrm{diag}\left(\frac{1}{\lambda},1,1\right),
-\qquad \ln J=\ln \lambda.
-\]
-
-So
-\[
-\Pten
-=
-\mathrm{diag}\left(
-\mu\left(\lambda-\frac{1}{\lambda}\right)+\kappa(\ln\lambda)\frac{1}{\lambda},
-\ \kappa\ln\lambda,
-\ \kappa\ln\lambda
-\right).
-\]
-
-\medskip
-\textbf{Interpretation:} this model predicts transverse stresses unless you impose boundary conditions (e.g., traction-free sides) and solve for a lateral stretch.
-
-
-\end{frame}
-
-\begin{frame}{(Worked example cont'd) Cauchy stress \(\sigmaC = \frac{1}{J}\Pten \Fdef^{T}\)}
-\small
-From the Piola transform:
-\[
-\sigmaC = \frac{1}{J}\Pten \Fdef^T.
-\]
-
-For diagonal \(\Fdef\), \(\sigmaC\) is also diagonal. Using \(J=\lambda\) and \(\Fdef^T=\Fdef\):
-\[
-\sigmaC
-=
-\frac{1}{\lambda}\,
-\mathrm{diag}(P_{11},P_{22},P_{33})\,
-\mathrm{diag}(\lambda,1,1)
-=
-\mathrm{diag}\left(P_{11},\frac{P_{22}}{\lambda},\frac{P_{33}}{\lambda}\right).
-\]
-
-
-
-\medskip
-\textbf{Instructor note:} If you want a \emph{true} uniaxial-stress example (traction-free sides),
-you typically introduce an unknown lateral stretch and solve for it using \(\sigma_{22}=\sigma_{33}=0\).
-\end{frame}
-
-\begin{frame}{Worked example wrap-up: the full chain}
-\small
-For axial stretch \(\chi(\X)=(\lambda X_1,X_2,X_3)\), we computed:
-
-\medskip
-\[
-\chi \ \Rightarrow \
-\Fdef=\mathrm{diag}(\lambda,1,1)
-\ \Rightarrow\
-J=\lambda
-\ \Rightarrow\
-\Cten=\mathrm{diag}(\lambda^2,1,1)
-\ \Rightarrow\
-\Eten=\frac12\mathrm{diag}(\lambda^2-1,0,0).
-\]
-
-\medskip
-And (optionally) with a chosen \(W(\Fdef)\):
-\[
-W \Rightarrow \Pten=\pdv{W}{\Fdef} \Rightarrow \sigmaC=\frac{1}{J}\Pten\Fdef^T.
-\]
-
-
-\end{frame}
-
-% Assumes you have \usepackage{bm} in the preamble (for \bm{F}, etc.)
-% If you are using your own macros \Fdef, \Pten, etc., you can swap them back in.
-\section{Derive the closed form for the first Piola Kirchoff Stress for neo-Hookean solids}
-% ------------------------------------------------------------
-\begin{frame}{Goal: derive the closed form for $\bm{P}=\partial W/\partial \bm{F}$ (neo-Hookean)}
-\small
-We start from the compressible neo-Hookean energy
-\[
-W(\bm{F})
-=\frac{\mu}{2}(I_1-3)\;-\;\mu\ln J\;+\;\frac{\kappa}{2}(\ln J)^2,
-\qquad
-J=\det(\bm{F}),
+  d\x=\Fdef(\X,t)\,d\X+o(\lVert d\X\rVert),
 \]
 with
 \[
-I_1 = \mathrm{tr}(\bm{C}), \qquad \bm{C}=\bm{F}^T\bm{F}.
+  \boxed{\Fdef(\X,t)=\gradX\chi(\X,t)}.
 \]
-
-\medskip
-\textbf{Plan:} compute the first variation \(\delta W\) and match
+In components,
 \[
-\delta W = \bm{P} : \delta\bm{F}.
+  (F_\chi)_{iI}
+  =\frac{\partial\chi_i}{\partial X_I}.
 \]
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.48\textwidth}
+\textbf{Columns of \(\Fdef\)}
 
-\medskip
-\textbf{Two identities we will use:}
+Images of the reference basis vectors.
+\end{column}
+\begin{column}{0.50\textwidth}
+\textbf{Information in \(\Fdef\)}
+
+Stretch, shear, and rotation near one material point.
+\end{column}
+\end{columns}
+\end{frame}
+
+% ----- 13. Inverse -----
+\begin{frame}{Inverse differential map at matching points}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.52\textwidth}
+\centering
+\includegraphics[width=\linewidth]{pictures/4-2/def-tensor.png}
+\end{column}
+\begin{column}{0.48\textwidth}
+If \(\chi(\cdot,t)\) is locally invertible and
+\(\x=\chi(\X,t)\), then
 \[
-\delta I_1 = 2\,\bm{F}:\delta\bm{F},
+  d\X
+  =
+  \Fdef(\X,t)^{-1}d\x
+  +o(\lVert d\x\rVert).
+\]
+The spatial gradient of the inverse motion is
+\[
+  \boxed{
+  \gradx\chi^{-1}(\x,t)
+  =
+  \Fdef(\chi^{-1}(\x,t),t)^{-1}
+  }.
+\]
+\begin{punchbox}
+\small
+The composition with \(\chi^{-1}\) ensures that both tensors refer to the same material point.
+\end{punchbox}
+\end{column}
+\end{columns}
+\end{frame}
+
+% ----- 14. J definition -----
+\begin{frame}{Jacobian and local volume change}
+\[
+  \boxed{J(\X,t)=\det\Fdef(\X,t)},
+  \qquad
+  dv=J\,dV.
+\]
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.48\textwidth}
+\begin{itemize}\itemsep6pt
+  \item \(J>1\): local expansion
+  \item \(0<J<1\): local compression
+  \item \(J=1\): local volume preservation
+\end{itemize}
+\end{column}
+\begin{column}{0.50\textwidth}
+\begin{punchbox}
+\small
+An admissible deformation normally requires
+\[
+  J>0.
+\]
+\(J=0\) collapses material volume. \(J<0\) reverses orientation and indicates element inversion.
+\end{punchbox}
+\end{column}
+\end{columns}
+\end{frame}
+
+% Figure: local measure change under the motion.
+\begin{frame}{Visualizing the Jacobian as a local measure ratio}
+\centering
+\begin{tikzpicture}[x=1.05cm,y=1.05cm,>=Latex,every node/.style={font=\small}]
+  \node[blue!55!black,font=\bfseries] at (-3.2,2.15) {$B_0$};
+  \fill[blue!8] (-4.25,-0.25) rectangle (-2.15,1.55);
+  \draw[blue!65!black,very thick] (-4.25,-0.25) rectangle (-2.15,1.55);
+  \node at (-3.2,-0.62) {material patch, measure $dV$};
+
+  \draw[-{Latex[length=3mm]},very thick,orange!85!black]
+    (-1.55,0.72) .. controls (-0.55,1.75) and (0.55,1.75) .. (1.55,0.72);
+  \node[orange!85!black,fill=white,inner sep=2pt] at (0,1.63) {$\chi(\cdot,t)$};
+
+  \node[blue!55!black,font=\bfseries] at (3.25,2.15) {$B_t$};
+  \fill[teal!9] (1.75,-0.25) rectangle (4.75,1.85);
+  \draw[teal!70!black,very thick] (1.75,-0.25) rectangle (4.75,1.85);
+  \node at (3.25,-0.62) {deformed patch, measure $dv$};
+
+  \node[draw=blue!55!black,rounded corners,fill=blue!4,thick,
+        inner xsep=12pt,inner ysep=6pt] at (0,-1.52)
+        {$\displaystyle dv=J\,dV,\qquad J=\det\Fdef$};
+\end{tikzpicture}
+
+\vspace{0.25em}
+\soft{In two dimensions the corresponding area relation is $da=J\,dA$.}
+\end{frame}
+
+% ----- 15. J stretch -----
+\begin{frame}{Jacobian as the product of principal stretches}
+For a diagonal deformation in \(d\) dimensions,
+\[
+  \Fdef=\operatorname{diag}(\lambda_1,\ldots,\lambda_d),
+  \qquad
+  J=\prod_{k=1}^{d}\lambda_k .
+\]
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.48\textwidth}
+\begin{block}{Two dimensions}
+\[
+  da=J\,dA
+  =\lambda_1\lambda_2\,dA .
+\]
+\end{block}
+\end{column}
+\begin{column}{0.48\textwidth}
+\begin{block}{Three dimensions}
+\[
+  dv=J\,dV
+  =\lambda_1\lambda_2\lambda_3\,dV .
+\]
+\end{block}
+\end{column}
+\end{columns}
+\begin{punchbox}
+\small
+Volume preservation does not imply zero strain. A simple shear has \(J=1\) and still changes angles and lengths.
+\end{punchbox}
+\end{frame}
+
+% ----- 16. Micro-check prompt -----
+\begin{frame}{Micro-check: deformation gradients and Jacobians}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.49\textwidth}
+\begin{block}{A. Uniform stretch}
+\[
+  \chi(\X)
+  =
+  (\lambda X_1,\lambda X_2,\lambda X_3).
+\]
+\begin{enumerate}\itemsep5pt
+  \item Compute \(\Fdef=\gradX\chi\).
+  \item Compute \(J=\det\Fdef\).
+  \item Interpret the volume change.
+\end{enumerate}
+\end{block}
+\end{column}
+\begin{column}{0.49\textwidth}
+\begin{block}{B. Simple shear}
+\[
+  \chi(\X)
+  =
+  (X_1+\gamma X_2,X_2,X_3).
+\]
+\begin{enumerate}\itemsep5pt
+  \item Compute each \((F_\chi)_{iI}\).
+  \item Compute \(J\).
+  \item Decide whether the map is strain free.
+\end{enumerate}
+\end{block}
+\end{column}
+\end{columns}
+\end{frame}
+
+% ----- 17. Uniform stretch solution -----
+\begin{frame}{Micro-check solution: uniform stretch}
+From
+\[
+  \chi_1=\lambda X_1,\qquad
+  \chi_2=\lambda X_2,\qquad
+  \chi_3=\lambda X_3,
+\]
+we obtain
+\[
+  \Fdef
+  =
+  \begin{bmatrix}
+    \lambda&0&0\\
+    0&\lambda&0\\
+    0&0&\lambda
+  \end{bmatrix}
+  =\lambda\I .
+\]
+Therefore
+\[
+  \boxed{J=\det\Fdef=\lambda^3}.
+\]
+\begin{punchbox}
+\small
+Every length scales by \(\lambda\), every area by \(\lambda^2\), and every volume by \(\lambda^3\).
+\end{punchbox}
+\end{frame}
+
+% ----- 18. Shear solution -----
+\begin{frame}{Micro-check solution: simple shear}
+For
+\[
+  \chi(\X)
+  =
+  (X_1+\gamma X_2,X_2,X_3),
+\]
+\[
+  \Fdef
+  =
+  \begin{bmatrix}
+    1&\gamma&0\\
+    0&1&0\\
+    0&0&1
+  \end{bmatrix}.
+\]
+Because this matrix is upper triangular,
+\[
+  \boxed{J=1}.
+\]
+\begin{punchbox}
+\small
+Simple shear preserves volume but changes line lengths and angles. The strain measures in Module 2 detect those changes.
+\end{punchbox}
+\end{frame}
+
+% ----- 19. F-I pitfall -----
+\begin{frame}{The displacement gradient is not a finite strain}
+Since
+\[
+  \chi(\X,t)=\X+\bm{d}(\X,t),
+\]
+we have
+\[
+  \gradX\bm{d}=\Fdef-\I .
+\]
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.48\textwidth}
+\begin{block}{What it is}
+A first derivative of displacement that contains stretch, shear, and rotation.
+\end{block}
+\end{column}
+\begin{column}{0.48\textwidth}
+\begin{block}{Small-strain approximation}
+\[
+  \bm{\varepsilon}
+  =\frac12\left(
+    \gradX\bm{d}
+    +(\gradX\bm{d})^T
+  \right).
+\]
+\end{block}
+\end{column}
+\end{columns}
+\begin{punchbox}
+\small
+Finite deformation requires nonlinear strain measures that remain unchanged under rigid-body motion.
+\end{punchbox}
+\end{frame}
+
+% ----- 20. Module 1 wrap -----
+\begin{frame}{Module 1 wrap-up}
+\begin{itemize}\itemsep6pt
+  \item The motion maps material points: \(\x=\chi(\X,t)\).
+  \item The deformation gradient maps line elements:
+  \[
+    \Fdef=\gradX\chi,\qquad d\x\approx\Fdef\,d\X.
+  \]
+  \item The Jacobian maps volume elements:
+  \[
+    J=\det\Fdef,\qquad dv=J\,dV.
+  \]
+  \item The material and spatial gradients act on different independent coordinates.
+\end{itemize}
+\begin{punchbox}
+\small
+Quick check: if \(\chi(\X)=\lambda\X\) in three dimensions, then \(\Fdef=\lambda\I\) and \(J=\lambda^3\).
+\end{punchbox}
+\end{frame}
+
+\section{Finite strain measures}
+
+% ----- 21. Module 2 -----
+\begin{frame}{Module 2: requirements for a finite strain}
+A useful finite-strain measure must:
+\begin{itemize}\itemsep7pt
+  \item detect stretch and shear,
+  \item ignore rigid translation and rigid rotation,
+  \item remain meaningful for large deformation,
+  \item reduce to linearized strain when
+  \(\lVert\gradX\bm{d}\rVert\ll1\).
+\end{itemize}
+\begin{punchbox}
+\small
+The deformation gradient contains both deformation and rotation. Strain tensors built from \(\Fdef^T\Fdef\) or \(\Fdef\Fdef^T\) separate those effects.
+\end{punchbox}
+\end{frame}
+
+% ----- 22. Rotation intuition -----
+\begin{frame}{Rotation and stretch should feel different}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.48\textwidth}
+\begin{block}{Pure rotation}
+\[
+  \Fdef=\bm{Q},
+  \qquad
+  \bm{Q}^T\bm{Q}=\I .
+\]
+Lengths and angles remain unchanged.
+\[
+  \text{desired strain}=\bm{0}.
+\]
+\end{block}
+\end{column}
+\begin{column}{0.48\textwidth}
+\begin{block}{Pure stretch}
+\[
+  \Fdef=\operatorname{diag}
+  (\lambda_1,\lambda_2,\lambda_3).
+\]
+At least one length changes when \(\lambda_i\ne1\).
+\[
+  \text{desired strain}\ne\bm{0}.
+\]
+\end{block}
+\end{column}
+\end{columns}
+\begin{punchbox}
+\small
+This test immediately rules out \(\Fdef-\I\): a finite rotation gives \(\bm{Q}-\I\ne\bm{0}\).
+\end{punchbox}
+\end{frame}
+
+% Figure: rotation versus stretch.
+\begin{frame}{Visual check: rigid rotation versus genuine stretch}
+\centering
+\begin{tikzpicture}[x=0.95cm,y=0.95cm,>=Latex,every node/.style={font=\scriptsize}]
+  \node[font=\bfseries\normalsize,blue!55!black] at (-3.35,2.35) {Pure rotation};
+  \fill[blue!7] (-5.0,-0.15) rectangle (-3.45,1.40);
+  \draw[blue!65!black,very thick] (-5.0,-0.15) rectangle (-3.45,1.40);
+  \node at (-4.22,-0.48) {reference};
+  \draw[-{Latex[length=2.5mm]},thick,orange!85!black] (-3.10,0.62)--(-2.15,0.62)
+    node[midway,above] {$\bm Q$};
+  \begin{scope}[shift={(-1.1,0.62)},rotate=28]
+    \fill[teal!8] (-0.78,-0.78) rectangle (0.78,0.78);
+    \draw[teal!70!black,very thick] (-0.78,-0.78) rectangle (0.78,0.78);
+  \end{scope}
+  \node at (-1.10,-0.48) {same lengths and angles};
+  \node[draw=teal!60!black,rounded corners,fill=teal!5,inner sep=5pt]
+    at (-3.05,-1.35) {$\bm Q^T\bm Q=\I\quad\Rightarrow\quad\text{strain}=\bm0$};
+
+  \draw[gray!45,line width=0.7pt] (0,-1.75)--(0,2.55);
+
+  \node[font=\bfseries\normalsize,blue!55!black] at (3.35,2.35) {Pure stretch};
+  \fill[blue!7] (0.55,-0.15) rectangle (2.10,1.40);
+  \draw[blue!65!black,very thick] (0.55,-0.15) rectangle (2.10,1.40);
+  \node at (1.32,-0.48) {reference};
+  \draw[-{Latex[length=2.5mm]},thick,orange!85!black] (2.45,0.62)--(3.35,0.62)
+    node[midway,above] {$\Fdef$};
+  \fill[orange!8] (3.75,-0.15) rectangle (6.05,1.40);
+  \draw[orange!85!black,very thick] (3.75,-0.15) rectangle (6.05,1.40);
+  \node at (4.90,-0.48) {one or more lengths change};
+  \node[draw=orange!75!black,rounded corners,fill=orange!5,inner sep=5pt]
+    at (3.15,-1.35) {$\lambda_i\ne1\quad\Rightarrow\quad\text{strain}\ne\bm0$};
+\end{tikzpicture}
+\end{frame}
+
+% ----- 23. Small strain -----
+\begin{frame}{Displacement gradient and linearized strain}
+With
+\[
+  \chi=\X+\bm{d},
+  \qquad
+  \Fdef=\I+\gradX\bm{d},
+\]
+the linearized strain is
+\[
+  \boxed{
+  \bm{\varepsilon}
+  =\operatorname{sym}(\gradX\bm{d})
+  =\frac12\left(
+    \gradX\bm{d}
+    +(\gradX\bm{d})^T
+  \right)
+  }.
+\]
+\begin{punchbox}
+\small
+This approximation assumes small displacement gradients, including small rotations. Finite rotations require a nonlinear strain measure.
+\end{punchbox}
+\end{frame}
+
+% ----- 24. C and B -----
+\begin{frame}{Right and left Cauchy--Green tensors}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.48\textwidth}
+\[
+  \Cten=\Fdef^T\Fdef
+  \qquad\text{(material)}
+\]
+\[
+  \Bten=\Fdef\Fdef^T
+  \qquad\text{(spatial)}
+\]
+When \(J>0\), both are symmetric positive definite and share the eigenvalues \(\lambda_i^2\).
+\end{column}
+\begin{column}{0.50\textwidth}
+\begin{punchbox}
+\small
+Under a superposed spatial rotation
+\(\Fdef^\star=\bm{Q}\Fdef\),
+\[
+  \Cten^\star=\Cten,
+  \qquad
+  \Bten^\star=\bm{Q}\Bten\bm{Q}^T.
+\]
+\(\Cten\) remains unchanged. \(\Bten\) rotates with the spatial frame, while its scalar invariants remain unchanged.
+\end{punchbox}
+\end{column}
+\end{columns}
+\end{frame}
+
+% ----- 25. E definition -----
+\begin{frame}{Green--Lagrange strain}
+\[
+  \boxed{
+  \Eten
+  =\frac12(\Cten-\I)
+  =\frac12(\Fdef^T\Fdef-\I)
+  }.
+\]
+In components,
+\[
+  E_{IJ}
+  =
+  \frac12(C_{IJ}-\delta_{IJ}),
+  \qquad
+  C_{IJ}
+  =
+  \sum_{i=1}^{d}(F_\chi)_{iI}(F_\chi)_{iJ}.
+\]
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.48\textwidth}
+\textbf{Configuration}
+
+\(\Eten\) acts on material line elements.
+\end{column}
+\begin{column}{0.50\textwidth}
+\textbf{Small-deformation limit}
+
+\(\Eten=\bm{\varepsilon}+O(\lVert\gradX\bm{d}\rVert^2)\).
+\end{column}
+\end{columns}
+\end{frame}
+
+% ----- 26. E geometry -----
+\begin{frame}{Green--Lagrange strain and length change}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.45\textwidth}
+For a material line element,
+\[
+  d\x=\Fdef\,d\X.
+\]
+Then
+\[
+  \lVert d\x\rVert^2-\lVert d\X\rVert^2
+  =
+  2\,d\X\cdot\Eten\,d\X.
+\]
+\begin{punchbox}
+\small
+\(\Eten=\bm{0}\) means that local lengths are preserved. For a compatible deformation of a connected body, this corresponds to rigid motion.
+\end{punchbox}
+\end{column}
+\begin{column}{0.55\textwidth}
+\centering
+\includegraphics[width=\linewidth]{pictures/4-2/Green-Lagrange.png}\\
+\soft{\scriptsize The strain is expressed using the original material line element.}
+\end{column}
+\end{columns}
+\end{frame}
+
+% ----- 27. e definition -----
+\begin{frame}{Euler--Almansi strain}
+The spatial finite-strain measure is
+\[
+  \boxed{
+  \eten
+  =
+  \frac12(\I-\Bten^{-1})
+  =
+  \frac12\left[
+    \I-(\Fdef\Fdef^T)^{-1}
+  \right]
+  }.
+\]
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.49\textwidth}
+\textbf{Green--Lagrange}
+
+\(\Eten\) acts on vectors in the reference configuration.
+\end{column}
+\begin{column}{0.49\textwidth}
+\textbf{Euler--Almansi}
+
+\(\eten\) acts on vectors in the current configuration.
+\end{column}
+\end{columns}
+\begin{punchbox}
+\small
+IBFE derivations usually favor \(\Fdef\), \(\Cten\), and \(\Eten\) because finite-element integration occurs on \(B_0\).
+\end{punchbox}
+\end{frame}
+
+% ----- 28. e geometry -----
+\begin{frame}{Euler--Almansi strain and current line elements}
+Take a current line element \(d\x\). Its material counterpart is
+\[
+  d\X=\Fdef^{-1}d\x.
+\]
+Therefore
+\[
+  \lVert d\x\rVert^2-\lVert d\X\rVert^2
+  =
+  d\x\cdot(\I-\Bten^{-1})d\x
+  =
+  2\,d\x\cdot\eten\,d\x.
+\]
+The two finite-strain measures are related by
+\[
+  \boxed{\eten=\Fdef^{-T}\Eten\Fdef^{-1}}.
+\]
+\begin{punchbox}
+\small
+The formulas describe the same deformation using different coordinates.
+\end{punchbox}
+\end{frame}
+
+% ----- 29. Rotation check -----
+\begin{frame}{Micro-check: pure rotation}
+Let
+\[
+  \chi(\X)=\bm{Q}\X+\bm{c},
+  \qquad
+  \bm{Q}^T\bm{Q}=\I,
+  \qquad
+  \det\bm{Q}=1.
+\]
+Then
+\[
+  \Fdef=\bm{Q},
+  \qquad
+  \Cten=\bm{Q}^T\bm{Q}=\I,
+  \qquad
+  \Eten=\bm{0}.
+\]
+Also,
+\[
+  \Bten=\bm{Q}\bm{Q}^T=\I,
+  \qquad
+  \eten=\bm{0}.
+\]
+\begin{punchbox}
+\small
+Both finite-strain measures pass the rigid-rotation test.
+\end{punchbox}
+\end{frame}
+
+% ----- 30. Shear check -----
+\begin{frame}{Micro-check: simple shear}
+For
+\[
+  \Fdef=
+  \begin{bmatrix}
+    1&\gamma&0\\
+    0&1&0\\
+    0&0&1
+  \end{bmatrix},
+\]
+compute
+\[
+  \Cten=
+  \begin{bmatrix}
+    1&\gamma&0\\
+    \gamma&1+\gamma^2&0\\
+    0&0&1
+  \end{bmatrix},
 \qquad
-\delta(\ln J) = \bm{F}^{-T}:\delta\bm{F}.
+  \Eten=
+  \begin{bmatrix}
+    0&\gamma/2&0\\
+    \gamma/2&\gamma^2/2&0\\
+    0&0&0
+  \end{bmatrix}.
 \]
-(We derive/justify these next.)
-\end{frame}
-
-% ------------------------------------------------------------
-\begin{frame}{Step 1: variation of $I_1=\mathrm{tr}(\bm{C})$ with $\bm{C}=\bm{F}^T\bm{F}$}
+\begin{punchbox}
 \small
-Recall:
-\[
-I_1=\mathrm{tr}(\bm{C})=\mathrm{tr}(\bm{F}^T\bm{F})=\sum_{i,I}F_{iI}^2.
-\]
-
-\medskip
-\textbf{Variation:} take \(\bm{F}\mapsto \bm{F}+\varepsilon\,\delta\bm{F}\) and differentiate at \(\varepsilon=0\):
-\[
-\delta I_1
-=
-\left.\frac{d}{d\varepsilon}\sum_{i,I}(F_{iI}+\varepsilon\,\delta F_{iI})^2\right|_{\varepsilon=0}
-=
-2\sum_{i,I}F_{iI}\,\delta F_{iI}.
-\]
-
-\medskip
-Recognize the Frobenius inner product \(\bm{A}:\bm{B}=\sum_{i,I}A_{iI}B_{iI}\):
-\[
-\boxed{\ \delta I_1 = 2\,\bm{F}:\delta\bm{F}\ }.
-\]
-
-\medskip
-\textbf{Therefore:}
-\[
-\delta\!\left(\frac{\mu}{2}(I_1-3)\right)
-=\frac{\mu}{2}\,\delta I_1
-=\mu\,\bm{F}:\delta\bm{F}.
-\]
-So this term contributes \(\boxed{\bm{P}_{\text{iso}}=\mu\,\bm{F}}\).
+Linearized strain retains the terms proportional to \(\gamma\). Finite strain also contains the normal-strain term \(\gamma^2/2\).
+\end{punchbox}
 \end{frame}
 
-% ------------------------------------------------------------
-\begin{frame}{Step 2: variation of $\ln J$ with $J=\det(\bm{F})$}
+% ----- 30a. Polar decomposition -----
+\begin{frame}{Polar decomposition: \(\Fdef=\bm{R}\bm{U}=\bm{V}\bm{R}\)}
 \small
-A standard determinant identity:
+Every deformation gradient with \(\det\Fdef>0\) factors \hi{uniquely} as
 \[
-\delta J = J\,\bm{F}^{-T}:\delta\bm{F}.
+  \boxed{\Fdef=\bm{R}\bm{U}=\bm{V}\bm{R}},
+  \qquad
+  \bm{R}^T\bm{R}=\I,
+  \qquad
+  \det\bm{R}=1,
 \]
-(Equivalently: \(\partial J/\partial \bm{F} = J\,\bm{F}^{-T}\).)
+\[
+  \bm{U}=\sqrt{\Fdef^T\Fdef}=\sqrt{\Cten},
+  \qquad
+  \bm{V}=\sqrt{\Fdef\Fdef^T}=\sqrt{\Bten},
+  \qquad
+  \bm{V}=\bm{R}\bm{U}\bm{R}^T .
+\]
+The right stretch \(\bm{U}\) and the left stretch \(\bm{V}\) are symmetric positive definite; \(\bm{R}\) is proper orthogonal.
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.47\textwidth}
+\textbf{Reading \(\bm{R}\bm{U}\)}
 
-\medskip
-Then by the chain rule,
-\[
-\delta(\ln J) = \frac{1}{J}\,\delta J
-= \frac{1}{J}\left(J\,\bm{F}^{-T}:\delta\bm{F}\right)
-= \boxed{\ \bm{F}^{-T}:\delta\bm{F}\ }.
-\]
+Stretch first along the eigenvectors of \(\bm{U}\) by the principal stretches \(\lambda_i\), then rotate by \(\bm{R}\).
+\end{column}
+\begin{column}{0.49\textwidth}
+\textbf{Reading \(\bm{V}\bm{R}\)}
 
-\medskip
-Now apply this to the two volumetric terms in \(W\):
+Rotate first by the same \(\bm{R}\), then stretch by the same \(\lambda_i\) in the rotated frame.
+\end{column}
+\end{columns}
+\smallskip
 
-\medskip
-\textbf{Term 1:} \(-\mu \ln J\)
-\[
-\delta(-\mu\ln J) = -\mu\,\bm{F}^{-T}:\delta\bm{F}
-\quad\Rightarrow\quad
-\boxed{\bm{P}_{-\mu\ln J}=-\mu\,\bm{F}^{-T}}.
-\]
-
-\medskip
-\textbf{Term 2:} \(\frac{\kappa}{2}(\ln J)^2\)
-\[
-\delta\!\left(\frac{\kappa}{2}(\ln J)^2\right)
-=\kappa(\ln J)\,\delta(\ln J)
-=\kappa(\ln J)\,\bm{F}^{-T}:\delta\bm{F}
-\]
-\[
-\Rightarrow\quad
-\boxed{\bm{P}_{\kappa(\ln J)^2}=\kappa(\ln J)\,\bm{F}^{-T}}.
-\]
+The eigenvalues of \(\bm{U}\) are the principal stretches \(\lambda_i\); the eigenvalues of \(\Cten=\bm{U}^2\) are \(\lambda_i^2\).
+\begin{punchbox}
+\footnotesize
+\hi{Consequence.} Objectivity demands \(W(\bm{Q}\Fdef)=W(\Fdef)\) for every rotation \(\bm{Q}\). Take \(\bm{Q}=\bm{R}^T\):
+\(W(\Fdef)=W(\bm{R}^T\bm{R}\bm{U})=W(\bm{U})=:\widehat W(\bm{U})=\widetilde W(\Cten)\).
+A strain energy can see \(\Fdef\) only through \(\bm{U}\), equivalently through \(\Cten=\bm{U}^2\).
+\end{punchbox}
 \end{frame}
 
-% ------------------------------------------------------------
-\begin{frame}{Combine: closed form for $\bm{P}$ (neo-Hookean)}
+% ----- 30b. Polar decomposition: worked check -----
+\begin{frame}{Polar decomposition: worked check}
+\footnotesize
+Take the simple shear of the previous slide in the \(X_1X_2\) plane with \(\gamma=1\):
+\[
+  \Fdef=
+  \begin{bmatrix}1&\gamma\\0&1\end{bmatrix}
+  =\begin{bmatrix}1&1\\0&1\end{bmatrix},
+  \qquad
+  \Cten=\Fdef^T\Fdef=
+  \begin{bmatrix}1&\gamma\\\gamma&1+\gamma^2\end{bmatrix}
+  =\begin{bmatrix}1&1\\1&2\end{bmatrix}.
+\]
+\textbf{Principal stretches.}
+\(\lambda_{1,2}=\frac12\left(\sqrt{4+\gamma^2}\pm\gamma\right)\), so
+\(\lambda_1=\frac{\sqrt5+1}{2}\approx1.618\),
+\(\lambda_2=\frac{\sqrt5-1}{2}\approx0.618\),
+and \(\lambda_1\lambda_2=1=\det\Fdef\).
+The eigenvalues of \(\Cten\) are \(\lambda_1^2\approx2.618\) and \(\lambda_2^2\approx0.382\).
+\[
+  \bm{U}=\sqrt{\Cten}=\frac{1}{\sqrt5}
+  \begin{bmatrix}2&1\\1&3\end{bmatrix}
+  \approx
+  \begin{bmatrix}0.894&0.447\\0.447&1.342\end{bmatrix},
+  \qquad
+  \bm{R}=\Fdef\bm{U}^{-1}=\frac{1}{\sqrt5}
+  \begin{bmatrix}2&1\\-1&2\end{bmatrix}
+  \approx
+  \begin{bmatrix}0.894&0.447\\-0.447&0.894\end{bmatrix}.
+\]
+Checks: \(\bm{U}^2=\Cten\), \(\bm{R}^T\bm{R}=\I\), \(\det\bm{R}=1\), and \(\bm{R}\) is a clockwise rotation through \(\theta\) with \(\tan\theta=\gamma/2=\tfrac12\), that is \(\theta\approx26.6^\circ\).
+\begin{punchbox}
+\footnotesize
+Simple shear is a stretch of \(\lambda_1\) along one principal direction, a compression \(\lambda_2=1/\lambda_1\) along the other, plus a rigid rotation by \(\theta\); that rotation is exactly what \(\Cten\) and \(\Eten\) discard.
+\end{punchbox}
+\end{frame}
+
+% ----- 31. Invariants -----
+\begin{frame}{Strain invariants and volume change}
+In three dimensions,
+\[
+  I_1=\operatorname{tr}\Cten,
+  \quad
+  I_2=\frac12\left[
+    (\operatorname{tr}\Cten)^2-\operatorname{tr}(\Cten^2)
+  \right],
+  \quad
+  I_3=\det\Cten=J^2.
+\]
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.48\textwidth}
+\begin{block}{Raw invariants}
+\(I_1\) and \(I_2\) respond to both shape change and volume change. \(I_3\) measures volume change directly.
+\end{block}
+\end{column}
+\begin{column}{0.50\textwidth}
+\begin{block}{Isochoric invariants}
+Using \(\bar{\Fdef}=J^{-1/3}\Fdef\) and
+\(\bar{\Cten}=\bar{\Fdef}^T\bar{\Fdef}\),
+\[
+  \bar I_1=\operatorname{tr}\bar{\Cten},
+  \qquad
+  \bar I_2=\tfrac12[
+    (\operatorname{tr}\bar{\Cten})^2
+    -\operatorname{tr}(\bar{\Cten}^2)] .
+\]
+\end{block}
+\end{column}
+\end{columns}
+\end{frame}
+
+% ----- 32. Module 2 wrap -----
+\begin{frame}{Module 2 wrap-up}
+\begin{itemize}\itemsep6pt
+  \item \(\gradX\bm{d}=\Fdef-\I\) is the displacement gradient.
+  \item \(\Cten=\Fdef^T\Fdef\) and \(\Bten=\Fdef\Fdef^T\) encode stretch.
+  \item \(\Eten=\tfrac12(\Cten-\I)\) is a material finite-strain measure.
+  \item \(\eten=\tfrac12(\I-\Bten^{-1})\) is its spatial counterpart.
+  \item \(I_3=J^2\). Modified invariants isolate isochoric deformation.
+\end{itemize}
+\begin{punchbox}
 \small
-Sum the contributions from the previous slides:
-\[
-\bm{P}
-=
-\bm{P}_{\text{iso}}
-+\bm{P}_{-\mu\ln J}
-+\bm{P}_{\kappa(\ln J)^2}.
-\]
-
-\medskip
-\[
-\bm{P}
-=
-\mu\,\bm{F}
--\mu\,\bm{F}^{-T}
-+\kappa(\ln J)\,\bm{F}^{-T}.
-\]
-
-\medskip
-Factor the last two terms:
-\[
-\boxed{
-\bm{P} = \mu\left(\bm{F}-\bm{F}^{-T}\right)+\kappa(\ln J)\,\bm{F}^{-T}.
-}
-\]
-
-\medskip
-\textbf{Shape check:} \(\bm{P}\in\R^{d\times d}\), same shape as \(\bm{F}\).
-
-\medskip
-\textbf{Special case:} if \(J=1\), then \(\ln J=0\) and
-\[
-\bm{P}=\mu(\bm{F}-\bm{F}^{-T}).
-\]
+Quick check: \(J=1\) implies \(I_3=1\), but it does not imply \(\Eten=\bm{0}\).
+\end{punchbox}
 \end{frame}
 
-\begin{frame}{Micro-check: small-strain limit sanity check}
+\section{Stress measures and transformations}
+
+% ----- 33. Module 3 -----
+\begin{frame}{Module 3: why several stress measures?}
+Fluid mechanics normally uses the Cauchy stress
+\[
+  \sigmaC(\x,t)
+\]
+in the current configuration. IBFE constitutive calculations usually use reference coordinates and the stresses
+\[
+  \Pten(\X,t)
+  \qquad\text{and}\qquad
+  \Sten(\X,t).
+\]
+\begin{punchbox}
 \small
-For small displacement gradients, \(\Fdef \approx \I + \gradX \bm{d}\), and \(\ln J \approx \mathrm{tr}(\gradX \bm{d})\).
-
-\medskip
-\textbf{What should happen?} Many hyperelastic models reduce (approximately) to linear elasticity:
-\[
-\sigmaC \approx 2\mu\,\bm{\varepsilon} + \lambda_{\mathrm{Lam\acute{e}}}\,\mathrm{tr}(\bm{\varepsilon})\,\I
-\]
-for some Lam\'e parameter \(\lambda_{\mathrm{Lam\acute{e}}}\) related to \(\kappa\).
-
-\medskip
-\textbf{Takeaway:} checking the small-strain limit is a good way to catch sign mistakes in constitutive formulas.
-
+Each stress measure pairs with a particular normal, area measure, or deformation rate. Conversions between them describe the same physical force or power.
+\end{punchbox}
 \end{frame}
 
-\begin{frame}{Micro-check: axial stretch (plug-in)}
+% ----- 34. Cauchy stress -----
+\begin{frame}{Cauchy stress and current traction}
+For a current surface with outward unit normal \(\nvec\),
+\[
+  \boxed{\tvec(\nvec)=\sigmaC\,\nvec}.
+\]
+The differential force acting on current area \(da\) is
+\[
+  d\bm{f}
+  =
+  \sigmaC\,\nvec\,da.
+\]
+In components,
+\[
+  t_i=\sigma_{ij}n_j.
+\]
+\begin{punchbox}
 \small
-Use the axial stretch example:
-\[
-\Fdef=\mathrm{diag}(\lambda,1,1),\quad J=\lambda,\quad \ln J=\ln\lambda,\quad \Fdef^{-T}=\mathrm{diag}(1/\lambda,1,1).
-\]
-
-\medskip
-For neo-Hookean:
-\[
-\Pten = \mu(\Fdef-\Fdef^{-T})+\kappa(\ln J)\Fdef^{-T}.
-\]
-
-\medskip
-\textbf{Task:} compute \(P_{11}\), \(P_{22}\), \(P_{33}\) and interpret what boundary conditions would be needed for a \emph{uniaxial-stress} test (traction-free sides).
-
+The Cauchy stress maps a current normal to force per current area. Its diagonal entries describe normal stress and its off-diagonal entries describe shear stress in the chosen basis.
+\end{punchbox}
 \end{frame}
 
+% ----- 35. Traction figure -----
+\begin{frame}{Traction vectors on coordinate planes}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.35\textwidth}
+\[
+  \tvec(\nvec)=\sigmaC\nvec.
+\]
+Choosing each coordinate normal selects one column of the Cauchy-stress matrix.
 
-% ============================================================
-% References / Further reading
-% ============================================================
+\medskip
+For example,
+\[
+  \tvec(\bm{e}_1)
+  =
+  \begin{bmatrix}
+    \sigma_{11}\\
+    \sigma_{21}\\
+    \sigma_{31}
+  \end{bmatrix}.
+\]
+\end{column}
+\begin{column}{0.65\textwidth}
+\centering
+\includegraphics[width=0.74\linewidth]{pictures/4-2/traction-vectors.png}
+
+{\tiny Source: P.~A. Kelly, \emph{Solid Mechanics Part III: Foundations of Continuum Solid Mechanics}, \S3.3, Fig.~3.3.2 (University of Auckland lecture notes, \url{https://pkel015.connect.amazon.auckland.ac.nz/SolidMechanicsBooks/}). The figure's equation numbers refer to those notes.}
+\end{column}
+\end{columns}
+\end{frame}
+
+% ----- 36. PK1 -----
+\begin{frame}{First Piola--Kirchhoff stress}
+The first Piola stress is a two-point tensor defined on \(B_0\):
+\[
+  \Pten(\X,t)\in\R^{d\times d}.
+\]
+For a reference surface with outward unit normal \(\Nvec\) and reference area \(dA\),
+\[
+  \boxed{d\bm{f}=\Pten\Nvec\,dA}.
+\]
+Thus
+\[
+  \bm{t}_0(\Nvec)=\Pten\Nvec
+\]
+is force per reference area, directed in the current configuration.
+\begin{punchbox}
+\small
+\(\Pten\) is generally nonsymmetric because its two indices refer to different configurations.
+\end{punchbox}
+\end{frame}
+
+% ----- 37. Matching patches -----
+\begin{frame}{Matching reference and current surface patches}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.46\textwidth}
+The same physical force can be described on corresponding patches:
+\[
+  d\bm{f}
+  =
+  \sigmaC\nvec\,da
+  =
+  \Pten\Nvec\,dA.
+\]
+\begin{itemize}\itemsep5pt
+  \item \(\sigmaC\nvec\): force per current area
+  \item \(\Pten\Nvec\): force per reference area
+\end{itemize}
+\begin{punchbox}
+\small
+The area vectors differ. Nanson's formula supplies the missing geometric transformation.
+\end{punchbox}
+\end{column}
+\begin{column}{0.54\textwidth}
+\centering
+\includegraphics[width=\linewidth]{pictures/4-2/traction-vectors-B0-B1.png}
+
+{\scriptsize Source: Kelly, \emph{Solid Mechanics Part III}, \S3.5, Fig.~3.5.1 (same notes). NB: the figure labels the reference traction \(\bm{PN}\) as \(\bm{T}\); in this course that quantity is \(\bm{t}_0\), and \(\bm{T}\) is reserved for the transmission force \(-\bm{PN}\).}
+\end{column}
+\end{columns}
+\end{frame}
+
+% ----- 38. Nanson -----
+\begin{frame}{Nanson's formula}
+Corresponding oriented area elements satisfy
+\[
+  \boxed{
+  \nvec\,da
+  =
+  J\,\Fdef^{-T}\Nvec\,dA
+  }.
+\]
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.49\textwidth}
+\textbf{Reference area vector}
+\[
+  \Nvec\,dA
+\]
+uses the material normal and reference area.
+\end{column}
+\begin{column}{0.49\textwidth}
+\textbf{Current area vector}
+\[
+  \nvec\,da
+\]
+uses the spatial normal and current area.
+\end{column}
+\end{columns}
+\begin{punchbox}
+\small
+In three dimensions, the identity follows by transforming two tangent vectors and using
+\[
+  (\Fdef\bm{a})\times(\Fdef\bm{b})
+  =
+  J\Fdef^{-T}(\bm{a}\times\bm{b}).
+\]
+\end{punchbox}
+\end{frame}
+
+% ----- 39. Piola transform -----
+\begin{frame}{Piola transformation}
+Start from equality of force on matching patches:
+\[
+  \sigmaC\nvec\,da
+  =
+  \Pten\Nvec\,dA.
+\]
+Insert Nanson's formula:
+\[
+  \sigmaC
+  \left(J\Fdef^{-T}\Nvec\,dA\right)
+  =
+  \Pten\Nvec\,dA.
+\]
+Because the relation holds for every \(\Nvec\),
+\[
+  \boxed{\Pten=J\,\sigmaC\,\Fdef^{-T}}.
+\]
+Equivalently,
+\[
+  \boxed{\sigmaC=J^{-1}\Pten\Fdef^T}.
+\]
+\end{frame}
+
+% ----- 40. PK2 -----
+\begin{frame}{Second Piola--Kirchhoff stress}
+Pull the remaining spatial index of \(\Pten\) back to the reference configuration:
+\[
+  \boxed{
+  \Sten=\Fdef^{-1}\Pten
+  },
+\qquad
+  \boxed{
+  \Pten=\Fdef\Sten
+  }.
+\]
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.49\textwidth}
+\begin{block}{Configuration}
+\(\Sten\) has two material indices and acts entirely in the reference description.
+\end{block}
+\end{column}
+\begin{column}{0.49\textwidth}
+\begin{block}{Energy pairing}
+\[
+  \Pten:\dot{\Fdef}
+  =
+  \frac12\Sten:\dot{\Cten}.
+\]
+\end{block}
+\end{column}
+\end{columns}
+\begin{punchbox}
+\small
+If the Cauchy stress is symmetric, then \(\Sten\) is symmetric.
+\end{punchbox}
+\end{frame}
+
+% ----- 41. Checks -----
+\begin{frame}{Dimensional, symmetry, and power checks}
+\small
+\begin{center}
+\renewcommand{\arraystretch}{1.18}
+\begin{tabular}{llll}
+\toprule
+Measure & Area basis & Symmetry & Power pairing \\
+\midrule
+\(\sigmaC\) & current & symmetric$^\ast$ & \(J\sigmaC:\bm{D}\) \\
+\(\Pten\) & reference & generally no & \(\Pten:\dot{\Fdef}\) \\
+\(\Sten\) & reference & symmetric$^\ast$ & \(\tfrac12\Sten:\dot{\Cten}\) \\
+\bottomrule
+\end{tabular}
+\end{center}
+\[
+  \Pten:\dot{\Fdef}
+  =
+  \frac12\Sten:\dot{\Cten}
+  =
+  J\,\sigmaC:\bm{D},
+\qquad
+  \bm{D}=\operatorname{sym}(\gradx\uEuler).
+\]
+\begin{punchbox}
+\small
+\({}^\ast\)Symmetry follows for a classical nonpolar continuum satisfying angular-momentum balance.
+\end{punchbox}
+\end{frame}
+
+% ----- 42. Module 3 wrap -----
+\begin{frame}{Module 3 wrap-up}
+\begin{itemize}\itemsep6pt
+  \item Current traction: \(\tvec=\sigmaC\nvec\).
+  \item Reference traction: \(\bm{t}_0=\Pten\Nvec\).
+  \item Oriented areas:
+  \[
+    \nvec\,da=J\Fdef^{-T}\Nvec\,dA.
+  \]
+  \item Stress conversions:
+  \[
+    \Pten=J\sigmaC\Fdef^{-T},
+    \qquad
+    \sigmaC=J^{-1}\Pten\Fdef^T,
+    \qquad
+    \Sten=\Fdef^{-1}\Pten.
+  \]
+\end{itemize}
+\begin{punchbox}
+\small
+The normal, area measure, and stress tensor must belong to matching configurations.
+\end{punchbox}
+\end{frame}
+
+% ----- 43. IBFE bridge -----
+\begin{frame}{IBFE notation bridge}
+\small
+\begin{center}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{lll}
+\toprule
+Object & Symbol here & Role in IBFE \\
+\midrule
+Deformation gradient & \(\Fdef=\gradX\chi\) & structural kinematics \\
+First Piola stress & \(\Pten\) & constitutive response \\
+Lagrangian force & \(\FLag\) & weak structural force \\
+Eulerian force & \(\fEuler\) & fluid momentum source \\
+Cauchy stress & \(\sigmaC\) & current-configuration stress \\
+\bottomrule
+\end{tabular}
+\end{center}
+\begin{punchbox}
+\centering
+\[
+  W(\Fdef)
+  \longrightarrow
+  \Pten
+  \longrightarrow
+  \FLag
+  \longrightarrow
+  \fEuler .
+\]
+\end{punchbox}
+\end{frame}
+
+\section{Hyperelasticity and IBFE force construction}
+
+% ----- 44. Module 4 -----
+\begin{frame}{Module 4: hyperelasticity}
+A hyperelastic material stores energy according to a scalar density per reference volume:
+\[
+  W:\R^{d\times d}\to\R,
+  \qquad
+  \Fdef\mapsto W(\Fdef).
+\]
+The first Piola stress follows by differentiation:
+\[
+  \boxed{
+  \Pten=\frac{\partial W}{\partial\Fdef}
+  }.
+\]
+\begin{punchbox}
+\small
+One scalar function encodes the constitutive response. Differentiating once gives stress. Differentiating again gives the material tangent used in nonlinear solvers.
+\end{punchbox}
+\end{frame}
+
+% ----- 45. Matrix derivative -----
+\begin{frame}{Derivative of a scalar with respect to a matrix}
+The derivative has the same tensor shape as its matrix argument:
+\[
+  \left(
+  \frac{\partial W}{\partial\Fdef}
+  \right)_{iI}
+  :=
+  \frac{\partial W}{\partial(F_\chi)_{iI}}.
+\]
+In three dimensions,
+\[
+  \frac{\partial W}{\partial\Fdef}
+  =
+  \begin{bmatrix}
+  \dfrac{\partial W}{\partial(F_\chi)_{11}}&
+  \dfrac{\partial W}{\partial(F_\chi)_{12}}&
+  \dfrac{\partial W}{\partial(F_\chi)_{13}}\\[6pt]
+  \dfrac{\partial W}{\partial(F_\chi)_{21}}&
+  \dfrac{\partial W}{\partial(F_\chi)_{22}}&
+  \dfrac{\partial W}{\partial(F_\chi)_{23}}\\[6pt]
+  \dfrac{\partial W}{\partial(F_\chi)_{31}}&
+  \dfrac{\partial W}{\partial(F_\chi)_{32}}&
+  \dfrac{\partial W}{\partial(F_\chi)_{33}}
+  \end{bmatrix}.
+\]
+\begin{punchbox}
+\small
+Shape check: \(W\) is scalar, while
+\(\partial W/\partial\Fdef\in\R^{d\times d}\).
+\end{punchbox}
+\end{frame}
+
+% ----- 46. Directional derivative -----
+\begin{frame}{Directional derivative and double contraction}
+Perturb \(\Fdef\) in an arbitrary direction \(\delta\Fdef\):
+\[
+  \delta W
+  :=
+  \left.
+  \frac{d}{d\varepsilon}
+  W(\Fdef+\varepsilon\,\delta\Fdef)
+  \right|_{\varepsilon=0}.
+\]
+The matrix derivative is defined by
+\[
+  \boxed{
+  \delta W
+  =
+  \frac{\partial W}{\partial\Fdef}:\delta\Fdef
+  =
+  \Pten:\delta\Fdef
+  }.
+\]
+The double contraction is the Frobenius inner product:
+\[
+  \bm{A}:\bm{B}
+  =
+  \sum_{i,I}A_{iI}B_{iI}
+  =
+  \operatorname{tr}(\bm{A}^T\bm{B}).
+\]
+\end{frame}
+
+% ----- 47. Objectivity and isotropy -----
+\begin{frame}{Objectivity and isotropy}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.49\textwidth}
+\begin{block}{Frame indifference}
+For every proper orthogonal spatial rotation \(\bm{Q}\),
+\[
+  W(\bm{Q}\Fdef)=W(\Fdef).
+\]
+An objective energy may be written in terms of
+\(\Cten=\Fdef^T\Fdef\).
+\end{block}
+\end{column}
+\begin{column}{0.49\textwidth}
+\begin{block}{Material isotropy}
+For every proper orthogonal material rotation \(\bm{R}\),
+\[
+  W(\Fdef\bm{R})=W(\Fdef).
+\]
+An objective isotropic energy may be written using the invariants of \(\Cten\).
+\end{block}
+\end{column}
+\end{columns}
+\begin{punchbox}
+\small
+An anisotropic material can remain objective. Its energy also depends on material directions or structural tensors.
+\end{punchbox}
+\end{frame}
+
+% ----- 48. Compressibility -----
+\begin{frame}{Compressible and incompressible response}
+\small
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.49\textwidth}
+\begin{block}{Exact incompressibility}
+\[
+  J=1
+\]
+is a constraint. A pressure-like Lagrange multiplier contributes
+\[
+  -p_s\,J\Fdef^{-T}
+\]
+to the first Piola stress.
+\end{block}
+\end{column}
+\begin{column}{0.49\textwidth}
+\begin{block}{Nearly incompressible model}
+\[
+  W(\Fdef)
+  =
+  W_{\mathrm{iso}}(\bar{\Fdef})+U(J)
+\]
+uses a volumetric energy to discourage numerical volume change.
+\end{block}
+\end{column}
+\end{columns}
+\[
+  \dot J
+  =
+  J\,(\divx\uEuler)\circ\chi .
+\]
+\begin{punchbox}
+\small
+At the continuum level, no slip and \(\divx\uEuler=0\) preserve the initial value \(J(\X,0)\). They give \(J\equiv1\) only when \(J(\X,0)=1\). Discrete IBFE solutions can still develop local volume error.
+\end{punchbox}
+\end{frame}
+
+% ----- 49. Isochoric split -----
+\begin{frame}{Isochoric and volumetric deformation}
+In spatial dimension \(d\), define
+\[
+  \boxed{
+  \bar{\Fdef}=J^{-1/d}\Fdef
+  },
+\qquad
+  \det\bar{\Fdef}=1.
+\]
+Then
+\[
+  \bar{\Cten}
+  =
+  \bar{\Fdef}^T\bar{\Fdef},
+\]
+and the modified invariants of \(\bar{\Cten}\) describe the isochoric response.
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.49\textwidth}
+\[
+  \bar{\Fdef}=J^{-1/2}\Fdef
+  \quad\text{in 2D},
+\]
+\end{column}
+\begin{column}{0.49\textwidth}
+\[
+  \bar{\Fdef}=J^{-1/3}\Fdef
+  \quad\text{in 3D}.
+\]
+\end{column}
+\end{columns}
+
+\smallskip
+Equivalently, in 3D the motion splits multiplicatively into a volumetric and a distortional part,
+\[
+  \Fdef=J^{1/3}\bar{\Fdef},
+  \qquad
+  \bar{\Fdef}=J^{-1/3}\Fdef .
+\]
+\begin{punchbox}
+\small
+Building the distortional energy from modified invariants prevents the shear response from also penalizing volume change.
+
+\smallskip
+{\scriptsize Griffith \& Patankar (2020, \S2.2.2) report that modified invariants together with volumetric stabilization give accuracy comparable to stabilized finite-element formulations on the Bonet et al.\ (2015) twisted-beam benchmark.}
+\end{punchbox}
+\end{frame}
+
+% ----- 50. Volumetric penalty -----
+\begin{frame}{Volumetric stabilization}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.44\textwidth}
+A common positive-\(J\) choice is
+\[
+  U(J)
+  =
+  \frac{\kappa_{\mathrm{stab}}}{2}
+  (\ln J)^2.
+\]
+It satisfies
+\[
+  U(1)=0,
+  \qquad
+  U'(1)=0.
+\]
+{\scriptsize Unlike a quadratic \((J-1)^2\) penalty, \((\ln J)^2\) diverges as \(J\to0^+\): the barrier shown in the plot.}
+
+Its Piola-stress contribution is
+\[
+  \Pten_{\mathrm{vol}}
+  =
+  U'(J)J\Fdef^{-T}
+  =
+  \kappa_{\mathrm{stab}}\ln J\,\Fdef^{-T}.
+\]
+\end{column}
+\begin{column}{0.56\textwidth}
+\centering
+\includegraphics[width=\linewidth]{pictures/4-2/Wvol_J_plot.png}
+\end{column}
+\end{columns}
+\begin{punchbox}
+\scriptsize
+In an incompressible IBFE model, \(\kappa_{\mathrm{stab}}\) controls numerical volume error. It need not equal a physical bulk modulus.
+\end{punchbox}
+\end{frame}
+
+% ----- 51. Neo-Hookean energy -----
+\begin{frame}{Compressible neo-Hookean energy}
+One common three-dimensional model is
+\[
+  \boxed{
+  W(\Fdef)
+  =
+  \frac{\mu}{2}(I_1-3)
+  -\mu\ln J
+  +\frac{\lambda_{\mathrm L}}{2}(\ln J)^2
+  },
+\]
+where
+\[
+  I_1=\operatorname{tr}(\Fdef^T\Fdef),
+  \qquad
+  J=\det\Fdef>0.
+\]
+\begin{itemize}\itemsep5pt
+  \item \(\mu\) is the infinitesimal shear modulus.
+  \item \(\lambda_{\mathrm L}\) is the first Lamé parameter.
+  \item The infinitesimal bulk modulus is
+  \(K=\lambda_{\mathrm L}+2\mu/3\).
+\end{itemize}
+\begin{punchbox}
+\small
+This distinction keeps a material Lamé parameter separate from the optional stabilization coefficient \(\kappa_{\mathrm{stab}}\). In an (nearly) incompressible IBFE model, the \((\ln J)^2\) term of the neo-Hookean \(W\) plays exactly the role of \(\kappa_{\mathrm{stab}}\).
+\end{punchbox}
+\end{frame}
+
+% ----- 52. Closed P -----
+\begin{frame}{Neo-Hookean first Piola stress}
+For the energy on the previous slide,
+\[
+  \boxed{
+  \Pten
+  =
+  \mu\left(\Fdef-\Fdef^{-T}\right)
+  +\lambda_{\mathrm L}\ln J\,\Fdef^{-T}
+  }.
+\]
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.48\textwidth}
+\begin{block}{Reference state}
+At \(\Fdef=\I\),
+\[
+  J=1,
+  \qquad
+  \Pten=\bm{0}.
+\]
+\end{block}
+\end{column}
+\begin{column}{0.48\textwidth}
+\begin{block}{Isochoric state}
+If \(J=1\),
+\[
+  \Pten
+  =
+  \mu(\Fdef-\Fdef^{-T}).
+\]
+\end{block}
+\end{column}
+\end{columns}
+\begin{punchbox}
+\small
+The final section derives this expression term by term.
+\end{punchbox}
+\end{frame}
+
+% ----- 53. Stress conversions -----
+\begin{frame}{Neo-Hookean stress conversions}
+Once \(\Pten\) is known,
+\[
+  \Sten=\Fdef^{-1}\Pten,
+  \qquad
+  \sigmaC=J^{-1}\Pten\Fdef^T.
+\]
+For the compressible neo-Hookean model,
+\[
+  \boxed{
+  \sigmaC
+  =
+  \frac{\mu}{J}(\Bten-\I)
+  +\frac{\lambda_{\mathrm L}\ln J}{J}\I
+  }.
+\]
+\begin{punchbox}
+\small
+\(\sigmaC\) is symmetric because \(\Bten\) and \(\I\) are symmetric. The same constitutive response appears different because each stress uses a different configuration and area measure.
+\end{punchbox}
+\end{frame}
+
+% ----- 54. Pipeline -----
+\begin{frame}{IBFE force pipeline}
+\small
+\begin{enumerate}\itemsep5pt
+  \item Evaluate \({\Fdef}_h=\gradX\chi_h\), \(J_h\), and
+  \(\Pten_h=\partial W/\partial\Fdef\) at structural quadrature points.
+  \item Define the unified Lagrangian force by negative virtual work:
+  \[
+    \int_{B_0}\FLag_h\cdot\bm{V}_h\,dV
+    =
+    -\int_{B_0}\Pten_h:\gradX\bm{V}_h\,dV.
+  \]
+  \item Spread \(\FLag_h\) to the Eulerian grid with a regularized delta kernel.
+  \item Advance the incompressible fluid equations.
+  \item Restrict the Eulerian velocity back to the structure and update \(\chi_h\).
+\end{enumerate}
+\begin{punchbox}
+\small
+The negative sign makes internal elastic force oppose increasing stored energy. Prescribed body forces or boundary tractions add their own virtual-work terms.
+\end{punchbox}
+\end{frame}
+
+% ----- 55. FE interpolation -----
+\begin{frame}{Finite-element interpolation of motion and stress}
+With structural basis functions \(\{\phi_\ell(\X)\}\),
+\[
+  \chi_h(\X,t)
+  =
+  \sum_{\ell=1}^{M}
+  \chi_\ell(t)\phi_\ell(\X),
+\]
+\[
+{\Fdef}_h(\X,t)
+  =
+  \sum_{\ell=1}^{M}
+  \chi_\ell(t)\otimes\gradX\phi_\ell(\X).
+\]
+\begin{itemize}\itemsep5pt
+  \item \(C^0\) interpolation makes \(\chi_h\) continuous.
+  \item \({\Fdef}_h\) and \(\Pten_h\) are generally discontinuous across element boundaries.
+  \item Constitutive stress and interaction forces are evaluated at element quadrature points.
+  \item Interaction quadrature may be refined independently of structural nodes and helps prevent leakage when adequately resolved.
+\end{itemize}
+\end{frame}
+
+% ----- 56. Module 4 wrap -----
+\begin{frame}{Module 4 wrap-up}
+\begin{itemize}\itemsep6pt
+  \item Hyperelasticity defines \(\Pten=\partial W/\partial\Fdef\).
+  \item The identity \(\delta W=\Pten:\delta\Fdef\) defines the matrix derivative.
+  \item Objectivity and isotropy impose different constitutive requirements.
+  \item Modified invariants and \(U(J)\) separate shape and volume response.
+  \item The weak structural force carries a negative virtual-work sign.
+  \item FE quadrature connects piecewise constitutive fields to the Eulerian grid.
+\end{itemize}
+\begin{punchbox}
+\small
+Next, one homogeneous deformation will pass through the entire chain from \(\chi\) to \(\sigmaC\).
+\end{punchbox}
+\end{frame}
+
+\section{Worked example: uniaxial stretch (prescribed axial deformation)}
+
+% ----- 57. Axial setup -----
+\begin{frame}{Worked example: uniaxial stretch (prescribed axial deformation)}
+Consider the three-dimensional motion
+\[
+  \chi(\X)
+  =
+  \begin{bmatrix}
+    \alpha X_1\\
+    X_2\\
+    X_3
+  \end{bmatrix},
+  \qquad
+  \alpha>0.
+\]
+\begin{itemize}\itemsep6pt
+  \item Material points stretch by the factor \(\alpha\) along \(X_1\).
+  \item The transverse coordinates remain unchanged.
+  \item There is no shear.
+\end{itemize}
+\begin{punchbox}
+\small
+Throughout the course this example is called \emph{uniaxial stretch (prescribed axial deformation)}; it is sometimes also called uniaxial strain. It is not automatically a uniaxial-stress test because the lateral stretches are fixed.
+\end{punchbox}
+\end{frame}
+
+% ----- 58. Axial F and J -----
+\begin{frame}{Axial deformation gradient and Jacobian}
+Differentiate each component of the motion:
+\[
+  \Fdef
+  =
+  \gradX\chi
+  =
+  \begin{bmatrix}
+  \dfrac{\partial\chi_1}{\partial X_1}&
+  \dfrac{\partial\chi_1}{\partial X_2}&
+  \dfrac{\partial\chi_1}{\partial X_3}\\[5pt]
+  \dfrac{\partial\chi_2}{\partial X_1}&
+  \dfrac{\partial\chi_2}{\partial X_2}&
+  \dfrac{\partial\chi_2}{\partial X_3}\\[5pt]
+  \dfrac{\partial\chi_3}{\partial X_1}&
+  \dfrac{\partial\chi_3}{\partial X_2}&
+  \dfrac{\partial\chi_3}{\partial X_3}
+  \end{bmatrix}
+  =
+  \operatorname{diag}(\alpha,1,1).
+\]
+Therefore
+\[
+  \boxed{J=\det\Fdef=\alpha}.
+\]
+\begin{punchbox}
+\small
+The prescribed deformation changes volume whenever \(\alpha\ne1\).
+\end{punchbox}
+\end{frame}
+
+% ----- 59. Axial C and E -----
+\begin{frame}{Axial Cauchy--Green tensor and Green strain}
+Because \(\Fdef\) is diagonal,
+\[
+  \Cten
+  =
+  \Fdef^T\Fdef
+  =
+  \operatorname{diag}(\alpha^2,1,1).
+\]
+Then
+\[
+  \Eten
+  =
+  \frac12(\Cten-\I)
+  =
+  \operatorname{diag}\left(
+    \frac{\alpha^2-1}{2},0,0
+  \right).
+\]
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.49\textwidth}
+\[
+  E_{11}=\frac{\alpha^2-1}{2}.
+\]
+\end{column}
+\begin{column}{0.49\textwidth}
+\[
+  E_{22}=E_{33}=0.
+\]
+\end{column}
+\end{columns}
+\begin{punchbox}
+\small
+For \(\alpha=1+\varepsilon\) with \(|\varepsilon|\ll1\), \(E_{11}=\varepsilon+O(\varepsilon^2)\).
+\end{punchbox}
+\end{frame}
+
+% ----- 60. Axial invariants -----
+\begin{frame}{Axial-deformation invariants}
+For
+\[
+  \Cten=\operatorname{diag}(\alpha^2,1,1),
+\]
+the first and third invariants are
+\[
+  I_1=\operatorname{tr}\Cten=\alpha^2+2,
+\]
+\[
+  I_3=\det\Cten=\alpha^2=J^2.
+\]
+The second invariant is
+\[
+  I_2=1+2\alpha^2.
+\]
+\begin{punchbox}
+\small
+\(I_3\) directly records volume change. The raw invariants \(I_1\) and \(I_2\) reflect both the axial shape change and the accompanying volume change.
+\end{punchbox}
+\end{frame}
+
+% ----- 61. Axial energy -----
+\begin{frame}{Constitutive choice for the axial example}
+Use the compressible neo-Hookean energy
+\[
+  W(\Fdef)
+  =
+  \frac{\mu}{2}(I_1-3)
+  -\mu\ln J
+  +\frac{\lambda_{\mathrm L}}{2}(\ln J)^2.
+\]
+For the prescribed axial deformation,
+\[
+  I_1=\alpha^2+2,
+  \qquad
+  J=\alpha,
+\]
+so
+\[
+  W(\alpha)
+  =
+  \frac{\mu}{2}(\alpha^2-1)
+  -\mu\ln\alpha
+  +\frac{\lambda_{\mathrm L}}{2}(\ln\alpha)^2.
+\]
+\begin{punchbox}
+\small
+The stress still follows by differentiating the full matrix-valued argument \(\Fdef\), not only the reduced scalar expression \(W(\alpha)\).
+\end{punchbox}
+\end{frame}
+
+% ----- 62. Axial P -----
+\begin{frame}{First Piola stress for the axial deformation}
+Use
+\[
+  \Pten
+  =
+  \mu(\Fdef-\Fdef^{-T})
+  +\lambda_{\mathrm L}\ln J\,\Fdef^{-T}.
+\]
+Here
+\[
+  \Fdef^{-T}
+  =
+  \operatorname{diag}(\alpha^{-1},1,1),
+  \qquad
+  \ln J=\ln\alpha.
+\]
+Therefore
+\[
+  \boxed{
+  \Pten
+  =
+  \operatorname{diag}\left(
+  \mu(\alpha-\alpha^{-1})
+  +\lambda_{\mathrm L}\frac{\ln\alpha}{\alpha},
+  \lambda_{\mathrm L}\ln\alpha,
+  \lambda_{\mathrm L}\ln\alpha
+  \right)
+  }.
+\]
+\begin{punchbox}
+\small
+Fixing both lateral stretches to one generally produces nonzero transverse stress.
+\end{punchbox}
+\end{frame}
+
+% ----- 63. Axial sigma -----
+\begin{frame}{Cauchy stress for the axial deformation}
+Use the Piola transformation:
+\[
+  \sigmaC
+  =
+  \frac{1}{J}\Pten\Fdef^T.
+\]
+Since \(J=\alpha\) and both tensors are diagonal,
+\[
+  \sigmaC
+  =
+  \operatorname{diag}\left(
+    P_{11},
+    \frac{P_{22}}{\alpha},
+    \frac{P_{33}}{\alpha}
+  \right).
+\]
+Thus
+\[
+  \sigma_{22}=\sigma_{33}
+  =
+  \frac{\lambda_{\mathrm L}\ln\alpha}{\alpha}.
+\]
+\begin{punchbox}
+\small
+A traction-free uniaxial-stress test must allow unknown lateral stretches and solve for them from \(\sigma_{22}=\sigma_{33}=0\).
+\end{punchbox}
+\end{frame}
+
+% ----- 64. Axial wrap -----
+\begin{frame}{Axial-example wrap-up}
+\[
+  \chi(\X)
+  \longrightarrow
+  \Fdef=\operatorname{diag}(\alpha,1,1)
+  \longrightarrow
+  J=\alpha
+\]
+\[
+  \longrightarrow
+  \Cten=\operatorname{diag}(\alpha^2,1,1)
+  \longrightarrow
+  \Eten=\frac12\operatorname{diag}(\alpha^2-1,0,0).
+\]
+After choosing \(W\),
+\[
+  W(\Fdef)
+  \longrightarrow
+  \Pten=\frac{\partial W}{\partial\Fdef}
+  \longrightarrow
+  \sigmaC=J^{-1}\Pten\Fdef^T.
+\]
+\begin{punchbox}
+\small
+Every arrow can be checked independently. Homogeneous deformations are useful unit tests for constitutive implementations.
+\end{punchbox}
+\end{frame}
+
+\section{Neo-Hookean stress derivation}
+
+% ----- 65. Derivation goal -----
+\begin{frame}{Derivation goal}
+Start with
+\[
+  W(\Fdef)
+  =
+  \frac{\mu}{2}(I_1-3)
+  -\mu\ln J
+  +\frac{\lambda_{\mathrm L}}{2}(\ln J)^2.
+\]
+We will compute the first variation and match
+\[
+  \delta W=\Pten:\delta\Fdef.
+\]
+Two identities drive the calculation:
+\[
+  \delta I_1
+  =
+  2\Fdef:\delta\Fdef,
+  \qquad
+  \delta(\ln J)
+  =
+  \Fdef^{-T}:\delta\Fdef.
+\]
+\begin{punchbox}
+\small
+The next two slides derive these identities before the terms are combined.
+\end{punchbox}
+\end{frame}
+
+% ----- 66. Variation I1 -----
+\begin{frame}{Step 1: variation of \(I_1\)}
+Because
+\[
+  I_1
+  =
+  \operatorname{tr}(\Fdef^T\Fdef)
+  =
+  \sum_{i,I}(F_\chi)_{iI}^2,
+\]
+\[
+  \delta I_1
+  =
+  2\sum_{i,I}
+  (F_\chi)_{iI}\,
+  \delta(F_\chi)_{iI}
+  =
+  \boxed{
+  2\Fdef:\delta\Fdef
+  }.
+\]
+Therefore
+\[
+  \delta\left[
+  \frac{\mu}{2}(I_1-3)
+  \right]
+  =
+  \mu\Fdef:\delta\Fdef.
+\]
+\begin{punchbox}
+\small
+This term contributes \(\mu\Fdef\) to \(\Pten\).
+\end{punchbox}
+\end{frame}
+
+% ----- 67. Variation log J -----
+\begin{frame}{Step 2: variation of \(\ln J\)}
+Jacobi's determinant identity gives
+\[
+  \delta J
+  =
+  J\,\Fdef^{-T}:\delta\Fdef.
+\]
+The chain rule then gives
+\[
+  \boxed{
+  \delta(\ln J)
+  =
+  \frac{\delta J}{J}
+  =
+  \Fdef^{-T}:\delta\Fdef
+  }.
+\]
+Consequently,
+\[
+  \delta(-\mu\ln J)
+  =
+  -\mu\Fdef^{-T}:\delta\Fdef,
+\]
+\[
+  \delta\left[
+  \frac{\lambda_{\mathrm L}}{2}(\ln J)^2
+  \right]
+  =
+  \lambda_{\mathrm L}\ln J\,
+  \Fdef^{-T}:\delta\Fdef.
+\]
+\end{frame}
+
+% ----- 68. Combine -----
+\begin{frame}{Step 3: combine the stress contributions}
+Collect the coefficients of \(\delta\Fdef\):
+\[
+  \delta W
+  =
+  \left[
+    \mu\Fdef
+    -\mu\Fdef^{-T}
+    +\lambda_{\mathrm L}\ln J\,\Fdef^{-T}
+  \right]
+  :\delta\Fdef.
+\]
+Matching \(\delta W=\Pten:\delta\Fdef\) gives
+\[
+  \boxed{
+  \Pten
+  =
+  \mu(\Fdef-\Fdef^{-T})
+  +\lambda_{\mathrm L}\ln J\,\Fdef^{-T}
+  }.
+\]
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.49\textwidth}
+\[
+  \Fdef=\I
+  \quad\Rightarrow\quad
+  \Pten=\bm{0}.
+\]
+\end{column}
+\begin{column}{0.49\textwidth}
+\[
+  J=1
+  \quad\Rightarrow\quad
+  \Pten=\mu(\Fdef-\Fdef^{-T}).
+\]
+\end{column}
+\end{columns}
+\end{frame}
+
+% ----- 69. Small-strain check -----
+\begin{frame}{Micro-check: small-strain limit}
+Let
+\[
+  \Fdef=\I+\bm{H},
+  \qquad
+  \lVert\bm{H}\rVert\ll1,
+  \qquad
+  \bm{\varepsilon}=\operatorname{sym}\bm{H}.
+\]
+To first order,
+\[
+  \Fdef^{-T}\approx\I-\bm{H}^T,
+  \qquad
+  \ln J\approx\operatorname{tr}\bm{H}.
+\]
+Substitution gives
+\[
+  \Pten
+  \approx
+  \mu(\bm{H}+\bm{H}^T)
+  +\lambda_{\mathrm L}\operatorname{tr}(\bm{H})\I
+  =
+  \boxed{
+  2\mu\bm{\varepsilon}
+  +\lambda_{\mathrm L}
+  \operatorname{tr}(\bm{\varepsilon})\I
+  }.
+\]
+\begin{punchbox}
+\small
+At first order, \(\Pten\) and \(\sigmaC\) coincide. The model reduces to isotropic linear elasticity.
+\end{punchbox}
+\end{frame}
+
+% ----- 70. Plug-in check -----
+\begin{frame}{Micro-check: axial-deformation plug-in}
+Use
+\[
+  \Fdef=\operatorname{diag}(\alpha,1,1),
+  \quad
+  J=\alpha,
+  \quad
+  \Fdef^{-T}
+  =\operatorname{diag}(\alpha^{-1},1,1).
+\]
+\textbf{Task}
+
+Insert these expressions into
+\[
+  \Pten
+  =
+  \mu(\Fdef-\Fdef^{-T})
+  +\lambda_{\mathrm L}\ln J\,\Fdef^{-T}
+\]
+and compute \(P_{11},P_{22},P_{33}\).
+\begin{punchbox}
+\small
+\[
+  P_{11}
+  =
+  \mu(\alpha-\alpha^{-1})
+  +\lambda_{\mathrm L}\frac{\ln\alpha}{\alpha},
+  \qquad
+  P_{22}=P_{33}=\lambda_{\mathrm L}\ln\alpha.
+\]
+These lateral stresses vanish only for \(\alpha=1\) under the prescribed lateral stretches.
+\end{punchbox}
+\end{frame}
+
 \section{References and further reading}
 
-\begin{frame}{References for this tutorial}
+% ----- 71. References -----
+\begin{frame}{References and further reading}
 \footnotesize
-\textbf{Primary IBFE references (used in checking these notes):}
-\begin{itemize}
-\item B.\,E.\ Griffith and X.\ Luo, ``Hybrid finite difference/finite element immersed boundary method,'' \emph{Int.\ J.\ Numer.\ Meth.\ Engng.}, 109:1--26, 2017. --- Source of the unified/partitioned weak forms used in IBFE; uses the symbol \(\bm{F}\) for both the deformation gradient and the Lagrangian force density (\(\bm{F}(\X,t)\)), motivating our \(\Fdef\) vs.\ \(\FLag\) distinction.
-\item B.\,E.\ Griffith and N.\,A.\ Patankar, ``Immersed methods for fluid--structure interaction,'' \emph{Annu.\ Rev.\ Fluid Mech.}, 52:421--448, 2020. --- Concise modern overview, including hyperelastic structural models (\(\Pten^{\,s}=\partial W/\partial \bm{F}\), \(\sigmaC_s = J^{-1}(\partial W/\partial \bm{F})\bm{F}^T\)), the modified deformation gradient \(\bar{\bm{F}}=J^{-1/3}\bm{F}\), and volumetric stabilization \(U(J)=\tfrac{K}{2}(\ln J)^2\).
-\item C.\,S.\ Peskin, ``The immersed boundary method,'' \emph{Acta Numerica}, 11:479--517, 2002. --- The foundational IB formulation with regularized delta kernels.
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.58\textwidth}
+\textbf{Primary IB and IBFE references}
+\begin{itemize}\itemsep4pt
+  \item B.~E. Griffith and X. Luo,
+  \emph{Hybrid finite difference/finite element immersed boundary method},
+  Int. J. Numer. Methods Biomed. Eng. 33 (2017), e2888.\\
+  \href{https://doi.org/10.1002/cnm.2888}{doi:10.1002/cnm.2888}
+  \item B.~E. Griffith and N.~A. Patankar,
+  \emph{Immersed methods for fluid--structure interaction},
+  Annu. Rev. Fluid Mech. 52 (2020), 421--448.\\
+  \href{https://doi.org/10.1146/annurev-fluid-010719-060228}{doi:10.1146/annurev-fluid-010719-060228}
+  \item C.~S. Peskin,
+  \emph{The immersed boundary method},
+  Acta Numerica 11 (2002), 479--517.\\
+  \href{https://doi.org/10.1017/S0962492902000077}{doi:10.1017/S0962492902000077}
 \end{itemize}
-
-\medskip
-\textbf{Continuum/solid mechanics background:}
-\begin{itemize}
-\item G.\,A.\ Holzapfel, \emph{Nonlinear Solid Mechanics: A Continuum Approach for Engineering}, Wiley, 2000.
-\item J.\ Bonet and R.\,D.\ Wood, \emph{Nonlinear Continuum Mechanics for Finite Element Analysis}, 2nd ed., Cambridge, 2008.
+\end{column}
+\begin{column}{0.42\textwidth}
+\textbf{Continuum mechanics}
+\begin{itemize}\itemsep4pt
+  \item G.~A. Holzapfel, \emph{Nonlinear Solid Mechanics}, Wiley, 2000.
+  \item J. Bonet and R.~D. Wood, \emph{Nonlinear Continuum Mechanics for Finite Element Analysis}, Cambridge, 2008.
 \end{itemize}
-
-\medskip
-\textbf{Software:} The IBAMR open-source library (\href{https://ibamr.github.io}{ibamr.github.io}) implements the IBFE method described above.
+\textbf{Open resources}
+\begin{itemize}\itemsep4pt
+  \item \href{https://web.iitd.ac.in/~ajeetk/APL104.html}{Ajeet Kumar solid-mechanics notes}
+  \item \href{https://onlinecourses.nptel.ac.in/noc19_ch27/preview}{NPTEL continuum-mechanics course}
+  \item \href{https://ibamr.github.io}{IBAMR documentation and source}
+\end{itemize}
+\end{column}
+\end{columns}
 \end{frame}
 
 \end{document}

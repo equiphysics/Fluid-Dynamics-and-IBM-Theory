@@ -1,11 +1,25 @@
-\documentclass[aspectratio=169]{beamer}
+\documentclass[aspectratio=169,11pt]{beamer}
 
-\usetheme{Madrid}
-\usecolortheme{default}
+\usetheme{Boadilla}
+\usecolortheme{seahorse}
+\useinnertheme{rectangles}
+\useoutertheme{infolines}
+\setbeamercolor{structure}{fg=blue!55!black}
+\setbeamercolor{title}{fg=white,bg=blue!55!black}
+\setbeamercolor{frametitle}{fg=blue!55!black}
+\setbeamercolor{block title}{bg=blue!12,fg=blue!55!black}
+\setbeamercolor{block body}{bg=blue!4}
 \setbeamertemplate{navigation symbols}{}
+\setbeamerfont{frametitle}{series=\bfseries,size=\large}
+\setbeamerfont{title}{series=\bfseries,size=\Large}
 
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\DeclareFontShape{T1}{cmss}{b}{n}{<->ssub*cmss/bx/n}{}
 \usepackage{amsmath,amssymb,bm}
 \usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning}
 
 % ---------------- Macros ----------------
 \newcommand{\uu}{\bm{u}}
@@ -17,7 +31,8 @@
 \newcommand{\ubar}{\avg{\uu}}
 
 \title[RANS I: Continuity]{RANS Part 1: Reynolds Decomposition \& the Mass Continuity Equation}
-\author{\href{https://www.youtube.com/watch?v=mDt-HJEXK6g}{(adapted from Steve Brunton lecture)}}
+\author[Miller]{Laura A. Miller}
+\institute[UArizona]{Department of Mathematics, University of Arizona}
 \date{}
 
 % Uncomment if you want speaker notes:
@@ -29,6 +44,9 @@
 % ---------------- Title ----------------
 \begin{frame}
   \titlepage
+  \vspace{-1.4em}
+  \centering{\scriptsize Adapted from a \href{https://www.youtube.com/watch?v=mDt-HJEXK6g}{lecture by Steven L. Brunton}.}
+  \\[2pt]{\tiny\color{black!55}AI tools were used to assist with formatting, organization, and clarification of the instructor's original notes.}
   \note{
   Goal today: set up time averaging + Reynolds decomposition, then apply it to incompressibility.
   End result: both mean flow and fluctuations are divergence-free.
@@ -39,7 +57,7 @@
 \begin{frame}{Roadmap (Part 1)}
 \begin{itemize}
   \item Start with incompressible Navier--Stokes (nondimensional form).
-  \item Define the Reynolds decomposition: $\uu(\x,t)=\ubar(\x)+\up(\x,t)$.
+  \item Define the Reynolds decomposition: $\uu(\x,t)=\ubar(\x)+\up(\x,t)$ for a stationary mean.
   \item Define the time-average operator and its key properties.
   \item Plug decomposition into \textbf{mass continuity} $\nabla\cdot\uu=0$.
   \item Time-average to derive:
@@ -65,7 +83,7 @@ We work with the incompressible Navier--Stokes equations:
 \begin{itemize}
   \item $\uu(\x,t)\in\mathbb{R}^3$ is the velocity field.
   \item $\pp(\x,t)$ is pressure (scaled).
-  \item $\Rey$ is the Reynolds number (controls relative strength of inertia vs viscosity).
+  \item $\Rey$ is the Reynolds number (the ratio of inertial to viscous effects for the chosen scales).
 \end{itemize}
 
 \textbf{Interpretation:} first line is  \textbf{momentum conservation}, second line is \textbf{mass conservation} (incompressibility).
@@ -108,7 +126,7 @@ w = \avg{w} + w'.
 \]
 
 \begin{itemize}
-  \item Mean flow $\ubar(\x)$ is \textbf{time-averaged} (depends only on space).
+  \item Mean flow $\ubar(\x)$ is \textbf{time-averaged}; it depends only on space under the stationarity assumption used here.
   \item Fluctuations $\up(\x,t)$ capture all remaining unsteady turbulent content.
 \end{itemize}
 
@@ -119,27 +137,49 @@ Emphasize: in this setup, bar is time average; primes are deviations from that m
 
 % ---------------- Time average definition ----------------
 \begin{frame}{Time average (stationary assumption)}
-Define the time average at each spatial point:
+For a statistically stationary flow, define the long-time average at each spatial point:
 \[
 \avg{\uu}(\x) \;:=\; \lim_{T\to\infty}\frac{1}{T}\int_0^T \uu(\x,t)\,dt.
 \]
 
 \begin{itemize}
-  \item We assume the flow is \textbf{statistically stationary} so the limit exists.
+  \item We assume the relevant statistics are \textbf{stationary} and the long-time average is well defined.
   \item Then the fluctuation is defined by
   \[
   \up(\x,t) := \uu(\x,t) - \ubar(\x).
   \]
 \end{itemize}
 
-\textbf{Historical motivation:} point measurements (e.g., hot-wire) $\Rightarrow$ long time series at fixed $\x$.
+\textbf{Historical motivation:} point measurements (e.g., hot-wire anemometry) produce long time series at fixed $\x$. For nonstationary flows, an ensemble or finite-window average may retain time dependence.
 
 \note{
 Stationarity means statistics don’t change in time (after transients).
 }
 \end{frame}
 
-\begin{frame}{Reynolds decomposition}
+\begin{frame}{A signal, its mean, and its fluctuation}
+\centering
+\begin{tikzpicture}[x=0.95cm,y=0.72cm,>=Latex]
+  \draw[->,gray!70] (0,0) -- (10.3,0) node[right] {$t$};
+  \draw[->,gray!70] (0,-1.45) -- (0,2.35) node[above] {$u(\x,t)$};
+  \draw[blue!65!black,very thick,smooth]
+    plot coordinates {(0,0.45) (0.6,1.25) (1.2,0.75) (1.8,1.70) (2.4,0.25)
+    (3.0,0.95) (3.6,-0.20) (4.2,1.10) (4.8,0.55) (5.4,1.55)
+    (6.0,0.15) (6.6,1.35) (7.2,0.35) (7.8,1.05) (8.4,-0.05)
+    (9.0,0.80) (9.6,0.40) (10.0,1.20)};
+  \draw[orange!85!black,dashed,very thick] (0,0.70) -- (10,0.70)
+    node[pos=0.88,above=2pt,fill=white,inner sep=1pt] {$\bar u(\x)$};
+  \draw[<->,teal!70!black,thick] (5.4,0.70) -- (5.4,1.55)
+    node[midway,right=3pt] {$u'(\x,t)$};
+  \node[blue!65!black,anchor=west] at (0.35,2.05) {instantaneous signal};
+\end{tikzpicture}
+
+\begin{block}{Pointwise identity}
+At every sampled time, $u(\x,t)=\bar u(\x)+u'(\x,t)$, while $\overline{u'}=0$ by construction.
+\end{block}
+\end{frame}
+
+\begin{frame}{Reynolds decomposition: illustration}
 \centering
 \includegraphics[width=0.55\textwidth]{pictures/5-2/Reynolds-decomposition.png}
 \vfill
@@ -179,6 +219,9 @@ Let $\avg{\cdot}$ denote time averaging.
   \item \textbf{Zero-mean fluctuation:} $\avg{\up}=0$ (by definition).
   \item \textbf{Linearity:} $\avg{u+v}=\avg{u}+\avg{v}$.
   \item \textbf{Idempotent:} $\avg{\avg{u}}=\avg{u}$.
+  \item \textbf{Commutes with differentiation:}
+  $\displaystyle\avg{\frac{\partial a}{\partial t}}=\frac{\partial \avg{a}}{\partial t}$
+  (and likewise for spatial derivatives).
   \item \textbf{Mean of mean times quantity:} 
   $\avg{\avg{u}\cdot v}=\avg{u}\cdot \avg{v}$.
   \item \textbf{Mean times mean:} if $u=\avg{u}$ and $v=\avg{v}$ then $\avg{u\cdot v} = u \cdot v$.
@@ -222,20 +265,20 @@ provided we can interchange differentiation and integration (regularity assumpti
 \vfill
 \begin{itemize}
   \item The time average of the fluctuation is zero, $\avg{\up}=0$.
-  \item The time average of the variance and higher order moments of the fluctuation is not zero.
+  \item Its variance and higher-order moments generally are not zero.
   \item These higher moments are important in the dynamics of the fluid, and we will need to keep track of them.
-  \item These are called Reynolds stresses because they have the units of stress.
+  \item $R_{ij}=\avg{u'_i u'_j}$ has units of velocity squared. The dimensional turbulent-stress contribution is conventionally $-\rho R_{ij}$.
 \end{itemize}
     
 \end{frame}
 
 \begin{frame}{The heart of the closure problem}
     \begin{itemize}
-        \item We are trying to take this very complicated equation that is space and time varying, and get an estimate of how the mean flow evolves and what the variances and Reynolds stresses are going to look like.
+        \item We are trying to take this very complicated equation that varies in space and time and obtain the mean flow and selected fluctuation statistics.
         \item But we don't want to solve NS in space and time everywhere.
         \item This challenge is at the heart of the closure problem. We end up with more unknowns than equations.
         \item We will need to make approximations and assumptions based on physical intuition to build closure models to determine the unknowns.
-        \item ML is helping us to build these approximations.
+        \item Data-driven and machine-learning models can assist with these approximations, but they must still respect the governing physics and be tested a posteriori.
     \end{itemize}
 \end{frame}
 
@@ -363,6 +406,20 @@ and time-average.
   \]
   \item Next: momentum averaging $\Rightarrow$ Reynolds stresses and the closure problem.
 \end{itemize}
+\end{frame}
+
+\begin{frame}{References and scope}
+\small
+\begin{itemize}
+  \item O. Reynolds, ``On the dynamical theory of incompressible viscous fluids and the determination of the criterion,'' \emph{Philosophical Transactions of the Royal Society A}, 186 (1895).
+  \item S. B. Pope, \emph{Turbulent Flows}, Cambridge University Press (2000), Chapters 3--4.
+  \item S. L. Brunton, lecture on Reynolds-averaged Navier--Stokes equations (linked on the title slide).
+  \item J. M. McDonough, \emph{Lectures in Elementary Fluid Dynamics} (2009), source for the decomposition graphic.
+\end{itemize}
+
+\begin{block}{Scope of this derivation}
+The deck uses a long-time average for a statistically stationary, incompressible, constant-property flow. Ensemble- or phase-averaged formulations use the same Reynolds rules when the chosen operator is linear and commutes with the required derivatives.
+\end{block}
 \end{frame}
 
 \end{document}

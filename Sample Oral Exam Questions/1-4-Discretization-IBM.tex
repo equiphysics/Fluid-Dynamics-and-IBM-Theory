@@ -41,7 +41,7 @@ At each time step, elastic forces are computed on the structure, these forces ar
 \item \textbf{How are the fluid variables discretized in space and time?}
 
 \textit{Sample answer:}  
-Velocity and pressure are discretized on a uniform Cartesian grid with spacing $h = \Delta x$. Time is discretized with a timestep $\Delta t$. Spatial derivatives are typically approximated using second-order finite differences, often on staggered MAC grids.
+In the classical prototype, velocity and pressure are discretized on a uniform Cartesian grid with spacing $h = \Delta x$, and time is discretized with a step $\Delta t$. Spatial derivatives are commonly approximated with second-order finite differences on a staggered MAC grid. Modern IB solvers may instead use locally refined Cartesian grids and other compatible fluid discretizations.
 
 \item \textbf{Why are staggered grids commonly used in IB implementations?}
 
@@ -51,21 +51,23 @@ Staggered grids help avoid pressure–velocity decoupling and improve discrete e
 \item \textbf{Write the semi-implicit discrete Navier--Stokes update used in Peskin-style IB methods.}
 
 \textit{Sample answer:}  
-A common update is
+A common IMEX prototype is
 \[
-\rho\left(\frac{u^{n+1}-u^n}{\Delta t} + S_{\Delta x}(u^n)u^n\right)
-- D_0 p^{n+1}
-= \mu \sum_{\alpha=1}^d D^+_\alpha D^-_\alpha u^{n+1} + f^n,
+\rho\left(\frac{\mathbf u^{n+1}-\mathbf u^n}{\Delta t}
++ \mathcal S_h(\mathbf u^n)\mathbf u^n\right)
+= -G_h p^{n+1}
++ \mu L_h\mathbf u^{n+1} + \mathbf f^n,
 \]
 with the incompressibility constraint
 \[
-D_0 \cdot u^{n+1} = 0.
+D_h\mathbf u^{n+1} = 0.
 \]
+Here $G_h$, $D_h$, and $L_h$ are compatible discrete gradient, divergence, and vector-Laplacian operators. Equivalently, the pressure-gradient term may be moved to the left with a plus sign.
 
 \item \textbf{Why is this system linear in the unknowns $u^{n+1}$ and $p^{n+1}$?}
 
 \textit{Sample answer:}  
-Because the nonlinear convection term is treated explicitly using $u^n$, and the forcing $f^n$ is known, leaving only linear viscous and pressure terms implicit.
+Because the nonlinear convection term is evaluated using $\mathbf u^n$ and, in this explicit-coupling prototype, $\mathbf f^n$ is already known. The unknown velocity and pressure therefore occur only in the linear viscous, pressure, and incompressibility terms. A fully implicit force law would instead lead to a coupled nonlinear problem.
 
 \end{enumerate}
 
@@ -76,7 +78,7 @@ Because the nonlinear convection term is treated explicitly using $u^n$, and the
 \item \textbf{How is an immersed structure discretized in the IB method?}
 
 \textit{Sample answer:}  
-The structure is discretized using Lagrangian material points with spacing $\Delta q$ (for fibers), $\Delta A$ (for surfaces), or $\Delta V$ (for solids), which approximate the continuous mapping $\chi(q,t)$.
+The configuration $\boldsymbol\chi(q,t)$ is approximated on a Lagrangian mesh or at material sample points. Each interaction point carries the appropriate quadrature weight: approximately $\Delta q$ for a uniformly sampled fiber, a surface-area weight for a membrane, or a reference-volume weight for a solid. In IBFE, structural nodes and interaction quadrature points need not coincide.
 
 \item \textbf{Where are elastic forces computed, and why?}
 
@@ -93,20 +95,29 @@ Elastic forces are computed entirely in Lagrangian coordinates, where material c
 
 \textit{Sample answer:}  
 \[
-f^n(x_i) = \sum_m F^n_m \, \delta_{\Delta x}(x_i - X^n_m)\, \Delta q.
+f^n(x_i) = \sum_m F^n_m \, \delta_{h}(x_i - X^n_m)\, w_m ,
 \]
+where $w_m$ is the Lagrangian quadrature weight of interaction point $m$; for a
+uniformly parameterized curve, $w_m = \Delta q$.
 
 \item \textbf{Write the discrete velocity interpolation formula.}
 
-\textit{Sample answer:}  
+\textit{Sample answer:}
+The structure velocity is interpolated from the \emph{new} fluid velocity, at
+time level $n+1$:
 \[
-U^n_m = \sum_i u^n(x_i)\, \delta_{\Delta x}(x_i - X^n_m)\, (\Delta x)^d.
+U^{n+1}_m = \sum_i u^{n+1}(x_i)\, \delta_{h}(x_i - X^n_m)\, (\Delta x)^d .
 \]
 
 \item \textbf{Why is the same regularized delta function used in both formulas?}
 
 \textit{Sample answer:}  
-Using the same kernel ensures consistency and discrete energy balance: the work done by the structure on the fluid equals the work extracted from the fluid by the structure.
+Using the same kernel is part of the construction, but it is not sufficient by itself. With compatible Eulerian and Lagrangian weights and inner products, interpolation is chosen as the weighted adjoint of spreading. Then
+\[
+\langle \mathbf u,S_h\mathbf F\rangle_E
+=\langle J_h\mathbf u,\mathbf F\rangle_L,
+\]
+so the two grids exchange equal discrete power.
 
 \end{enumerate}
 
@@ -117,15 +128,17 @@ Using the same kernel ensures consistency and discrete energy balance: the work 
 \item \textbf{How is the structure advanced in time in the simplest IB scheme?}
 
 \textit{Sample answer:}  
-Using a forward Euler update:
+Using a forward Euler update in which the structure is advected by the velocity
+interpolated from the new fluid field:
 \[
-X^{n+1}_m = X^n_m + \Delta t \, U^n_m.
+X^{n+1}_m = X^n_m + \Delta t \, U^{n+1}_m ,
 \]
+matching the time levels used in decks 1-2 and 1-4.
 
 \item \textbf{What limits the allowable time step in explicit IB schemes?}
 
 \textit{Sample answer:}  
-The time step is limited by fluid CFL conditions and by stiffness in the elastic forces, especially bending forces, which scale like $(\Delta q)^{-4}$.
+The time step can be limited by explicit advection and by eigenvalues of the discretized elastic coupling. For example, the largest eigenvalue of a fourth-difference bending operator grows like $\mathcal O((\Delta q)^{-4})$ as the material mesh is refined. This is a statement about mesh-scale stiffness, not a claim that a resolved physical bending force must grow like $(\Delta q)^{-4}$.
 
 \end{enumerate}
 
@@ -136,7 +149,7 @@ The time step is limited by fluid CFL conditions and by stiffness in the elastic
 \item \textbf{What is meant by the codimension perspective in the IB method?}
 
 \textit{Sample answer:}  
-Codimension refers to the difference between the fluid dimension and the structure dimension, such as a 1D fiber in a 2D or 3D fluid. The same IB coupling formulas apply regardless of codimension.
+Codimension is the difference between the dimensions of the fluid domain and the immersed material domain: for example, a curve in a two-dimensional fluid has codimension one, while a curve in a three-dimensional fluid has codimension two. The same distributional coupling pattern applies, but the material measure, quadrature weights, units of force density, and numerical resolution requirements change with dimension.
 
 \item \textbf{List and briefly describe common force components used for fibers.}
 
@@ -146,7 +159,7 @@ Typical forces include target-point (penalty) forces that tether points to presc
 \item \textbf{Why do bending forces impose especially severe time-step restrictions?}
 
 \textit{Sample answer:}  
-Because discrete bending forces involve fourth-order derivatives, their stiffness scales as $(\Delta q)^{-4}$, leading to very small stable time steps when treated explicitly.
+Because discrete bending forces involve fourth-order derivatives, the largest eigenvalue of the discrete bending operator scales as $(\Delta q)^{-4}$, leading to very small stable time steps when treated explicitly. As above, this is a statement about mesh-scale stiffness of the discrete operator, not a claim that a resolved physical bending force must grow like $(\Delta q)^{-4}$.
 
 \end{enumerate}
 
@@ -162,7 +175,7 @@ No-slip is enforced weakly by interpolating fluid velocity to the structure usin
 \item \textbf{What is meant by grid-scale slip, and what happens as $h \to 0$?}
 
 \textit{Sample answer:}  
-Grid-scale slip refers to small discrepancies between fluid and structure velocities due to regularization. These discrepancies vanish as the grid is refined and $h \to 0$.
+At finite $h$, the interpolated velocity is an average over the kernel support rather than an exact pointwise trace, so a regularized or grid-scale discrepancy may remain. Under a stable and consistent refinement of the fluid grid, material mesh or quadrature, kernel, and time step, the approximation is expected to converge to the continuum kinematic relation. The limit $h\to0$ alone is not a convergence proof.
 
 \end{enumerate}
 
@@ -182,7 +195,7 @@ where $\phi$ is compactly supported and symmetric.
 \item \textbf{What properties of the cosine kernel make it suitable for IB coupling?}
 
 \textit{Sample answer:}  
-The cosine kernel is symmetric, compactly supported, satisfies a partition-of-unity property, and is simple to implement, making it effective for force spreading and interpolation.
+The four-point-support cosine kernel is symmetric, compactly supported, satisfies the discrete partition-of-unity condition, and has a constant discrete sum of squares. It is simple to implement. Unlike Peskin's classical four-point kernel, however, it does not satisfy the exact first-moment condition for every subgrid offset, so the appropriate kernel depends on the required invariance and accuracy properties.
 
 \end{enumerate}
 
@@ -190,10 +203,10 @@ The cosine kernel is symmetric, compactly supported, satisfies a partition-of-un
 
 \begin{enumerate}[label=\arabic*., resume]
 
-\item \textbf{What are the main limitations of the classical Peskin (1996) discretization?}
+\item \textbf{What are the main limitations of the classical Peskin (1977), \emph{J. Comput. Phys.} 25:220--252, discretization?}
 
 \textit{Sample answer:}  
-Key limitations include severe time-step restrictions for stiff structures, limited accuracy near immersed boundaries, and assumptions of periodic domains and uniform grids.
+In the classical explicit, regularized-delta implementation, important limitations include severe time-step restrictions for stiff structures and reduced accuracy for pressure, traction, or other nonsmooth interfacial quantities. Periodic domains, uniform grids, FFT solvers, and explicit coupling are influential implementation choices, not defining assumptions of the continuum IBM.
 
 \item \textbf{How do modern IB methods address these limitations?}
 

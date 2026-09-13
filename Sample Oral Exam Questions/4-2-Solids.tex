@@ -103,7 +103,9 @@ Local incompressibility means volume preservation:
 \[
 J(X,t)=1\quad \text{for all } X.
 \]
-Equivalently, $I_3=\det(C)=J^2=1$.
+For an orientation-preserving motion ($J>0$), this is equivalent to
+$I_3=\det(C)=J^2=1$. The statement assumes that the chosen reference configuration
+is the volume against which incompressibility is measured.
 
 %-----------------------------------------------------------
 \item \textbf{Right/left Cauchy--Green tensors.}
@@ -111,11 +113,14 @@ Define $C$ and $B$ and state what they represent.
 
 \textbf{Sample answer:}
 \[
-C = F_\chi^T F_\chi \quad \text{(right Cauchy--Green, reference-frame)},
-\qquad
-B = F_\chi F_\chi^T \quad \text{(left Cauchy--Green, spatial-frame)}.
+\begin{aligned}
+C &= F_\chi^T F_\chi && \text{(right Cauchy--Green, reference frame)},\\
+B &= F_\chi F_\chi^T && \text{(left Cauchy--Green, spatial frame)}.
+\end{aligned}
 \]
-They encode stretch information with rotations factored out.
+Both have the squared principal stretches as eigenvalues. Under a superposed rigid
+spatial rotation, $C$ is unchanged, whereas $B$ rotates by a similarity transformation;
+its eigenvalues and invariants are therefore unchanged.
 
 %-----------------------------------------------------------
 \item \textbf{Green--Lagrange strain.}
@@ -218,10 +223,12 @@ Define $S$ and relate it to $P$.
 \[
 S = F_\chi^{-1}P,\qquad \text{equivalently } P = F_\chi S.
 \]
-$S$ is defined in the reference frame and is often symmetric for hyperelastic materials.
+$S$ is a material stress tensor. For a standard nonpolar continuum satisfying angular-momentum
+balance, the Cauchy stress is symmetric, and the corresponding $S$ is symmetric even though
+$P$ generally is not.
 
 %-----------------------------------------------------------
-\item \textbf{Why can $P$ be non-symmetric even if $\sigma$ is symmetric?}
+\item \textbf{Why can $P$ be non-symmetric even if $\sigma$ is symmetric?}\\
 \textbf{Sample answer:}
 Even if $\sigma=\sigma^T$, the Piola transform $P=J\sigma F_\chi^{-T}$ multiplies $\sigma$
 by $F_\chi^{-T}$, which generally destroys symmetry. $P$ is a two-point (mixed-index) tensor.
@@ -233,19 +240,19 @@ State the strong form of momentum balance on $\mathcal{B}_0$.
 \textbf{Sample answer:}
 A standard reference form is
 \[
-\rho_0(X)\,\ddot{\chi}(X,t) = \nabla_X\cdot P(X,t) + B(X,t),
+\rho_0(X)\,\ddot{\chi}(X,t) = \operatorname{Div}_X P(X,t) + b_0(X,t),
 \]
-where $\rho_0$ is reference density and $B$ is body force per reference volume.
+where $\rho_0$ is reference density, $b_0$ is body force per reference volume
+(written $b_0$ so that $B$ remains the left Cauchy--Green tensor), and
+$(\operatorname{Div}_X P)_i=\partial P_{iI}/\partial X_I$.
 
 %-----------------------------------------------------------
-.
-
-
-%-----------------------------------------------------------
-\item \textbf{Why use invariants in isotropic materials?}
+\item \textbf{Why use invariants in isotropic materials?}\\
 \textbf{Sample answer:}
-For isotropic materials, the energy must be independent of rigid rotations.
-Writing $W$ in terms of invariants of $C$ (or $B$), like $I_1,I_2,I_3$, guarantees rotational invariance.
+Frame indifference requires $W(QF_\chi)=W(F_\chi)$ for every proper spatial rotation $Q$;
+material isotropy additionally requires $W(F_\chi R)=W(F_\chi)$ for every proper material
+rotation $R$. An objective isotropic hyperelastic energy can therefore be written as a function
+of the invariants $I_1,I_2,I_3$ of $C$.
 
 %-----------------------------------------------------------
 \item \textbf{Compute invariants for a diagonal stretch.}
@@ -267,9 +274,12 @@ I_3=\det(C)=J^2=(\lambda_1\lambda_2\lambda_3)^2.
 What is meant by separating volumetric and distortional parts of the energy?
 
 \textbf{Sample answer:}
-One often writes $W=W_{\text{iso}}(\text{shape})+W_{\text{vol}}(J)$.
-$W_{\text{vol}}(J)$ penalizes volume change (bulk response), while $W_{\text{iso}}$ controls shape change (shear-like response).
-In the incompressible limit, one enforces $J=1$ (often via a pressure-like Lagrange multiplier).
+In spatial dimension $d$, define the isochoric deformation
+$\bar F=J^{-1/d}F_\chi$, so $\det\bar F=1$. One often writes
+$W(F_\chi)=W_{\text{iso}}(\bar F)+W_{\text{vol}}(J)$.
+$W_{\text{vol}}$ controls volume change, while $W_{\text{iso}}$ controls shape change.
+For an exactly incompressible material, enforce $J=1$, usually with a pressure-like
+Lagrange multiplier rather than a finite volumetric penalty.
 
 
 

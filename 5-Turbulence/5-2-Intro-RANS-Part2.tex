@@ -1,11 +1,25 @@
-\documentclass[aspectratio=169]{beamer}
+\documentclass[aspectratio=169,11pt]{beamer}
 
-\usetheme{Madrid}
-\usecolortheme{default}
+\usetheme{Boadilla}
+\usecolortheme{seahorse}
+\useinnertheme{rectangles}
+\useoutertheme{infolines}
+\setbeamercolor{structure}{fg=blue!55!black}
+\setbeamercolor{title}{fg=white,bg=blue!55!black}
+\setbeamercolor{frametitle}{fg=blue!55!black}
+\setbeamercolor{block title}{bg=blue!12,fg=blue!55!black}
+\setbeamercolor{block body}{bg=blue!4}
 \setbeamertemplate{navigation symbols}{}
+\setbeamerfont{frametitle}{series=\bfseries,size=\large}
+\setbeamerfont{title}{series=\bfseries,size=\Large}
 
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\DeclareFontShape{T1}{cmss}{b}{n}{<->ssub*cmss/bx/n}{}
 \usepackage{amsmath,amssymb,bm}
 \usepackage{mathtools}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning}
 
 % ---------- Notation ----------
 \newcommand{\x}{\bm{x}}
@@ -20,7 +34,8 @@
 \newcommand{\Lap}{\Delta}
 
 \title[RANS II: Momentum]{RANS Part 2: Reynolds-Averaged Momentum Equation (x-component)}
-\author{(adapted from Steve Brunton)}
+\author[Miller]{Laura A. Miller}
+\institute[UArizona]{Department of Mathematics, University of Arizona}
 \date{}
 
 \begin{document}
@@ -28,6 +43,9 @@
 % ------------------------------------------------------------
 \begin{frame}
   \titlepage
+  \vspace{-1.4em}
+  \centering{\scriptsize Adapted from a lecture by Steven L. Brunton.}
+  \\[2pt]{\tiny\color{black!55}AI tools were used to assist with formatting, organization, and clarification of the instructor's original notes.}
 \end{frame}
 
 % ------------------------------------------------------------
@@ -81,6 +99,27 @@ then time-average to get an equation for $\ubar$.
 \end{frame}
 
 % ------------------------------------------------------------
+\begin{frame}{What the averaging operation changes}
+\centering
+\begin{tikzpicture}[
+  node distance=7mm,
+  box/.style={rounded corners,draw=blue!55!black,thick,fill=blue!5,
+              minimum width=3.15cm,minimum height=1.15cm,align=center},
+  arrow/.style={-{Latex[length=3mm]},very thick,blue!55!black}]
+  \node[box] (ns) {instantaneous\\Navier--Stokes\\$u_j\partial_j u_i$};
+  \node[box,right=of ns] (avg) {decompose + average\\$u_i=\bar u_i+u'_i$};
+  \node[box,right=of avg] (rans) {mean equation\\$\bar u_j\partial_j\bar u_i$\\$+\,\partial_j\overline{u'_i u'_j}$};
+  \draw[arrow] (ns) -- (avg);
+  \draw[arrow] (avg) -- (rans);
+\end{tikzpicture}
+
+\vspace{0.7em}
+\begin{block}{The nonlinear term does not simply average away}
+The correlation $R_{ij}=\overline{u'_i u'_j}$ is new information. An equation for the mean velocity alone does not determine it: this is the RANS closure problem.
+\end{block}
+\end{frame}
+
+% ------------------------------------------------------------
 \begin{frame}{We will derive only the x-momentum equation}
 Write $\uu=(u,v,w)^T$. The x-component of momentum is:
 \[
@@ -127,12 +166,13 @@ Start with
 
 Substitute $u=\avg{u}+u'$, $v=\avg{v}+v'$, $w=\avg{w}+w'$, $p=\avg{p}+p'$.
 Then
-\[
-\frac{\partial} {\partial t}(\avg{u}+u') + (\avg{u}+u')\frac{\partial}{\partial x}(\avg{u}+u')
-+ (\avg{v}+v')\frac{\partial}{\partial y}(\avg{u}+u')
-+ (\avg{w}+w')\frac{\partial}{\partial z}(\avg{u}+u')
+\begin{align*}
+\frac{\partial} {\partial t}(\avg{u}+u')
+&+ (\avg{u}+u')\frac{\partial}{\partial x}(\avg{u}+u')
++ (\avg{v}+v')\frac{\partial}{\partial y}(\avg{u}+u')\\
+&+ (\avg{w}+w')\frac{\partial}{\partial z}(\avg{u}+u')
 = -\frac{\partial}{\partial x}(\avg{p}+p') + \frac{1}{\Rey}\Lap(\avg{u}+u').
-\]
+\end{align*}
 \end{frame}
 
 % ------------------------------------------------------------
@@ -171,7 +211,7 @@ Time-average term-by-term.
 =
 \frac{\partial}{\partial t} \avg{u}.
 \]
-For a statistically stationary mean, $\frac{\partial}{\partial t}\avg{u}=0$.
+For a statistically stationary mean, $\frac{\partial}{\partial t}\avg{u}=0$. Otherwise this mean-acceleration term must remain.
 
 \textbf{Pressure and viscosity:}
 \[
@@ -188,23 +228,23 @@ What survives are \emph{mean--mean} terms and \emph{fluctuation--fluctuation} te
 \end{frame}
 
 % ------------------------------------------------------------
-\begin{frame}{Step 2 result: the averaged x-momentum equation (unsimplified)}
+\begin{frame}{Step 2 result: averaged x-momentum (stationary mean)}
+Here $\partial_x = \partial/\partial x$ etc.; subscripts are reserved for components.
+
 After averaging, the surviving terms are:
 \begin{align*}
-\avg{u}\,\avg{u}_x
-+\avg{v}\,\avg{u}_y
-+\avg{w}\,\avg{u}_z
-&\;+\;\avg{u' u'_x}
-+\avg{v' u'_y}
-+\avg{w' u'_z} \\
-&= -\avg{p}_x + \frac{1}{\Rey}\Lap \avg{u}.
+\avg{u}\,\partial_x\avg{u}
++\avg{v}\,\partial_y\avg{u}
++\avg{w}\,\partial_z\avg{u}
+&\;+\;\avg{u'\,\partial_x u'}
++\avg{v'\,\partial_y u'}
++\avg{w'\,\partial_z u'} \\
+&= -\partial_x\avg{p} + \frac{1}{\Rey}\Lap \avg{u}.
 \end{align*}
-
-Note that we are using the standard shorthand where $u_x = \frac{\partial u}{\partial x}$, $u_y = \frac{\partial u}{\partial y}$, and $u_z = \frac{\partial u}{\partial z}$, and similar for velocities and pressure $v,w,p$.
 
 \begin{block}{Interpretation}
 Everything is now in terms of mean fields \emph{except} the three correlation terms
-$\avg{u' u'_x}$, $\avg{v' u'_y}$, $\avg{w' u'_z}$.
+$\avg{u'\,\partial_x u'}$, $\avg{v'\,\partial_y u'}$, $\avg{w'\,\partial_z u'}$.
 These encode how fluctuations force the mean.
 \end{block}
 \end{frame}
@@ -223,96 +263,119 @@ This is where closure enters: we need a model for these correlations.
 \end{frame}
 
 % ------------------------------------------------------------
-\begin{frame}{Step 3: rewrite $\avg{u' u'_x}$ using a chain rule identity}
+\begin{frame}{Step 3: the streamwise product-rule identity}
 Use the product rule:
 \[
-\partial_x\big((u')^2\big)=2u'u'_x
+\partial_x\big((u')^2\big)=2u'\,\partial_x u'
 \quad\Rightarrow\quad
-u'u'_x=\frac12\,\partial_x\big((u')^2\big).
+u'\,\partial_x u'=\frac12\,\partial_x\big((u')^2\big).
 \]
 
 Therefore,
 \[
-\avg{u'u'_x}
+\avg{u'\,\partial_x u'}
 =
 \frac12\,\frac{\partial}{\partial x}\avg{(u')^2}.
 \]
 
-(You can do the same trick for the other two terms, but one extra step is needed.)
+This half-factor is correct for this term in isolation. In the sum of all three convective terms, continuity supplies the complementary half, as the next two slides show explicitly.
 \end{frame}
 
 % ------------------------------------------------------------
-\begin{frame}{Step 3: product-rule setup for the y- and z-terms}
+\begin{frame}{Step 3: product-rule setup for the cross terms}
 Apply the product rule to $u'v'$ and $u'w'$:
 \[
-\frac{\partial}{\partial y}(u'v') = v' u'_y + u' v'_y,
+\frac{\partial}{\partial y}(u'v') = v'\,\partial_y u' + u'\,\partial_y v',
 \qquad
-\frac{\partial}{\partial z}(u'w') = w' u'_z + u' w'_z.
+\frac{\partial}{\partial z}(u'w') = w'\,\partial_z u' + u'\,\partial_z w'.
 \]
 
 Rearrange:
 \[
-v' u'_y = \frac{\partial}{\partial y}(u'v') - u' v'_y,
+v'\,\partial_y u' = \frac{\partial}{\partial y}(u'v') - u'\,\partial_y v',
 \qquad
-w' u'_z = \frac{\partial}{\partial z}(u'w') - u' w'_z.
+w'\,\partial_z u' = \frac{\partial}{\partial z}(u'w') - u'\,\partial_z w'.
 \]
 
 Now time-average:
 \[
-\avg{v'u'_y} = \frac{\partial}{\partial y}\avg{u'v'} - \avg{u'v'_y},\quad
-\avg{w'u'_z} = \frac{\partial}{\partial z}\avg{u'w'} - \avg{u'w'_z}.
+\avg{v'\,\partial_y u'} = \frac{\partial}{\partial y}\avg{u'v'} - \avg{u'\,\partial_y v'},\quad
+\avg{w'\,\partial_z u'} = \frac{\partial}{\partial z}\avg{u'w'} - \avg{u'\,\partial_z w'}.
 \]
+
+These identities expose derivatives of the correlations, but they also leave two terms involving derivatives of $v'$ and $w'$. The complete vector product rule organizes all three directions at once.
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}{Step 3: package the full convective sum}
+Apply $a_j\partial_j b=\partial_j(a_jb)-b\,\partial_j a_j$ with $a_j=u'_j$ and $b=u'$:
+\begin{align*}
+u'\,\partial_x u'+v'\,\partial_y u'+w'\,\partial_z u'
+&=\frac{\partial (u')^2}{\partial x}
+ +\frac{\partial (u'v')}{\partial y}
+ +\frac{\partial (u'w')}{\partial z}\\
+&\quad-u'\left(\partial_x u'+\partial_y v'+\partial_z w'\right).
+\end{align*}
+
+\begin{block}{Why the half-factor disappears}
+As on the streamwise slide: the product-rule correction supplies the second copy of $u'\,\partial_x u'$, so the first term is $\partial_x(u'^2)$, not $\tfrac12\partial_x(u'^2)$.
+\end{block}
 \end{frame}
 
 % ------------------------------------------------------------
 \begin{frame}{The cancellation: use $\Div \up = 0$}
-Collect the leftover terms:
+The correction in the packaged identity is
 \[
-\avg{u'u'_x}+\avg{u'v'_y}+\avg{u'w'_z}.
+\avg{u'\,\partial_x u'}+\avg{u'\,\partial_y v'}+\avg{u'\,\partial_z w'}.
 \]
 
 Factor out $u'$:
 \[
-u'u'_x + u'v'_y + u'w'_z
+u'\,\partial_x u' + u'\,\partial_y v' + u'\,\partial_z w'
 =
-u'\,(u'_x+v'_y+w'_z)
+u'\,(\partial_x u'+\partial_y v'+\partial_z w')
 =
 u'\,(\Div\up).
 \]
 
 But from Part 1, $\Div\up=0$, hence
 \[
-\avg{u'u'_x}+\avg{u'v'_y}+\avg{u'w'_z}=0.
+\avg{u'\,\partial_x u'}+\avg{u'\,\partial_y v'}+\avg{u'\,\partial_z w'}=0.
 \]
 
-So those leftover pieces vanish, and we keep only divergence of correlations.
+The correction vanishes, so no factor of $\tfrac12$ is missing (see the streamwise slide).
 \end{frame}
 
 % ------------------------------------------------------------
 \begin{frame}{Step 3 result: the Reynolds-stress-gradient form}
 Using the identities and cancellations, the fluctuation terms become:
 \[
-\avg{u' u'_x}+\avg{v' u'_y}+\avg{w' u'_z}
+\avg{u'\,\partial_x u'}+\avg{v'\,\partial_y u'}+\avg{w'\,\partial_z u'}
 =
 \frac{\partial}{\partial x}\avg{(u')^2}
 +\frac{\partial}{\partial y}\avg{u'v'}
 +\frac{\partial}{\partial z}\avg{u'w'}.
 \]
 
-(Depending on your bookkeeping, you may see a factor of $\tfrac12$ appear and then cancel
-when all three product-rule rearrangements are combined; the final packaged form is the spatial
-divergence of the Reynolds-stress components shown above.)
+Equivalently, in index notation,
+\[
+\overline{u'_j\partial_j u'_i}
+=\partial_j\overline{u'_i u'_j}
+-\overline{u'_i\partial_j u'_j}
+=\partial_j R_{ij},
+\]
+because $\partial_j u'_j=0$.
 \end{frame}
 
 % ------------------------------------------------------------
-\begin{frame}{Final x-component RANS momentum equation}
+\begin{frame}{Final x-component RANS equation (stationary mean)}
 The Reynolds-averaged x-momentum equation can be written as:
 \begin{align*}
-\avg{u}\,\avg{u}_x
-+\avg{v}\,\avg{u}_y
-+\avg{w}\,\avg{u}_z
+\avg{u}\,\partial_x\avg{u}
++\avg{v}\,\partial_y\avg{u}
++\avg{w}\,\partial_z\avg{u}
 &=
--\avg{p}_x
+-\partial_x\avg{p}
 +\frac{1}{\Rey}\Lap\avg{u}
 -\Big(
 \frac{\partial}{\partial x}\avg{(u')^2}
@@ -327,8 +390,26 @@ The mean flow is driven by pressure + viscosity \emph{and} the divergence of Rey
 \end{frame}
 
 % ------------------------------------------------------------
+\begin{frame}{The general unsteady RANS equation}
+If the averaging operation produces a time-dependent mean, retain its time derivative:
+\[
+\frac{\partial \bar u_i}{\partial t}
++\bar u_j\frac{\partial \bar u_i}{\partial x_j}
+=-\frac{\partial \bar p}{\partial x_i}
++\frac{1}{\Rey}\Delta\bar u_i
+-\frac{\partial R_{ij}}{\partial x_j},
+\qquad
+\frac{\partial \bar u_j}{\partial x_j}=0.
+\]
+
+\begin{block}{Stationary specialization}
+The preceding derivation set $\partial_t\bar u_i=0$ only after explicitly assuming statistically stationary mean fields. Reynolds averaging itself does not require this term to vanish.
+\end{block}
+\end{frame}
+
+% ------------------------------------------------------------
 \begin{frame}{Vector/tensor form (what this looks like in compact notation)}
-Define the Reynolds-stress tensor:
+Define the velocity-correlation tensor:
 \[
 \bm{R} := \avg{\up\,\up^{T}}
 =
@@ -339,7 +420,7 @@ Define the Reynolds-stress tensor:
 \end{bmatrix}.
 \]
 
-Then the mean momentum equation is commonly written:
+Then the stationary mean momentum equation is commonly written:
 \[
 (\ubar\cdot\grad)\ubar
 =
@@ -352,12 +433,12 @@ Along with mean incompressibility: \;\; $\Div\ubar=0$.
 \end{frame}
 
 % ------------------------------------------------------------
-\begin{frame}{Why these are called ``stresses''}
-The term $-\Div\bm{R}$ acts like an additional forcing (or stress divergence)
-in the mean equation, with the same ``shape'' as viscous stress terms.
+\begin{frame}{Correlation tensor versus turbulent stress}
+The term $-\Div\bm{R}$ acts like an additional forcing in the nondimensional mean equation, with the same differential form as a stress divergence.
 
 \begin{itemize}
-  \item $\bm{R}$ depends on fluctuation correlations $\avg{u'_i u'_j}$.
+  \item $R_{ij}=\avg{u'_i u'_j}$ is a velocity-correlation tensor.
+  \item In dimensional form, the corresponding turbulent (Reynolds) stress is commonly defined as $\tau^{R}_{ij}=-\rho R_{ij}$; some texts instead call $\rho R_{ij}$ the Reynolds-stress tensor and keep the minus sign in the equation.
   \item These are not determined by the mean equation alone.
 \end{itemize}
 
@@ -396,6 +477,20 @@ RANS reduces space-time complexity, but pays a price: \textbf{closure modeling}.
   \]
   \item The resulting mean equation requires a closure model for $\bm{R}$.
 \end{itemize}
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}{References and sign convention}
+\small
+\begin{itemize}
+  \item O. Reynolds, ``On the dynamical theory of incompressible viscous fluids and the determination of the criterion,'' \emph{Philosophical Transactions of the Royal Society A}, 186 (1895).
+  \item S. B. Pope, \emph{Turbulent Flows}, Cambridge University Press (2000), Chapters 3--4.
+  \item S. L. Brunton, lecture on Reynolds-averaged Navier--Stokes equations.
+\end{itemize}
+
+\begin{block}{Convention used here}
+$R_{ij}=\overline{u'_i u'_j}$ is the velocity-correlation tensor, so the nondimensional RANS equation contains $-\partial_jR_{ij}$. In dimensional stress notation, $\tau^R_{ij}=-\rho R_{ij}$ and the same contribution is $\rho^{-1}\partial_j\tau^R_{ij}$.
+\end{block}
 \end{frame}
 
 \end{document}

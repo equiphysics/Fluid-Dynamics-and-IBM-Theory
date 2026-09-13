@@ -1,21 +1,30 @@
 \documentclass{beamer}
 
 \usepackage{graphicx}
+% Resolve ../pictures/... whether compiling in this folder or from the repo root.
+\graphicspath{{./}{../}{2-Solid-Mechanics-Under-Construction/}}
 \usepackage{amsmath}
 \usepackage[utf8]{inputenc}
-\usefonttheme{serif} 
+\usetheme{default}
+\usefonttheme{serif}
 
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta}
 
 
 \title{Introduction to Tensors}
+\author{Laura A. Miller}
 
 \date{\today}
 
 \begin{document}
 
-\frame{\titlepage}
+\begin{frame}
+  \titlepage
+  \begin{center}
+    {\tiny AI tools were used to assist with formatting, organization, and clarification of the instructor's original notes.}
+  \end{center}
+\end{frame}
 
 \begin{frame}{Introduction to Tensors}
     \begin{itemize}
@@ -25,7 +34,7 @@
         \begin{itemize}
             \item Scalar: 0th-order tensor (magnitude only) 
             \item Vector: 1st-order tensor (magnitude and one direction) 
-            \item Matrix: 2nd-order tensor (magnitude and two directions) 
+            \item Second-order tensor: represented by a matrix once a basis is chosen
         \end{itemize}
     \end{itemize}
 \end{frame}
@@ -136,7 +145,7 @@ right way so that it still describes the same physical or geometric process.
 
 \end{frame}
 
-\begin{frame}
+\begin{frame}{Why the Transformation Law Matters}
 
 \textbf{Why this matters:}
 \begin{itemize}
@@ -425,7 +434,22 @@ the components $\sigma_{ij}$ represent:
 \end{bmatrix}.
 \]
 
-\item Symmetry (\(\sigma_{ij}=\sigma_{ji}\)) arises when there are no internal torques.
+\item Symmetry \(\sigma_{ij}=\sigma_{ji}\) follows from balance of angular momentum for a continuum without body couples or couple stresses (see the moment balance on a small cube).
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Why the Stress Tensor Is Symmetric}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.55\textwidth]{../pictures/moment-balance-cube.jpg}
+    \caption{Moment balance on a shrinking cube gives \(\sigma_{ij}=\sigma_{ji}\).}
+\end{figure}
+
+\begin{itemize}
+  \item Taking moments about an axis through the centre of a cube of side \(h\), the shear tractions on opposite faces contribute a net couple proportional to \((\sigma_{ij}-\sigma_{ji})h^3\), while body couples and inertia contribute at higher order in \(h\).
+  \item Letting \(h \to 0\) and requiring angular momentum balance therefore forces \(\sigma_{ij}=\sigma_{ji}\), provided the material transmits no body couples or couple stresses.
 \end{itemize}
 
 \end{frame}
@@ -450,7 +474,7 @@ the internal state of stress at a material point in the
     \[
         \mathbf{T}(\mathbf{e}) = \boldsymbol{\sigma}\,\mathbf{e},
         \qquad
-        T_j(\mathbf{e}) = \sum_i \sigma_{ij} e_i.
+        T_i(\mathbf{e}) = \sum_j \sigma_{ij} e_j.
     \]
 
     \item The traction vector gives the \emph{force per unit area}
@@ -530,7 +554,7 @@ the internal state of stress at a material point in the
 
 \begin{figure}[h]
     \centering
-    \includegraphics[width=0.75\textwidth]{pictures/2-2/cauchy_stress_wiki.png}
+    \includegraphics[width=0.75\textwidth]{../pictures/2-2/cauchy_stress_wiki.png}
     \caption{
         Cauchy stress tensor representation showing traction vectors on the
         faces of an infinitesimal cube (image: Wikipedia, CC BY-SA 3.0).
@@ -728,7 +752,7 @@ d\mathbf{w} = \mathbf{F}\,d\mathbf{x}.
           \end{itemize}
 \end{frame}
 
-\begin{frame}{Motivation: Building a Tensor from Two Directions}
+\begin{frame}{Motivation: Building a Tensor from Two Directions (cont.)}
 \begin{itemize}
     \item Interpretation:
           \begin{itemize}
@@ -772,7 +796,7 @@ d\mathbf{w} = \mathbf{F}\,d\mathbf{x}.
 \end{frame}
 
 
-\begin{frame}{Components of a Dyadic Product and Tensor Construction}
+\begin{frame}{Components of a Dyadic Product and Tensor Construction (cont.)}
 
 \begin{itemize}
     \item However, dyadic products form a natural \emph{basis} for all
@@ -1043,7 +1067,7 @@ T_{31}S_{13} + T_{32}S_{23} + T_{33}S_{33}
     + S_{12}T_{21} + S_{22}T_{22} + S_{32}T_{23}
     \]
     \[
-    + S_{13}T_{11} + S_{23}T_{32} + S_{33}T_{33}
+    + S_{13}T_{31} + S_{23}T_{32} + S_{33}T_{33}
     \]
     \item Note that \(S \cdot \cdot T = S^T : T\) 
 \end{itemize}
@@ -1100,8 +1124,8 @@ T_{31}S_{13} + T_{32}S_{23} + T_{33}S_{33}
     \]
     are known as the eigenvalues and eigenvectors of S, or the principal values and principal directions of S.
     \item Note that \(\lambda\) may be complex.
-    \item For a second order tensor in three dimensions, there are generally three values of \(\lambda\) and three unique unit vectors m which satisfy this equation.
-    \item Occasionally, there may be only two or one value of \(\lambda\). If this is the case, there are infinitely many possible vectors m that satisfy the equation.
+    \item For a second order tensor in three dimensions, there are generally three values of \(\lambda\) and three unit vectors m (each determined up to sign) which satisfy this equation.
+    \item Occasionally, there may be only two or one distinct value of \(\lambda\). For a symmetric tensor, a repeated eigenvalue means there are infinitely many possible vectors m that satisfy the equation, spanning an eigenplane or all of space. (A non-symmetric tensor with a repeated eigenvalue may instead be defective, with fewer independent eigenvectors than eigenvalues.)
     \item The eigenvalues of a tensor, and the components of the eigenvectors, may be computed by finding the eigenvalues and eigenvectors of the matrix of components.
     \item The eigenvalues of a symmetric tensor are always real.
     \item The eigenvalues of a skew tensor are always pure imaginary or zero.
@@ -1237,7 +1261,7 @@ T_{31}S_{13} + T_{32}S_{23} + T_{33}S_{33}
     \[
     v^{(m)} = [Q] [S^{(e)}] [Q]^T u^{(m)}
     \]
-    \item so, comparing with the first of equation (1)
+    \item Since this must hold for every $u^{(m)}$, the matrix acting on $u^{(m)}$ must be $[S^{(m)}]$, so
     \[
     [S^{(m)}] = [Q] [S^{(e)}] [Q]^T
     \]
@@ -1257,14 +1281,14 @@ T_{31}S_{13} + T_{32}S_{23} + T_{33}S_{33}
 \begin{frame}
 \frametitle{Examples of Invariants}
 \begin{itemize}
-    \item Examples of invariants are
+    \item The standard set is the three \emph{principal invariants}
     \begin{enumerate}
-        \item The three eigenvalues
-        \item The determinant
-        \item The trace
-        \item The inner and outer products
+        \item \(I_1 = \mathrm{tr}\,S\)
+        \item \(I_2 = \tfrac{1}{2}\left[(\mathrm{tr}\,S)^2 - \mathrm{tr}(S^2)\right]\)
+        \item \(I_3 = \det S\)
     \end{enumerate}
-    \item These are not all independent—for example any of 2-4 can be calculated in terms of 1.
+    \item These are the coefficients of the characteristic polynomial, so they are exactly the symmetric functions of the three eigenvalues.
+    \item Other quantities—the eigenvalues themselves, the trace, the determinant, and the inner and outer products—are invariants too, but they are not independent of \(I_1, I_2, I_3\): any of them can be computed from the eigenvalues, and the eigenvalues from \(I_1, I_2, I_3\).
 \end{itemize}
 \end{frame}
 
@@ -1341,12 +1365,9 @@ T_{31}S_{13} + T_{32}S_{23} + T_{33}S_{33}
 \end{frame}
 
 \begin{frame}
-\frametitle{Copyright Notice}
-\begin{itemize}
-    \item A.F. Bower, 2006
-    \item This site is made freely available for educational purposes.
-    \item You may extract parts of the text for non-commercial purposes provided that the source is cited.
-    \item Please respect the author's copyright.
-\end{itemize}
+\frametitle{Attribution}
+Sections on tensor algebra are adapted from A. F. Bower, \emph{Applied Mechanics of Solids}
+(CRC Press, 2010), Appendix B, whose online version at \url{http://solidmechanics.org}
+is made freely available for non-commercial educational use. Used here for teaching.
 \end{frame}
 \end{document}

@@ -1,1435 +1,1295 @@
-\documentclass{beamer}
+% =====================================================================
+% IBFE Tutorials: Eulerian--Lagrangian coupling and regularized kernels
+% =====================================================================
+\documentclass[aspectratio=169,11pt]{beamer}
 
-\usetheme{Madrid}
-\usecolortheme{seagull}
-\usepackage{amsmath, amssymb}
-\usepackage{tikz}
-\usepackage{bm}
+% Match the visual language of the SIAM Waves talk.
+\usetheme{Boadilla}
+\usecolortheme{seahorse}
+\useinnertheme{rectangles}
+\useoutertheme{infolines}
 
-\title[Integral Transforms in IBAMR]{Integral Transforms and Regularized Delta Functions in the Immersed Boundary Method}
-\author{Laura A. Miller}
+\setbeamercolor{structure}{fg=blue!55!black}
+\setbeamercolor{title}{fg=white,bg=blue!55!black}
+\setbeamercolor{frametitle}{fg=blue!55!black}
+\setbeamercolor{block title}{bg=blue!12,fg=blue!55!black}
+\setbeamercolor{block body}{bg=blue!4}
+\setbeamertemplate{navigation symbols}{}
+\setbeamerfont{frametitle}{series=\bfseries,size=\large}
+\setbeamerfont{title}{series=\bfseries,size=\Large}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\DeclareFontShape{T1}{cmss}{b}{n}{<->ssub*cmss/bx/n}{}
+\usepackage{graphicx}
+\usepackage{amsmath,amssymb,bm,mathtools}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{tcolorbox}
+\tcbuselibrary{skins}
+\usepackage{hyperref}
+
+\graphicspath{{../pictures/1-2/}{pictures/1-2/}}
+\hypersetup{colorlinks=true,urlcolor=blue!55!black}
+
+\newcommand{\hi}[1]{\textcolor{blue!55!black}{\textbf{#1}}}
+\newcommand{\warn}[1]{\textcolor{red!70!black}{\textbf{#1}}}
+\newcommand{\soft}[1]{\textcolor{gray!50!black}{#1}}
+\newcommand{\xvec}{\bm{x}}
+% Module 1 uses the Peskin convention throughout:
+%   \Xvec   = the material (Lagrangian) label  q
+%   \chivec = the CURRENT POSITION of that material point, X(q,t)
+% Module 4 (IBFE) instead writes x = \chi(X,t) with X the reference point;
+% that notation appears in this deck only on the explicit bridge slide.
+\newcommand{\Xvec}{\bm{q}}
+\newcommand{\chivec}{\bm{X}}
+\newcommand{\uvec}{\bm{u}}
+\newcommand{\Uvec}{\bm{U}}
+\newcommand{\fvec}{\bm{f}}
+\newcommand{\Fvec}{\bm{F}}
+\newcommand{\Pten}{\bm{P}_{e}}
+\newcommand{\Nvec}{\bm{N}}
+\newcommand{\testvec}{\bm{\varphi}}
+
+\newtcolorbox{punchbox}{
+  enhanced,
+  colback=blue!4,
+  colframe=blue!55!black,
+  boxrule=0.6pt,
+  arc=2pt,
+  left=4pt,right=4pt,top=3pt,bottom=3pt
+}
+
+\title[IB coupling and kernels]{Integral transforms and regularized delta functions}
+\subtitle{Force transfer, material measures, and discrete power consistency}
+\author[Miller]{Laura A. Miller}
+\institute[UArizona]{Department of Mathematics, University of Arizona}
 \date{}
 
 \begin{document}
 
-%=======================================================
-\begin{frame}
-\titlepage
-\end{frame}
-%=======================================================
-
-\begin{frame}{Overview}
-\tableofcontents
-\end{frame}
-
-%=======================================================
-\section{The Immersed Boundary Framework}
-%=======================================================
-
-\begin{frame}{Eulerian--Lagrangian Coupling}
-IB uses:
-\begin{itemize}
-    \item Eulerian description of fluid: velocity $\mathbf{u}(\mathbf{x},t)$, pressure $p(\mathbf{x},t)$
-    \item Lagrangian description of structure: $\mathbf{X}(s,t)$
-    \item Integral transforms to communicate between them
-\end{itemize}
-
-\[
-\mathbf{f}(\mathbf{x},t)
-=
-\int_{\mathcal{U}} \mathbf{F}(s,t)\,\delta(\mathbf{x}-\mathbf{X}(s,t))\,ds
-\]
-
-\[
-\frac{\partial \mathbf{X}}{\partial t}(s,t)
-=
-\int_\Omega \mathbf{u}(\mathbf{x},t)\,\delta(\mathbf{x}-\mathbf{X}(s,t))\,d\mathbf{x}
-\]
-
-Key idea: the delta kernel distributes forces to nearby Eulerian nodes and interpolates velocities back to the structure.
-\end{frame}
-
-\begin{frame}{Two Equivalent Lagrangian Notations}
-\small
-
-You will see two common ways to parameterize the structure:
-
-\medskip
-\textbf{(1) Curve/surface parameter $s$ (classical IB notation):}
-\[
-\mathbf{x}=\mathbf{X}(s,t),
-\quad s\in\mathcal{U}.
-\]
-
-\textbf{(2) Reference coordinate $\mathbf{X}$ (continuum mechanics / IBFE notation):}
-\[
-\mathbf{x}=\boldsymbol{\chi}(\mathbf{X},t),
-\quad \mathbf{X}\in\mathcal{U}.
-\]
-
-\medskip
-Both represent a mapping from the reference/material domain $\mathcal{U}$ to physical space $\Omega$.
-We will use $\boldsymbol{\chi}(\mathbf{X},t)$ when discussing stresses and deformation gradients.
-
-\end{frame}
-
-%=======================================================
-\section{Force Spreading}
-%=======================================================
-
-\begin{frame}{Force Spreading: Lagrangian Reference Domain}
-
-From the partitioned weak form (Griffith \& Luo 2017):
-
-\[
-\mathbf{f}(\mathbf{x},t)
-=
-\int_{\mathcal{U}}
-\mathbf{F}(\mathbf{X},t)\,
-\delta(\mathbf{x}-\boldsymbol{\chi}(\mathbf{X},t))\,d\mathbf{X}
-\]
-
-\medskip
-
-\textbf{Definition of $\mathcal{U}$:}
-\begin{itemize}
-    \item $\mathcal{U}$ is the \emph{Lagrangian reference (material) domain} of the structure
-    \item $\mathbf{X} \in \mathcal{U}$ labels material points
-    \item $\mathcal{U}$ is fixed in time
-    \item The mapping
+% ----- 1. Title -----
+\begin{frame}[plain]
+  \begin{beamercolorbox}[sep=10pt,center]{title}
+    {\bfseries\Large Integral transforms and regularized delta functions}\\[3pt]
+    {\normalsize Force transfer, material measures, and discrete power consistency}
+  \end{beamercolorbox}
+  \vspace{1.2em}
+  \begin{columns}[T,onlytextwidth]
+  \begin{column}{0.53\textwidth}
+    \textbf{\large Laura A. Miller}\\[4pt]
+    Department of Mathematics\\
+    University of Arizona\\[12pt]
+    {\small IBFE Tutorials}
+  \end{column}
+  \begin{column}{0.47\textwidth}
+    \begin{punchbox}
+    \centering
     \[
-    \boldsymbol{\chi} : \mathcal{U} \times [0,T] \rightarrow \Omega
+      \begin{aligned}
+      \Fvec(\Xvec,t)&\xrightarrow{\ \text{spread}\ }\fvec(\xvec,t),\\[3pt]
+      \uvec(\xvec,t)&\xrightarrow{\ \text{interpolate}\ }\Uvec(\Xvec,t).
+      \end{aligned}
     \]
-    gives the current physical position of each material point
-\end{itemize}
-
+    \small One kernel links two coordinate descriptions.
+    \end{punchbox}
+  \end{column}
+  \end{columns}
+  \vfill
+  \centering{\tiny\color{black!55}AI tools were used to assist with formatting, organization, and clarification of the instructor's original notes.}
 \end{frame}
 
-\begin{frame}{What Is $\mathcal{U}$ Physically?}
+% ----- 2. Roadmap -----
+\begin{frame}{Roadmap}
+\begin{columns}[T,onlytextwidth]
+  \begin{column}{0.32\textwidth}
+  \begin{block}{1. Continuous coupling}
+    \small Reference and spatial coordinates, force spreading, velocity interpolation
+  \end{block}
+  \end{column}
+  \begin{column}{0.32\textwidth}
+  \begin{block}{2. Material measures}
+    \small The boundary traction term, unified versus partitioned forces, and the Jacobian question
+  \end{block}
+  \end{column}
+  \begin{column}{0.32\textwidth}
+  \begin{block}{3. Discrete kernels}
+    \small Moment conditions, approximate translation invariance, and the power identity
+  \end{block}
+  \end{column}
+\end{columns}
 
-\textbf{$\mathcal{U}$ represents the undeformed material description of the structure.}
-
-\medskip
-
-\begin{itemize}
-    \item Integration is over \emph{material points}, not physical space
-    \item Forces are computed in reference coordinates
-    \item The delta function transfers those forces to physical space
-\end{itemize}
-
-\medskip
-
-\textbf{Dimensionality of $\mathcal{U}$ depends on the structure:}
-\begin{itemize}
-    \item 1D: fibers, filaments, membranes in 2D
-    \item 2D: shells or surfaces in 3D
-    \item 2D or 3D: volumetric solids
-\end{itemize}
-
-\medskip
-
-\textbf{Important distinction:}
-\[
-\mathcal{U}
-\;\neq\;
-\boldsymbol{\chi}(\mathcal{U},t)
-\;\neq\;
-\Omega
-\]
-
-\medskip
-
-This separation is part of why no Jacobian appears in the force-spreading integral.
-
+\vfill
+\begin{punchbox}
+\centering
+The central modeling choice is the \hi{measure with respect to which a force density is defined}.
+\end{punchbox}
 \end{frame}
 
+\section{Continuous coupling}
 
-%=======================================================
-\section{Where Did the Jacobian Go?}
-%=======================================================
-
-\begin{frame}{Strong Form: Elastic Forces in IB}
-
-In the immersed boundary-finite element (IBFE) framework, elasticity is described in
-\emph{Lagrangian (material) coordinates}.
-
-\medskip
-
-\textbf{Lagrangian variables:}
-\begin{itemize}
-    \item $\mathbf{X} \in \mathcal{U}$: material (reference) coordinate
-    \item $\boldsymbol{\chi}(\mathbf{X},t)$: current physical position
-    \item $\mathbf{P}_e(\mathbf{X},t)$: \emph{first Piola--Kirchhoff elastic stress}
-\end{itemize}
-
-\medskip
-
-The first Piola--Kirchhoff stress is defined by
-\[
-\mathbf{P}_e(\mathbf{X},t)
-=
-\frac{\partial W_e}{\partial \mathbf{F}}(\mathbf{F}(\mathbf{X},t)),
-\qquad
-\mathbf{F} = \frac{\partial \boldsymbol{\chi}}{\partial \mathbf{X}}
-\]
-
-where $W_e$ is the elastic strain-energy density.
+% ----- 3. Coordinates -----
+\begin{frame}{Two coordinate descriptions of one system}
+\begin{columns}[T,onlytextwidth]
+  \begin{column}{0.49\textwidth}
+    \begin{block}{Eulerian description}
+      \[
+        \xvec\in\Omega\subset\mathbb{R}^{d},
+        \qquad
+        \uvec=\uvec(\xvec,t),\quad p=p(\xvec,t).
+      \]
+      The fluid variables live on a fixed spatial domain.
+    \end{block}
+  \end{column}
+  \begin{column}{0.49\textwidth}
+    \begin{block}{Lagrangian description}
+      \[
+        \Xvec\in\mathcal U\subset\mathbb{R}^{k},
+        \qquad
+        \xvec=\chivec(\Xvec,t),\quad k\le d.
+      \]
+      The label \(\Xvec\) identifies a material point.
+    \end{block}
+  \end{column}
+\end{columns}
 
 \medskip
+\begin{punchbox}
+\(\mathcal U\) is a \hi{fixed material-coordinate domain}. It may be chosen as a reference configuration, but it need not equal the initial spatial configuration: \(\chivec(\Xvec,0)=\Xvec\) is not required.
+\end{punchbox}
 
-\textbf{Key point:}  
-$\mathbf{P}_e$ is a stress measured \emph{per unit reference area}, not per unit physical area.
-
+\smallskip
+\soft{Some texts write \(s\) or \(\bm\xi\) for the same material coordinate. Module 4 (IBFE) switches to continuum-mechanics notation, \(\bm\chi(\bm X,t)\) with \(\bm X\) the reference point; the next slide compares the two.}
 \end{frame}
 
-\begin{frame}{Strong Form: From Lagrangian Stress to Eulerian Force}
-
-The Lagrangian elastic force density is given by the material divergence:
-\[
-\mathbf{F}_e(\mathbf{X},t)
-=
-\nabla_{\mathbf{X}} \cdot \mathbf{P}_e(\mathbf{X},t)
-\]
-
-This quantity has units of force per unit \emph{reference volume}.
+% ----- Notation bridge -----
+\begin{frame}{Two equivalent Lagrangian notations}
+\begin{columns}[T,onlytextwidth]
+  \begin{column}{0.48\textwidth}
+  \begin{block}{Classical IB notation (used in this module)}
+  \[
+    \xvec=\bm{X}(\bm q,t),
+    \qquad \bm q\in\mathcal U .
+  \]
+  The symbol \(\bm q\) labels a point on a curve, surface, or material mesh; \(\bm X\) is where that point currently \emph{is}.
+  \end{block}
+  \end{column}
+  \begin{column}{0.48\textwidth}
+  \begin{block}{Continuum-mechanics notation (used from Module 4 on)}
+  \[
+    \xvec=\bm{\chi}(\bm{X},t),
+    \qquad \bm{X}\in\mathcal B_0 .
+  \]
+  Here \(\bm X\) is the \emph{reference} point in the reference configuration \(\mathcal B_0\). This notation makes reference derivatives and stress measures explicit.
+  \end{block}
+  \end{column}
+\end{columns}
 
 \medskip
-
-The corresponding Eulerian force density is obtained via force spreading:
-\[
-\mathbf{f}_e(\mathbf{x},t)
-=
-\int_{\mathcal{U}}
-\mathbf{F}_e(\mathbf{X},t)\,
-\delta(\mathbf{x}-\boldsymbol{\chi}(\mathbf{X},t))\,d\mathbf{X}
-\]
-
-\medskip
-
-Interpretation:
-\begin{itemize}
-    \item Forces are computed in reference coordinates
-    \item The delta function deposits those forces at their current physical locations
-\end{itemize}
-
+\begin{punchbox}
+These describe the same material-to-spatial map, and the roles of the symbol \(\bm X\) are swapped between them. \warn{In this module \(\bm q\) is the material label and \(\bm X(\bm q,t)\) its current position}; Module 4 (IBFE) switches to \(\bm\chi(\bm X,t)\) with \(\bm X\) the reference point.
+\end{punchbox}
 \end{frame}
 
-%=======================================================
-\section{Why No Jacobian Appears in the IB Force Spreading}
-%=======================================================
+% ----- Material domain -----
+\begin{frame}{What does the material domain represent?}
+\begin{itemize}\itemsep7pt
+  \item \(\mathcal U\) is fixed in time and indexes the structural degrees of freedom.
+  \item Integration over \(\mathcal U\) sums \hi{material points}, not points of the Eulerian grid.
+  \item Its dimension \(k\) may differ from the ambient dimension \(d\): fibers have \(k=1\), surfaces have \(k=2\), and volumetric solids have \(k=d\).
+  \item Geometry enters through the current placement \(\chivec(\mathcal U,t)\subset\Omega\).
+\end{itemize}
 
-\begin{frame}{Why No Jacobian Appears}
+\[
+  \boxed{\mathcal U\ \neq\ \chivec(\mathcal U,t)\ \subset\ \Omega .}
+\]
+
+\begin{punchbox}
+Calling \(\mathcal U\) a ``reference domain'' does not require \(\chivec(\Xvec,0)=\Xvec\). A convenient material parameterization need not coincide with the initial spatial geometry.
+\end{punchbox}
+\end{frame}
+
+% ----- 4. Visual coupling -----
+\begin{frame}{Coupling goes in both directions}
+\begin{columns}[T,onlytextwidth]
+  \begin{column}{0.49\textwidth}
+    \centering
+    \includegraphics[height=0.50\textheight]{force-spread2.png}
+
+    \hi{Spread force:} structure \(\longrightarrow\) fluid grid
+
+    {\scriptsize Figure from deck 1-2.}
+  \end{column}
+  \begin{column}{0.49\textwidth}
+    \centering
+    \includegraphics[height=0.50\textheight]{vel-spread2.png}
+
+    \hi{Interpolate velocity:} fluid grid \(\longrightarrow\) structure
+
+    {\scriptsize Figure from deck 1-2.}
+  \end{column}
+\end{columns}
+
+\medskip
+\begin{punchbox}
+\centering
+The continuum Dirac delta locates the interaction exactly; a discrete kernel shares it among nearby grid points.
+\end{punchbox}
+\end{frame}
+
+% ----- 5. Continuous transforms -----
+\begin{frame}{The two continuous interaction equations}
 \small
+Here \(\Xvec\) is the fixed material label, \(\chivec(\Xvec,t)\) its current position, and \(\Fvec(\Xvec,t)\) force per unit material measure \(d\Xvec\) \soft{(Peskin convention, as in decks 1-1, 1-2, 1-4)}.
+\normalsize
 
-Consider the classical IB force-spreading formula (Peskin):
+\begin{block}{Force spreading: Lagrangian \(\rightarrow\) Eulerian}
 \[
-\mathbf{f}_e(\mathbf{x},t)
-=
-\int_{\mathcal{U}}
-\mathbf{F}_e(\mathbf{X},t)\,
-\delta\!\big(\mathbf{x}-\boldsymbol{\chi}(\mathbf{X},t)\big)\,d\mathbf{X}.
+  \boxed{
+  \fvec(\xvec,t)
+  =
+  \int_{\mathcal U}
+  \Fvec(\Xvec,t)\,
+  \delta\!\left(\xvec-\chivec(\Xvec,t)\right)\,d\Xvec }
 \]
+\end{block}
 
-\medskip
-
-\textbf{What is important:}
-\begin{itemize}
-    \item The integral is performed entirely over the \emph{reference (material) domain} $\mathcal{U}$
-    \item $\mathbf{F}_e(\mathbf{X},t)$ is defined as a force density \emph{per unit reference measure} $d\mathbf{X}$
-    \item No change of variables from $\mathbf{X}$ to $\mathbf{x}$
-    \item No rewriting of $d\mathbf{X}$ in terms of $d\mathbf{x}$
-\end{itemize}
-
+\begin{block}{Velocity interpolation: Eulerian \(\rightarrow\) Lagrangian}
 \[
-d\mathbf{X} \neq J^{-1}\,d\mathbf{x},
-\qquad
-J = \det\!\left(\frac{\partial\boldsymbol{\chi}}{\partial\mathbf{X}}\right),
+  \boxed{
+  \Uvec(\Xvec,t)
+  =
+  \int_{\Omega}
+  \uvec(\xvec,t)\,
+  \delta\!\left(\xvec-\chivec(\Xvec,t)\right)\,d\xvec }
 \]
-because the integral is \emph{not} expressed in Eulerian coordinates.
+\end{block}
 
-\medskip
-
-\textbf{Peskin (1996):}
-The delta-function formulation ``avoids the introduction of the Jacobian'' by defining force spreading as a distributional mapping from material to physical space.
-
+For a no-slip material structure, \(\partial_t\chivec=\Uvec\); with the true Dirac delta this is equivalent to \(\partial_t\chivec(\Xvec,t)=\uvec(\chivec(\Xvec,t),t)\).
 \end{frame}
 
-%=======================================================
-
-\begin{frame}{Delta Function as a Push-Forward (Not a Change of Variables)}
-\small
-
-The Dirac delta function
+% ----- Force spreading in detail -----
+\begin{frame}{Force spreading is a material-to-spatial map}
+Let \(\Fvec(\Xvec,t)\,d\Xvec\) be the force carried by a material element. Its Eulerian image is
 \[
-\delta\!\big(\mathbf{x}-\boldsymbol{\chi}(\mathbf{X},t)\big)
-\]
-acts as a \emph{distributional push-forward} from material space to physical space.
-
-\medskip
-
-Formally, for any smooth test function $\boldsymbol{\varphi}(\mathbf{x})$,
-\[
-\int_{\Omega}\boldsymbol{\varphi}(\mathbf{x})\,\mathbf{f}_e(\mathbf{x},t)\,d\mathbf{x}
-=
-\int_{\mathcal{U}}
-\boldsymbol{\varphi}\!\big(\boldsymbol{\chi}(\mathbf{X},t)\big)\,
-\mathbf{F}_e(\mathbf{X},t)\,d\mathbf{X}.
+  \boxed{
+  \fvec(\xvec,t)
+  =\int_{\mathcal U}\Fvec(\Xvec,t)
+  \delta\!\left(\xvec-\chivec(\Xvec,t)\right)\,d\Xvec .}
 \]
 
-\medskip
-
-\textbf{Key point (Peskin):}
-This identity defines $\mathbf{f}_e$ as the Eulerian force density whose action on test
-functions equals the action of the Lagrangian force under the mapping $\boldsymbol{\chi}$.
-
-\medskip
-
-\textbf{Therefore:}
-\begin{itemize}
-    \item Geometry enters through $\boldsymbol{\chi}$ and the delta distribution
-    \item No Jacobian is required because no coordinate transformation is performed
-\end{itemize}
-
-\end{frame}
-
-%=======================================================
-
-\begin{frame}{When Would a Jacobian (or Metric Factor) Appear?}
-\small
-
-The classical IB force spreading
-\[
-\mathbf{f}(\mathbf{x},t)
-=
-\int_{\mathcal{U}}
-\mathbf{F}_{\mathrm{ref}}(\mathbf{X},t)\,
-\delta\!\big(\mathbf{x}-\boldsymbol{\chi}(\mathbf{X},t)\big)\,d\mathbf{X}
-\]
-assumes that $\mathbf{F}_{\mathrm{ref}}$ is a force density per unit
-\emph{reference} measure.
-
-\medskip
-
-A Jacobian or metric factor appears when the force density is instead defined per unit
-\emph{current (deformed) physical measure}.
-
-\medskip
-
-\textbf{Examples:}
-\begin{itemize}
-    \item \textbf{Volumetric solid ($k=d$):}
-    \[
-    d\mathbf{x} = J\,d\mathbf{X},
-    \qquad
-    J=\det\!\left(\frac{\partial\boldsymbol{\chi}}{\partial\mathbf{X}}\right)
-    \]
-    \item \textbf{Surface in 3D ($k=2$):}
-    \[
-    da = J_s\,dA \quad \text{(surface Jacobian / metric)}
-    \]
-    \item \textbf{Fiber in 2D or 3D ($k=1$):}
-    \[
-    ds = \lambda\,dS,
-    \qquad
-    \lambda = \left|\frac{\partial\boldsymbol{\chi}}{\partial S}\right|
-    \]
-\end{itemize}
-
-\medskip
-
-\textbf{Key point:}
-“No Jacobian” is correct \emph{only} when forces are defined per unit reference measure.
-Metric factors enter when the model is posed in current measures.
-
-\end{frame}
-
-%=======================================================
-
-\begin{frame}{Reference vs.\ Current Force Densities: Same Physical Force}
-\small
-
-Let
-\begin{itemize}
-    \item $\mathbf{F}_{\mathrm{ref}}(\mathbf{X},t)$ be force per unit reference measure $d\mathbf{X}$
-    \item $\mathbf{F}_{\mathrm{cur}}(\mathbf{X},t)$ be force per unit current physical measure
-\end{itemize}
-
-\medskip
-
-To represent the \emph{same total physical force}, we require
-\[
-\mathbf{F}_{\mathrm{ref}}(\mathbf{X},t)\,d\mathbf{X}
-=
-\mathbf{F}_{\mathrm{cur}}(\mathbf{X},t)\,d\mathbf{x}
-\quad
-(\text{or } da,\, ds).
-\]
-
-\medskip
-
-\textbf{Volumetric solid:}
-\[
-d\mathbf{x}=J\,d\mathbf{X}
-\quad\Longrightarrow\quad
-\mathbf{F}_{\mathrm{ref}} = J\,\mathbf{F}_{\mathrm{cur}}.
-\]
-
-\medskip
-
-Thus the same Eulerian force density may be written as
-\[
-\mathbf{f}(\mathbf{x},t)
-=
-\int_{\mathcal{U}}
-\mathbf{F}_{\mathrm{ref}}(\mathbf{X},t)\,
-\delta(\mathbf{x}-\boldsymbol{\chi})\,d\mathbf{X}
-=
-\int_{\mathcal{U}}
-\mathbf{F}_{\mathrm{cur}}(\mathbf{X},t)\,
-\delta(\mathbf{x}-\boldsymbol{\chi})\,J\,d\mathbf{X}.
-\]
-
-\medskip
-
-\textbf{Conclusion:}
-This is a modeling choice, not a contradiction of the IB formulation.
-
-\end{frame}
-
-%=======================================================
-
-% Requires in preamble:
-% \usepackage{amsmath,amssymb}
-% \usepackage{tikz}
-% \usetikzlibrary{arrows.meta,positioning,calc}
-
-% ------------------------------------------------------------
-
-% In your preamble:
-% \usepackage{amsmath,amssymb}
-% \usepackage{tikz}
-
-% ------------------------------------------------------------
-\begin{frame}{Force spreading: the definition (IB interaction equation)}
-\footnotesize
-
-Let $\boldsymbol{\chi}(\mathbf{X},t)$ map Lagrangian labels $\mathbf{X}\in\mathcal{U}$ to physical space
-$\mathbf{x}\in\Omega$, and let $\mathbf{F}(\mathbf{X},t)$ be a Lagrangian force density.
-
-\medskip
-\textbf{Definition (standard in IBM / IB methods):}
-\[
-\boxed{
-\mathbf{f}(\mathbf{x},t)
-=
-\int_{\mathcal{U}}
-\mathbf{F}(\mathbf{X},t)\,
-\delta\!\big(\mathbf{x}-\boldsymbol{\chi}(\mathbf{X},t)\big)\,d\mathbf{X}
-}
-\qquad (\mathbf{x}\in\Omega).
-\]
-
-\medskip
-Here $\delta(\mathbf{x})=\prod_{i=1}^{d}\delta(x_i)$ is the $d$-dimensional Dirac delta ($d=2$ or $3$).
-
-\medskip
-\textbf{Goal:} show this definition means
-\emph{“total Eulerian force on any region equals the total Lagrangian force carried by points in that region.”}
-\end{frame}
-
-% ------------------------------------------------------------
-\begin{frame}{Force spreading: test with a region $\Gamma$ (Step 1--2)}
-\footnotesize
-
-Pick any Eulerian region $\Gamma\subset\Omega$ and integrate over it.
-
-\medskip
-\textbf{Step 1: integrate the Eulerian force density over $\Gamma$:}
-\[
-\int_{\Gamma}\mathbf{f}(\mathbf{x},t)\,d\mathbf{x}.
-\]
-
-\medskip
-\textbf{Step 2: substitute the definition of $\mathbf{f}$:}
-\[
-\int_{\Gamma}\mathbf{f}(\mathbf{x},t)\,d\mathbf{x}
-=
-\int_{\Gamma}\int_{\mathcal{U}}
-\mathbf{F}(\mathbf{X},t)\,
-\delta\!\big(\mathbf{x}-\boldsymbol{\chi}(\mathbf{X},t)\big)\,d\mathbf{X}\,d\mathbf{x}.
-\]
-
-\medskip
-(Think of this as: sum up contributions from all material points, but each point only contributes where the delta “hits”.)
-\end{frame}
-
-% ------------------------------------------------------------
-\begin{frame}{Force spreading: swap integrals + use the delta (Step 3--4)}
-\footnotesize
-
-\textbf{Step 3: swap the order of integration:} (see next slides for justification)
-\[
-\int_{\Gamma}\int_{\mathcal{U}}(\cdot)\,d\mathbf{X}\,d\mathbf{x}
-=
-\int_{\mathcal{U}}
-\mathbf{F}(\mathbf{X},t)\left(
-\int_{\Gamma}\delta\!\big(\mathbf{x}-\boldsymbol{\chi}(\mathbf{X},t)\big)\,d\mathbf{x}
-\right)\,d\mathbf{X}.
-\]
-
-\medskip
-\textbf{Step 4: apply the defining property of the delta distribution:}
-\[
-\int_{\Gamma}\delta\!\big(\mathbf{x}-\boldsymbol{\chi}(\mathbf{X},t)\big)\,d\mathbf{x}
-=
-\begin{cases}
-1, & \boldsymbol{\chi}(\mathbf{X},t)\in \Gamma,\\
-0, & \boldsymbol{\chi}(\mathbf{X},t)\notin \Gamma.
-\end{cases}
-\]
-
-\medskip
-So only those material points whose \emph{current position} lies in $\Gamma$ contribute to the integral.
-\end{frame}
-
-% ------------------------------------------------------------
-\begin{frame}{Force spreading: the resulting identity (the punchline)}
-\footnotesize
-
-Combining the previous steps yields:
-\[
-\boxed{
-\int_{\Gamma}\mathbf{f}(\mathbf{x},t)\,d\mathbf{x}
-=
-\int_{\{\mathbf{X}\in\mathcal{U}:\,\boldsymbol{\chi}(\mathbf{X},t)\in\Gamma\}}
-\mathbf{F}(\mathbf{X},t)\,d\mathbf{X}.
-}
-\]
-
-\medskip
-\textbf{Interpretation (Peskin):}
-The Eulerian force density $\mathbf{f}$ is defined so that the \emph{total force applied to any fluid region $\Gamma$}
-equals the \emph{total Lagrangian force carried by material points occupying that region}.
-\end{frame}
-
-% ------------------------------------------------------------
-
-
-% ------------------------------------------------------------
-\begin{frame}{One-slide summary: what you should remember}
-\footnotesize
-
-\textbf{1) Spread Lagrangian force to the Eulerian grid:}
-\[
-\boxed{
-\mathbf{f}(\mathbf{x},t)=\int_{\mathcal{U}}\mathbf{F}(\mathbf{X},t)\,
-\delta\!\big(\mathbf{x}-\boldsymbol{\chi}(\mathbf{X},t)\big)\,d\mathbf{X}.
-}
-\]
-
-\medskip
-\textbf{2) Meaning (test with any region $\Gamma\subset\Omega$):}
-\[
-\boxed{
-\int_{\Gamma}\mathbf{f}(\mathbf{x},t)\,d\mathbf{x}
-=
-\int_{\chi^{-1}(\Gamma)}\mathbf{F}(\mathbf{X},t)\,d\mathbf{X}.
-}
-\]
-So the \emph{total force on a fluid region} equals the \emph{total force carried by material points in that region}.
-
-\medskip
-\textbf{3) In computations:}
-replace $\delta$ by a smooth, compactly-supported $\delta_h$ (regularized delta) so spreading/interpolation
-happen over a few nearby grid cells.
-\end{frame}
-
-% ------------------------------------------------------------
-\begin{frame}{Can we swap the order of integration? (The subtlety)}
-\footnotesize
-
-We start from the IB force-spreading identity
-\[
-\mathbf{f}(\mathbf{x},t)=\int_{\mathcal U}\mathbf{F}(\mathbf{X},t)\,
-\delta\!\big(\mathbf{x}-\boldsymbol{\chi}(\mathbf{X},t)\big)\,d\mathbf{X}.
-\]
-
-\medskip
-If we integrate over a region $\Gamma\subset\Omega$, we are tempted to write
-\[
-\int_{\Gamma}\mathbf{f}(\mathbf{x},t)\,d\mathbf{x}
-=
-\int_{\Gamma}\int_{\mathcal U}\mathbf{F}(\mathbf{X},t)\,
-\delta\!\big(\mathbf{x}-\boldsymbol{\chi}(\mathbf{X},t)\big)\,d\mathbf{X}\,d\mathbf{x}
-\overset{?}{=}
-\int_{\mathcal U}\int_{\Gamma}(\cdots)\,d\mathbf{x}\,d\mathbf{X}.
-\]
-
-\medskip
-\textbf{Key point:} the Dirac delta is \emph{not an $L^1$ function}. So classical Fubini/Tonelli
-does not directly apply to the double integral with $\delta$.
-
-\medskip
-\textbf{Two standard ways forward:}
-\begin{enumerate}\itemsep2pt
-\item Interpret the formula in the \textbf{weak (distributional) sense}. No ``swapping'' is needed.
-\item Replace $\delta$ by a \textbf{regularized kernel $\delta_h$} (what we do numerically),
-      and then Fubini is justified by absolute integrability.
+\begin{enumerate}\itemsep7pt
+  \item Compute the structural force in material coordinates.
+  \item Use \(\chivec(\Xvec,t)\) to locate the material element in physical space.
+  \item Deposit its force at that location through the Dirac distribution.
 \end{enumerate}
 
+\begin{punchbox}
+The integral defines a force \emph{measure} on \(\Omega\). It remains meaningful when the structure has lower dimension than the fluid domain.
+\end{punchbox}
 \end{frame}
 
-% ------------------------------------------------------------
-\begin{frame}{Justification 1: weak/distribution interpretation}
-\footnotesize
-
-\textbf{Define $\mathbf{f}$ as a distribution.}
-Let $\boldsymbol{\varphi}(\mathbf{x})\in C_c^\infty(\Omega)$ be a smooth test function (vector-valued).
-Then define $\mathbf{f}$ by its action on $\boldsymbol{\varphi}$:
+% ----- Velocity interpolation in detail -----
+\begin{frame}{Velocity interpolation closes the kinematic coupling}
+The reverse transform samples the Eulerian velocity at the current material position:
 \[
-\int_{\Omega}\mathbf{f}(\mathbf{x},t)\cdot \boldsymbol{\varphi}(\mathbf{x})\,d\mathbf{x}
-:=
-\int_{\mathcal U}\mathbf{F}(\mathbf{X},t)\cdot
-\boldsymbol{\varphi}\!\big(\boldsymbol{\chi}(\mathbf{X},t)\big)\,d\mathbf{X}.
+  \Uvec(\Xvec,t)
+  =\int_{\Omega}\uvec(\xvec,t)
+  \delta\!\left(\xvec-\chivec(\Xvec,t)\right)\,d\xvec
+  =\uvec\!\left(\chivec(\Xvec,t),t\right).
 \]
 
-\medskip
-\textbf{This is exactly what the delta notation means:}
+For a no-slip immersed structure,
 \[
-\int_{\Omega}\left(\int_{\mathcal U}\mathbf{F}(\mathbf{X},t)\,
-\delta(\mathbf{x}-\boldsymbol{\chi}(\mathbf{X},t))\,d\mathbf{X}\right)\cdot
-\boldsymbol{\varphi}(\mathbf{x})\,d\mathbf{x}
-=
-\int_{\mathcal U}\mathbf{F}(\mathbf{X},t)\cdot \boldsymbol{\varphi}(\boldsymbol{\chi}(\mathbf{X},t))\,d\mathbf{X}.
+  \boxed{\partial_t\chivec(\Xvec,t)=\Uvec(\Xvec,t).}
 \]
 
-\medskip
-\textbf{Region version (idea):} choose a sequence $\boldsymbol{\varphi}_\epsilon$ that approximates
-the indicator of $\Gamma$ (smoothed characteristic). Passing to the limit yields
-\[
-\int_{\Gamma}\mathbf{f}(\mathbf{x},t)\,d\mathbf{x}
-=
-\int_{\{\mathbf{X}:\,\boldsymbol{\chi}(\mathbf{X},t)\in \Gamma\}}\mathbf{F}(\mathbf{X},t)\,d\mathbf{X}.
-\]
-
-\medskip
-\textbf{Bottom line:} with a true Dirac delta, the identity is understood in a weak sense,
-not as an $L^1$ double integral where we invoke Fubini.
-
+\begin{columns}[T,onlytextwidth]
+  \begin{column}{0.48\textwidth}
+  \begin{block}{Dynamic coupling}
+  \(\Fvec\mapsto\fvec\): the structure loads the fluid.
+  \end{block}
+  \end{column}
+  \begin{column}{0.48\textwidth}
+  \begin{block}{Kinematic coupling}
+  \(\uvec\mapsto\partial_t\chivec\): the fluid moves the structure.
+  \end{block}
+  \end{column}
+\end{columns}
 \end{frame}
 
-
-
-%=======================================================
-
-\begin{frame}{Intuition: Force Spreading as a Push-Forward}
-\small
-
-The force-spreading integral
+% ----- 6. Weak meaning -----
+\begin{frame}{What the force-spreading formula means}
+The Eulerian force may be a distribution rather than an ordinary function. Its precise meaning is: for every smooth, compactly supported test field \(\testvec\),
 \[
-\mathbf{f}(\mathbf{x},t)
-=
-\int_{\mathcal{U}}
-\mathbf{F}(\mathbf{X},t)\,
-\delta\!\big(\mathbf{x}-\boldsymbol{\chi}(\mathbf{X},t)\big)\,d\mathbf{X}
+  \boxed{
+  \int_{\Omega}
+  \fvec(\xvec,t)\cdot\testvec(\xvec)\,d\xvec
+  =
+  \int_{\mathcal U}
+  \Fvec(\Xvec,t)\cdot
+  \testvec\!\left(\chivec(\Xvec,t)\right)\,d\Xvec .}
 \]
-is best understood as a \emph{push-forward of forces} from material space to physical space.
 
-\medskip
+\begin{columns}[T,onlytextwidth]
+  \begin{column}{0.48\textwidth}
+  \begin{block}{Constant test field}
+    Total Eulerian force equals total Lagrangian force.
+  \end{block}
+  \end{column}
+  \begin{column}{0.48\textwidth}
+  \begin{block}{Rigid-rotation test field}
+    The first spatial moment gives the corresponding torque identity.
+  \end{block}
+  \end{column}
+\end{columns}
 
-\textbf{Interpretation:}
-\begin{itemize}
-    \item Forces are computed on the structure in reference coordinates
-    \item $\boldsymbol{\chi}(\mathbf{X},t)$ determines where those forces act in space
-    \item The delta distribution transfers those forces to the fluid
-\end{itemize}
-
-\medskip
-
-\textbf{Crucial point (Peskin):}
-No Jacobian appears because this is \emph{not} a change of variables in an integral.
-All integration is performed in reference coordinates; geometry enters only through
-$\boldsymbol{\chi}$ and the delta distribution.
-
-\medskip
-
-\textit{Total force on a fluid region equals the total force carried by structure points inside that region.}
-
+\begin{punchbox}
+The delta formula is a \hi{distributional push-forward of force measure}; it is not a change of integration variables.
+\end{punchbox}
 \end{frame}
 
-
-
-%=======================================================
-\begin{frame}{Units Check: 1D Structure in a 2D Fluid}
-
-Consider a 1D immersed structure (fiber or membrane)
-in a 2D incompressible fluid.
-
-\medskip
-
-Force spreading:
+% ----- Region test, steps 1--2 -----
+\begin{frame}{Test force spreading on a spatial region: steps 1--2}
+Choose a region \(\Gamma\subset\Omega\). Formally, its total Eulerian force is
 \[
-\mathbf{f}(\mathbf{x})
-=
-\int
-\mathbf{F}(s)\,
-\delta(\mathbf{x}-\mathbf{X}(s))\,ds
+  \int_{\Gamma}\fvec(\xvec,t)\,d\xvec .
+\]
+Substitute the spreading relation:
+\[
+  \int_{\Gamma}\fvec(\xvec,t)\,d\xvec
+  =
+  \int_{\Gamma}\int_{\mathcal U}
+  \Fvec(\Xvec,t)\,
+  \delta\!\left(\xvec-\chivec(\Xvec,t)\right)
+  \,d\Xvec\,d\xvec .
 \]
 
-\medskip
-
-Units:
-\[
-[\mathbf{F}] = \frac{\text{N}}{\text{m}},
-\qquad
-[\delta] = \frac{1}{\text{m}^2},
-\qquad
-[ds] = \text{m}
-\]
-
-\medskip
-
-Thus:
-\[
-[\mathbf{f}]
-=
-\frac{\text{N}}{\text{m}}
-\cdot
-\frac{1}{\text{m}^2}
-\cdot
-\text{m}
-=
-\frac{\text{N}}{\text{m}^2}
-\]
-
-\medskip
-
-which is the correct Eulerian force per unit area.
-
+\begin{punchbox}
+This notation asks a geometric question: which material points are currently located inside \(\Gamma\)?
+\end{punchbox}
 \end{frame}
 
-\begin{frame}{Units Check: General Case}
-\small
-Let:
-\begin{itemize}
-    \item $d$ = Eulerian spatial dimension ($d=2$ or $3$)
-    \item $k$ = Lagrangian dimension of the structure ($k \le d$)
-    \item $\mathbf{F}(\mathbf{X})$ = Lagrangian force density
-\end{itemize}
-
-\medskip
-
-Force spreading:
+% ----- Region test, steps 3--4 -----
+\begin{frame}{Test force spreading on a spatial region: steps 3--4}
+After moving the material integral outside, the inner delta action is
 \[
-\mathbf{f}(\mathbf{x})
-=
-\int_{\mathcal{U}}
-\mathbf{F}(\mathbf{X})\,
-\delta(\mathbf{x}-\boldsymbol{\chi}(\mathbf{X}))\,d\mathbf{X}
+  \int_{\Gamma}\delta\!\left(\xvec-\chivec(\Xvec,t)\right)\,d\xvec
+  =
+  \begin{cases}
+  1, & \chivec(\Xvec,t)\in\Gamma,\\
+  0, & \chivec(\Xvec,t)\notin\Gamma,
+  \end{cases}
 \]
+away from the usual boundary ambiguity.
 
 \medskip
+Thus only material points whose \emph{current} positions lie in \(\Gamma\) contribute.
 
-Units:
-\[
-[\mathbf{F}] = \frac{\text{N}}{\text{m}^k},
-\qquad
-[\delta] = \frac{1}{\text{m}^d},
-\qquad
-[d\mathbf{X}] = \text{m}^k
-\]
-
-\medskip
-
-Thus:
-\[
-[\mathbf{f}]
-=
-\frac{\text{N}}{\text{m}^k}
-\cdot
-\frac{1}{\text{m}^d}
-\cdot
-\text{m}^k
-=
-\frac{\text{N}}{\text{m}^d}
-\]
-
-\medskip
-
-which is the correct Eulerian force per unit $d$-dimensional volume
-(area in 2D, volume in 3D). $k=1$ (filament), $k=2$ (surface), $k=3$ (solid).
-
+\begin{punchbox}
+The material integration set is the preimage
+\(
+\chivec_t^{-1}(\Gamma)
+=\{\Xvec\in\mathcal U:\chivec(\Xvec,t)\in\Gamma\}.
+\)
+\end{punchbox}
 \end{frame}
 
-%=======================================================
-\section{Intuition for Force Spreading}
-\begin{frame}{Intuition: What Does Force Spreading Mean?}
-
-The force-spreading transform
+% ----- Region identity -----
+\begin{frame}{The region identity is the physical punchline}
+Combining the preceding steps gives the formal identity
 \[
-\mathbf{f}(\mathbf{x},t)
-=
-\int_{\mathcal{U}}
-\mathbf{F}(\mathbf{X},t)\,
-\delta(\mathbf{x}-\boldsymbol{\chi}(\mathbf{X},t))\,d\mathbf{X}
-\]
-has a simple physical interpretation.
-
-\medskip
-
-\textbf{Think of it as:}
-\begin{itemize}
-    \item Each material point $\mathbf{X}$ carries a force $\mathbf{F}(\mathbf{X},t)\,d\mathbf{X}$
-    \item That force is applied to the fluid at the point
-    \[
-    \mathbf{x}=\boldsymbol{\chi}(\mathbf{X},t)
-    \]
-    \item The delta function places the force at the correct physical location
-\end{itemize}
-
-\medskip
-
-In words:
-\[
-\text{``Compute forces on the structure, then deposit them into the fluid.''}
+  \boxed{
+  \int_{\Gamma}\fvec(\xvec,t)\,d\xvec
+  =
+  \int_{\chivec_t^{-1}(\Gamma)}\Fvec(\Xvec,t)\,d\Xvec .}
 \]
 
+\begin{block}{Interpretation}
+The total force assigned to a fluid region equals the total force carried by material points occupying that region.
+\end{block}
+
+\begin{punchbox}
+This statement explains force spreading without imagining a point force at every grid node. The continuum object is a pushed-forward force measure.
+\end{punchbox}
 \end{frame}
 
-\begin{frame}{Intuition: A Distribution, Not a Point Force}
+% ----- Fubini caveat -----
+\begin{frame}{Can we really swap the integrals?}
+\begin{columns}[T,onlytextwidth]
+  \begin{column}{0.48\textwidth}
+  \begin{block}{True Dirac delta}
+  The delta is a distribution, not an \(L^1\) function. Classical Fubini--Tonelli is therefore not the right justification for the formal double integral.
 
-The Eulerian force density $\mathbf{f}(\mathbf{x},t)$ is \emph{not} a regular function.
+  Define \(\fvec\) by its action on smooth test fields and approximate the indicator of \(\Gamma\).
+  \end{block}
+  \end{column}
+  \begin{column}{0.48\textwidth}
+  \begin{block}{Regularized kernel \(\delta_h\)}
+  If \(\delta_h\) and \(\Fvec\) are integrable, ordinary Fubini applies. A marker within \(O(h)\) of \(\partial\Gamma\) then contributes only partially to the region.
+  \end{block}
+  \end{column}
+\end{columns}
 
-\medskip
-
-It is a \textbf{distribution} supported on the immersed structure:
-\[
-\mathbf{f}(\mathbf{x},t)
-=
-\int_{\mathcal{U}}
-\mathbf{F}(\mathbf{X},t)\,
-\delta(\mathbf{x}-\boldsymbol{\chi}(\mathbf{X},t))\,d\mathbf{X}
-\]
-
-\medskip
-
-Interpretation:
-\begin{itemize}
-    \item The force is concentrated on a lower-dimensional set
-    \item In the continuum limit, this produces a $\delta$-layer of force
-    \item Physically: a thin membrane, fiber, or surface pushing on the fluid
-\end{itemize}
-
-\medskip
-
-This is why:
-\begin{itemize}
-    \item Pressure and stress can be discontinuous across the structure
-    \item Velocity remains continuous (viscous fluid)
-\end{itemize}
-
+\begin{punchbox}
+The rigorous continuum starting point is the smooth-test-field identity on the previous summary slide.
+\end{punchbox}
 \end{frame}
 
-
-\begin{frame}{Intuition: Regularized Delta Functions}
-
-In computation, the Dirac delta is replaced by a smooth kernel $\delta_h$:
-\[
-\mathbf{f}(\mathbf{x})
-\approx
-\int_{\mathcal{U}}
-\mathbf{F}(\mathbf{X})\,
-\delta_h(\mathbf{x}-\boldsymbol{\chi}(\mathbf{X}))\,d\mathbf{X}
-\]
-
-\medskip
-
-Interpretation:
-\begin{itemize}
-    \item A single Lagrangian force is \emph{shared} among nearby grid points
-    \item The force is spread over a region of width $\mathcal{O}(h)$
-    \item This avoids singular forces on a Cartesian grid
-\end{itemize}
-
-\medskip
-
-Key idea:
-\[
-\text{Force spreading} \;\;=\;\; \text{local averaging consistent with conservation}
-\]
-
-\medskip
-
-The same kernel is used for:
-\begin{itemize}
-    \item Force spreading (Lagrangian $\rightarrow$ Eulerian)
-    \item Velocity interpolation (Eulerian $\rightarrow$ Lagrangian)
-\end{itemize}
-
-\end{frame}
-
-
-%=======================================================
-\section{Regularized Delta Functions}
-%=======================================================
-
-\begin{frame}{From the Dirac Delta to a Discrete Kernel}
-
-In the continuum immersed boundary method, interaction is mediated by
-the Dirac delta function:
-\[
-\mathbf{f}(\mathbf{x},t)
-=
-\int_{\mathcal{U}}
-\mathbf{F}(\mathbf{X},t)\,
-\delta(\mathbf{x}-\boldsymbol{\chi}(\mathbf{X},t))\,d\mathbf{X}.
-\]
-
-\medskip
-
-In numerical computations:
-\begin{itemize}
-    \item The Eulerian domain is discretized on a Cartesian grid with spacing $h$
-    \item The Lagrangian structure is represented by discrete points $\mathbf{X}_k$
-    \item The singular delta distribution must be replaced by a smooth approximation
-\end{itemize}
-
-\medskip
-
-This leads to the use of a \textbf{regularized (discrete) delta function}
-$\delta_h$.
-
-\end{frame}
-
-\begin{frame}{Discrete Interaction via a Regularized Delta Function}
-
-Using a regularized delta function $\delta_h$, interaction is approximated as:
-
-\medskip
-
-\textbf{Velocity interpolation (Eulerian $\rightarrow$ Lagrangian):}
-\[
-\mathbf{U}_k
-=
-\sum_{\mathbf{i}}
-\mathbf{u}_{\mathbf{i}}\,
-\delta_h(\mathbf{x}_{\mathbf{i}}-\mathbf{X}_k)\,h^d
-\]
-
-\medskip
-
-\textbf{Force spreading (Lagrangian $\rightarrow$ Eulerian):}
-\[
-\mathbf{f}_{\mathbf{i}}
-=
-\sum_k
-\mathbf{F}_k\,
-\delta_h(\mathbf{x}_{\mathbf{i}}-\mathbf{X}_k)\,\Delta V_k
-\]
-
-\medskip
-
-where:
-\begin{itemize}
-    \item $h$ is the Eulerian grid spacing
-    \item $\Delta V_k$ is the Lagrangian quadrature weight
-    \item $d=2$ or $3$ is the Eulerian spatial dimension
-\end{itemize}
-
-\end{frame}
-
-\begin{frame}{Structure of the Discrete Delta Function}
-
-In practice, the discrete delta function is built as a tensor product of
-1D kernel functions:
-\[
-\delta_h(\mathbf{x})
-=
-\frac{1}{h^d}
-\prod_{\ell=1}^{d}
-\phi\!\left(\frac{x_\ell}{h}\right).
-\]
-
-\medskip
-
-Here:
-\begin{itemize}
-    \item $\phi(r)$ is a smooth, compactly supported 1D kernel
-    \item The full kernel has support over a small number of grid cells
-    \item The same kernel is used in each coordinate direction
-\end{itemize}
-
-\medskip
-
-This construction preserves isotropy on a Cartesian grid and simplifies implementation.
-
-\end{frame}
-
-\begin{frame}{Why Special Regularized Delta Functions Are Needed}
-
-In the immersed boundary method, the Dirac delta distribution
-must be replaced by a smooth approximation $\delta_h$.
-
-\medskip
-
-This approximation must:
-\begin{itemize}
-    \item faithfully represent interaction between Eulerian and Lagrangian grids
-    \item preserve basic physical invariants (force, torque)
-    \item be compatible with a Cartesian grid
-    \item remain numerically stable
-\end{itemize}
-
-\medskip
-
-Peskin (1996) proposed a set of \textbf{design criteria} for $\delta_h$
-that balance accuracy, smoothness, and efficiency.
-
-\end{frame}
-
-\begin{frame}{Property 1: Compact Support (Locality)}
-
-The discrete delta function must have compact support.
-
-\medskip
-
-In one dimension:
-\[
-\phi(r) = 0 \quad \text{for } |r| \geq 2.
-\]
-
-\medskip
-
-In $d$ dimensions:
-\[
-\delta_h(\mathbf{x})
-=
-\frac{1}{h^d}
-\prod_{\ell=1}^{d}
-\phi\!\left(\frac{x_\ell}{h}\right),
-\]
-so each Lagrangian point interacts with only a small stencil of grid points.
-
-\medskip
-
-\textbf{Why this matters:}
-\begin{itemize}
-    \item limits computational cost
-    \item prevents nonphysical long-range interactions
-    \item yields sparse coupling between grids
-\end{itemize}
-
-\end{frame}
-
-\begin{frame}{Property 2: Zeroth Moment (Force Conservation)}
-
-The discrete delta must satisfy a discrete partition of unity:
-\[
-\sum_{i}
-\phi(r-i)
-=
-1
-\qquad \text{for all } r.
-\]
-
-\medskip
-
-Equivalently,
-\[
-\sum_i \delta_h(r-ih)\,h = 1.
-\]
-
-\medskip
-
-\textbf{Physical meaning:}
-\begin{itemize}
-    \item total force applied to the fluid equals total force generated by the structure
-    \item no artificial loss or gain of force during spreading
-\end{itemize}
-
-\medskip
-
-This condition is essential for global momentum conservation.
-
-\end{frame}
-
-\begin{frame}{Property 3: First Moment (No Spurious Torque)}
-
-The discrete delta must have zero first moment:
-\[
-\sum_i (r-i)\,\phi(r-i) = 0.
-\]
-
-\medskip
-
-Equivalently,
-\[
-\sum_i (r-ih)\,\delta_h(r-ih)\,h = 0.
-\]
-
-\medskip
-
-\textbf{Physical meaning:}
-\begin{itemize}
-    \item the force distribution is centered correctly
-    \item no artificial torque is introduced by spreading
-\end{itemize}
-
-\medskip
-
-This is especially important for:
-\begin{itemize}
-    \item rotating structures
-    \item bending-dominated elastic models
-\end{itemize}
-
-\end{frame}
-
-\begin{frame}{Property 4: Symmetry and Translational Invariance}
-
-Peskin requires the 1D kernel to be even:
-\[
-\phi(r) = \phi(-r).
-\]
-
-\medskip
-
-This ensures:
-\begin{itemize}
-    \item symmetry of force spreading
-    \item approximate translational invariance on a Cartesian grid
-\end{itemize}
-
-\medskip
-
-\textbf{Interpretation:}
-\begin{itemize}
-    \item numerical results should not depend strongly on the exact
-          position of the structure relative to grid points
-    \item avoids grid-induced directional bias
-\end{itemize}
-
-\end{frame}
-
-\begin{frame}{Property 5: Smoothness and Energy Consistency}
-
-Peskin also imposes a \textbf{sum-of-squares condition}:
-\[
-\sum_i \phi^2(r-i) = C,
-\]
-where $C$ is a constant independent of $r$.
-
-\medskip
-
-\textbf{Consequences:}
-\begin{itemize}
-    \item improves numerical stability
-    \item supports consistent coupling between interpolation and spreading
-    \item reduces grid-scale oscillations
-\end{itemize}
-
-\medskip
-
-Additionally, $\phi$ is chosen to be as smooth as possible
-(subject to compact support).
-
-\medskip
-
-\textbf{Tradeoff:}  
-More smoothness $\Rightarrow$ wider support $\Rightarrow$ higher cost.
-
-\end{frame}
-
-\begin{frame}{Why the Same Kernel is Used Both Ways}
-\small
-
-In the discrete method, spreading and interpolation should be compatible so that
-the work done on the fluid matches the work extracted from the structure.
-
-\medskip
-Discrete fluid power input:
-\[
-\sum_{\mathbf{i}} \mathbf{u}(\mathbf{x}_{\mathbf{i}})\cdot \mathbf{f}(\mathbf{x}_{\mathbf{i}})\,h^d.
-\]
-
-Using force spreading
-\[
-\mathbf{f}(\mathbf{x}_{\mathbf{i}})
-=
-\sum_k \mathbf{F}_k\,\delta_h(\mathbf{x}_{\mathbf{i}}-\mathbf{X}_k)\,\Delta V_k,
-\]
-we obtain
-\[
-\sum_{\mathbf{i}} \mathbf{u}(\mathbf{x}_{\mathbf{i}})\cdot \mathbf{f}(\mathbf{x}_{\mathbf{i}})\,h^d
-=
-\sum_k \mathbf{F}_k \cdot
-\left(
-\sum_{\mathbf{i}}\mathbf{u}(\mathbf{x}_{\mathbf{i}})\,\delta_h(\mathbf{x}_{\mathbf{i}}-\mathbf{X}_k)\,h^d
-\right)\Delta V_k.
-\]
-
-\medskip
-The term in parentheses is exactly the \emph{interpolated velocity} $\mathbf{U}_k$.
-So we get:
-\[
-\sum_{\mathbf{i}} \mathbf{u}\cdot \mathbf{f}\,h^d
-=
-\sum_k \mathbf{F}_k\cdot \mathbf{U}_k\,\Delta V_k.
-\]
-
-\medskip
-This motivates using the same kernel and carefully chosen kernel properties.
-
-\end{frame}
-
-
-\begin{frame}{Summary: Peskin’s Delta Function Design Principles}
-
-Peskin’s regularized delta functions are:
-\begin{itemize}
-    \item compactly supported
-    \item force-conserving (zeroth moment)
-    \item torque-free (first moment)
-    \item symmetric and approximately translationally invariant
-    \item smooth and numerically stable
-\end{itemize}
-
-\medskip
-
-The resulting kernels are not unique, but the 4-point kernel
-provides an effective balance between:
-\[
-\text{accuracy} \;\;+\;\; \text{stability} \;\;+\;\; \text{efficiency}.
-\]
-
-\end{frame}
-
-\begin{frame}{Discrete Delta Functions Used in Practice}
-
-In the immersed boundary method, the discrete delta function
-is constructed from a 1D kernel $\phi(r)$ as:
-\[
-\delta_h(\mathbf{x})
-=
-\frac{1}{h^d}
-\prod_{\ell=1}^{d}
-\phi\!\left(\frac{x_\ell}{h}\right).
-\]
-
-\medskip
-
-Different choices of $\phi(r)$ satisfy Peskin’s design criteria
-to varying degrees.
-
-\medskip
-
-We now present several commonly used kernels and discuss their properties.
-
-\end{frame}
-
-\begin{frame}{Peskin’s 4-Point Delta Function}
-
-The most widely used kernel in immersed boundary methods
-(Peskin, 1996) has support over four grid points.
-
-\medskip
-
-The 1D kernel is:
-\[
-\phi(r)
-=
-\begin{cases}
-\frac{1}{8}
-\left(
-3 - 2|r| + \sqrt{1 + 4|r| - 4r^2}
-\right),
-& 0 \le |r| < 1, \\[6pt]
-\frac{1}{8}
-\left(
-5 - 2|r| - \sqrt{-7 + 12|r| - 4r^2}
-\right),
-& 1 \le |r| < 2, \\[6pt]
-0,
-& |r| \ge 2.
-\end{cases}
-\]
-
-\medskip
-
-\textbf{Properties:}
-\begin{itemize}
-    \item Compact support: $|r| < 2$
-    \item Satisfies zeroth and first moment conditions
-    \item Satisfies Peskin’s sum-of-squares condition
-    \item Good balance of smoothness and locality
-\end{itemize}
-
-\end{frame}
-
-\begin{frame}{Peskin / Roma 3-Point Delta Function}
-
-A smaller-support alternative is the 3-point kernel
-(Roma, Peskin, Berger).
-
-\medskip
-
-The 1D kernel is:
-\[
-\phi(r)
-=
-\begin{cases}
-\frac{1}{3}
-\left(
-1 + \sqrt{1 - 3r^2}
-\right),
-& |r| < \frac{1}{2}, \\[6pt]
-\frac{1}{6}
-\left(
-5 - 3|r| - \sqrt{-2 + 6|r| - 3r^2}
-\right),
-& \frac{1}{2} \le |r| < \frac{3}{2}, \\[6pt]
-0,
-& |r| \ge \frac{3}{2}.
-\end{cases}
-\]
-
-\medskip
-
-\textbf{Properties:}
-\begin{itemize}
-    \item Smaller support than the 4-point kernel
-    \item Slightly less smooth
-    \item Lower computational cost
-\end{itemize}
-
-\end{frame}
-
-\begin{frame}{Cosine Delta Function}
-
-A simpler alternative kernel uses a cosine profile.
-
-\medskip
-
-The 1D kernel is:
-\[
-\phi(r)
-=
-\begin{cases}
-\frac{1}{4}
-\left(
-1 + \cos\!\left(\frac{\pi r}{2}\right)
-\right),
-& |r| \le 2, \\[6pt]
-0,
-& |r| > 2.
-\end{cases}
-\]
-
-\medskip
-
-\textbf{Properties:}
-\begin{itemize}
-    \item Compact support over $|r|\le 2$
-    \item $C^1$ continuous
-    \item Easy to implement
-    \item Does \emph{not} satisfy Peskin’s sum-of-squares condition exactly
-\end{itemize}
-
-\medskip
-
-Often used for:
-\begin{itemize}
-    \item exploratory simulations
-    \item pedagogical implementations
-\end{itemize}
-
-\end{frame}
-
-\begin{frame}{Higher-Order Delta Functions}
-
-Higher-order kernels with wider support have also been proposed.
-
-\medskip
-
-Examples:
-\begin{itemize}
-    \item 6-point Peskin kernel
-    \item B-spline-based kernels
-\end{itemize}
-
-\medskip
-
-\textbf{Advantages:}
-\begin{itemize}
-    \item Increased smoothness
-    \item Improved translational and rotational invariance
-\end{itemize}
-
-\medskip
-
-\textbf{Disadvantages:}
-\begin{itemize}
-    \item Larger computational stencil
-    \item Higher cost per time step
-\end{itemize}
-
-\medskip
-
-Choice of kernel depends on the accuracy–cost tradeoff
-appropriate for the problem.
-
-\end{frame}
-
-\begin{frame}{Which Delta Function Should You Use?}
-
-\begin{itemize}
-    \item \textbf{Peskin 4-point}: default choice in IBAMR and IB2d
-    \item \textbf{3-point}: faster, but less smooth
-    \item \textbf{Cosine}: simple, intuitive, but less theoretically robust
-    \item \textbf{Higher-order}: best accuracy, higher cost
-\end{itemize}
-
-\medskip
-
-\textbf{Rule of thumb:}
-\begin{itemize}
-    \item Start with the 4-point kernel
-    \item Change kernels only if you have a clear reason
-\end{itemize}
-
-\end{frame}
-
-
-
-
-\begin{frame}{Physical Interpretation of $\delta_h$}
-
-The regularized delta function does \emph{not} represent a point force.
-
-\medskip
-
-Instead, it:
-\begin{itemize}
-    \item distributes a Lagrangian force smoothly over nearby grid points
-    \item approximates the action of a lower-dimensional structure on the fluid
-    \item avoids singular forces on a Cartesian grid
-\end{itemize}
-
-\medskip
-
-As $h \rightarrow 0$:
-\[
-\delta_h \;\longrightarrow\; \delta
-\]
-
-and the discrete method converges to the continuum immersed boundary formulation.
-
-\end{frame}
-
-%=======================================================
-\begin{frame}
+\section{Material measures and elastic stress}
+
+% ----- 7. Jacobian -----
+\begin{frame}{Where did the Jacobian go?}
+\begin{columns}[T,onlytextwidth]
+  \begin{column}{0.49\textwidth}
+  \begin{block}{Reference-measure density}
+  If \(\Fvec_{\mathrm{ref}}\) is force per \(d\Xvec\), then
+  \[
+    \fvec(\xvec)
+    =\int_{\mathcal U}\Fvec_{\mathrm{ref}}(\Xvec)
+    \delta(\xvec-\chivec(\Xvec))\,d\Xvec .
+  \]
+  No variable substitution is being made.
+  \end{block}
+  \end{column}
+  \begin{column}{0.49\textwidth}
+  \begin{block}{Current-measure density}
+  For a volumetric map, \(d\xvec=J\,d\Xvec\), so the same force satisfies
+  \[
+    \Fvec_{\mathrm{ref}}=J\Fvec_{\mathrm{cur}},
+    \qquad
+    J=\det\!\left(\frac{\partial\chivec}{\partial\Xvec}\right).
+  \]
+  Hence
+  \[
+    \fvec=\int_{\mathcal U}\Fvec_{\mathrm{cur}}
+    \delta(\xvec-\chivec)J\,d\Xvec .
+  \]
+  \end{block}
+  \end{column}
+\end{columns}
+
+\begin{punchbox}
 \centering
-\Large Questions?
+No Jacobian is ``missing'': it appears only when the chosen force density is expressed per unit \hi{current} measure.
+\end{punchbox}
+\end{frame}
+
+% ----- Metric factors -----
+\begin{frame}{When does a Jacobian or metric factor appear?}
+Suppose the force density is specified per unit \emph{current} geometric measure. Converting it to the fixed material measure introduces the appropriate stretch:
+
+\begin{center}
+\begin{tabular}{@{}lll@{}}
+\toprule
+Structure & Measure transformation & Reference/current density relation \\
+\midrule
+Volume, \(k=d\) & \(d\xvec=J\,d\Xvec\) & \(\Fvec_{\rm ref}=J\Fvec_{\rm cur}\) \\
+Surface in 3D & \(da=J_s\,dA\) & \(\Fvec_{\rm ref}=J_s\Fvec_{\rm cur}\) \\
+Fiber & \(ds=\lambda\,dS\) & \(\Fvec_{\rm ref}=\lambda\Fvec_{\rm cur}\) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{punchbox}
+The factor belongs to a \hi{density conversion}. It is not generated merely because \(\chivec\) appears inside a delta distribution.
+\end{punchbox}
+\end{frame}
+
+% ----- Same physical force -----
+\begin{frame}{Reference and current densities represent the same force}
+For a volumetric placement, the force carried by one material element satisfies
+\[
+  \Fvec_{\rm ref}(\Xvec,t)\,d\Xvec
+  =\Fvec_{\rm cur}(\Xvec,t)\,d\xvec,
+  \qquad d\xvec=J\,d\Xvec .
+\]
+Therefore
+\[
+  \boxed{\Fvec_{\rm ref}=J\Fvec_{\rm cur}}
+\]
+and the same Eulerian force can be written either way:
+\[
+  \fvec
+  =\int_{\mathcal U}\Fvec_{\rm ref}\,\delta(\xvec-\chivec)\,d\Xvec
+  =\int_{\mathcal U}\Fvec_{\rm cur}\,\delta(\xvec-\chivec)J\,d\Xvec .
+\]
+
+\begin{punchbox}
+Always report both the density and its underlying measure; otherwise two equivalent formulas can appear contradictory.
+\end{punchbox}
+\end{frame}
+
+% ----- Elastic stress in material coordinates -----
+\begin{frame}{Elasticity is evaluated in material coordinates}
+For a volumetric hyperelastic solid, define
+\[
+  \bm F_{\rm def}(\Xvec,t)=\frac{\partial\chivec}{\partial\Xvec},
+  \qquad
+  J=\det\bm F_{\rm def}>0 .
+\]
+If \(W_e(\bm F_{\rm def})\) is energy per unit reference volume, the first Piola--Kirchhoff stress is
+\[
+  \boxed{
+  \Pten(\Xvec,t)
+  =\frac{\partial W_e}{\partial\bm F_{\rm def}} .}
+\]
+
+\begin{itemize}\itemsep6pt
+  \item \(\Pten\) maps a reference normal to force per unit reference area.
+  \item Its material divergence has units of force per unit reference volume.
+  \item \(\Pten\) is generally nonsymmetric, even when the Cauchy stress is symmetric.
+\end{itemize}
+\end{frame}
+
+% ----- 8. Strong elastic force -----
+\begin{frame}{From elastic stress to Eulerian force}
+The material stress produces the interior force density
+\[
+  \bm G=\operatorname{Div}_{\!\Xvec}\Pten
+  \qquad\text{in }\mathcal U,
+\]
+and the solid boundary transmits the reaction \(-\Pten\Nvec\) to the surrounding fluid.
+
+\begin{block}{Strong-form elastic force (Griffith--Luo)}
+\[
+\boxed{
+\begin{aligned}
+\fvec_e(\xvec,t)
+={}&\int_{\mathcal U}
+\operatorname{Div}_{\!\Xvec}\Pten(\Xvec,t)\,
+\delta(\xvec-\chivec(\Xvec,t))\,d\Xvec \\
+&-\int_{\partial\mathcal U}
+\Pten(\Xvec,t)\Nvec(\Xvec)\,
+\delta(\xvec-\chivec(\Xvec,t))\,dA(\Xvec).
+\end{aligned}}
+\]
+\end{block}
+
+\small The first integral spreads the internal stress divergence; the second spreads the boundary transmission force. The second term may be omitted only when its traction vanishes or when boundary effects are represented another way.
+\end{frame}
+
+% ----- 9. Internal versus transmission -----
+\begin{frame}{Two elastic-force contributions}
+\begin{columns}[T,onlytextwidth]
+  \begin{column}{0.48\textwidth}
+  \begin{block}{Internal force density}
+    \[
+      \bm{G}=\operatorname{Div}_{\!\Xvec}\Pten
+      \qquad\text{in }\mathcal U.
+    \]
+    \begin{itemize}
+      \item per unit reference volume
+      \item supported throughout the solid
+      \item regular when \(\Pten\) is smooth
+    \end{itemize}
+  \end{block}
+  \end{column}
+  \begin{column}{0.48\textwidth}
+  \begin{block}{Transmission force density}
+    \[
+      \bm{T}=-\Pten\Nvec
+      \qquad\text{on }\partial\mathcal U.
+    \]
+    \begin{itemize}
+      \item per unit reference area
+      \item supported on the solid boundary
+      \item produces a singular Eulerian force layer
+    \end{itemize}
+  \end{block}
+  \end{column}
+\end{columns}
+
+\begin{punchbox}
+For a lower-dimensional interface, the whole force is singular in the ambient fluid. For a volumetric solid, only the transmitted boundary force is confined to a lower-dimensional set.
+\end{punchbox}
+\end{frame}
+
+% ----- Unified weak formulation -----
+\begin{frame}{Unified weak force: one material density}
+Define \(\Fvec\) through virtual work: for every structural test field \(\bm V\),
+\[
+  \boxed{
+  \int_{\mathcal U}\Fvec\cdot\bm V\,d\Xvec
+  =-\int_{\mathcal U}\Pten:\nabla_{\!\Xvec}\bm V\,d\Xvec .}
+\]
+The test field need not vanish on \(\partial\mathcal U\). Integration by parts gives
+\[
+  \int_{\mathcal U}\Fvec\cdot\bm V\,d\Xvec
+  =\int_{\mathcal U}(\operatorname{Div}\Pten)\cdot\bm V\,d\Xvec
+  -\int_{\partial\mathcal U}(\Pten\Nvec)\cdot\bm V\,dA .
+\]
+
+\begin{punchbox}
+The projected volume field \(\Fvec\) packages both the interior divergence and the boundary transmission force. No traction-free assumption is being made.
+\end{punchbox}
+\end{frame}
+
+% ----- Partitioned weak formulation -----
+\begin{frame}{Partitioned weak force: volume and boundary fields}
+Define the interior density \(\bm G\) by
+\[
+  \int_{\mathcal U}\bm G\cdot\bm V\,d\Xvec
+  =-\int_{\mathcal U}\Pten:\nabla_{\!\Xvec}\bm V\,d\Xvec
+  +\int_{\partial\mathcal U}(\Pten\Nvec)\cdot\bm V\,dA,
+\]
+so that \(\bm G=\operatorname{Div}\Pten\) weakly, and set
+\[
+  \bm T=-\Pten\Nvec\qquad\text{on }\partial\mathcal U .
+\]
+Then spread the two contributions separately:
+\[
+  \fvec
+  =\int_{\mathcal U}\bm G\,\delta(\xvec-\chivec)\,d\Xvec
+  +\int_{\partial\mathcal U}\bm T\,\delta(\xvec-\chivec)\,dA .
+\]
+\end{frame}
+
+% ----- 10. Unified versus partitioned -----
+\begin{frame}{Unified and partitioned weak formulations}
+\small
+\begin{columns}[T,onlytextwidth]
+  \begin{column}{0.49\textwidth}
+  \begin{block}{Unified force}
+  Define one density \(\Fvec\) weakly by
+  \[
+    \int_{\mathcal U}\Fvec\cdot\bm{V}\,d\Xvec
+    =-\int_{\mathcal U}\Pten:\nabla_{\!\Xvec}\bm{V}\,d\Xvec,
+  \]
+  for test fields \(\bm{V}\) that need not vanish on \(\partial\mathcal U\), and spread
+  \[
+    \fvec=\int_{\mathcal U}\Fvec\,\delta(\xvec-\chivec)\,d\Xvec.
+  \]
+  Integration by parts shows that \(\Fvec\) packages both contributions.
+  \end{block}
+  \end{column}
+  \begin{column}{0.49\textwidth}
+  \begin{block}{Partitioned force}
+  Keep \(\bm{G}\) and \(\bm{T}\) separate:
+  \[
+    \begin{aligned}
+    \int_{\mathcal U}\bm{G}\cdot\bm{V}\,d\Xvec
+    ={}&-\int_{\mathcal U}\Pten:\nabla_{\!\Xvec}\bm{V}\,d\Xvec\\
+    &+\int_{\partial\mathcal U}\Pten\Nvec\cdot\bm{V}\,dA,
+    \end{aligned}
+  \]
+  \[
+    \fvec=\underbrace{\int_{\mathcal U}\bm{G}\,\delta\,d\Xvec}_{\bm{g}}
+    +\underbrace{\int_{\partial\mathcal U}\bm{T}\,\delta\,dA}_{\bm{t}},
+    \qquad \bm{T}=-\Pten\Nvec.
+  \]
+  \end{block}
+  \end{column}
+\end{columns}
+\end{frame}
+
+% ----- Units example -----
+\begin{frame}{Units check: an immersed curve in a 2-D fluid}
+Let the material label \(q\) be arclength along a one-dimensional structure, so that \(\bm X(q)\) is the current position of that material point, and let the two-dimensional fluid force density be
+\[
+  \fvec(\xvec)=\int\Fvec(q)\,\delta\!\left(\xvec-\bm X(q)\right)\,dq .
+\]
+Then
+\[
+  [\Fvec]=\frac{\mathrm N}{\mathrm m},
+  \qquad
+  [\delta]=\frac{1}{\mathrm m^2},
+  \qquad
+  [dq]=\mathrm m,
+\]
+and therefore
+\[
+  [\fvec]
+  =\frac{\mathrm N}{\mathrm m}\frac{1}{\mathrm m^2}\mathrm m
+  =\boxed{\frac{\mathrm N}{\mathrm m^2}}.
+\]
+
+\begin{punchbox}
+In a 2-D model this is force per unit area, equivalently force per unit out-of-plane depth in the associated 3-D interpretation.
+\end{punchbox}
+\end{frame}
+
+% ----- 11. Units -----
+\begin{frame}{Units follow the chosen material measure}
+Assume first that the material coordinates have units of length. For a \(k\)-dimensional structure in a \(d\)-dimensional fluid,
+\[
+  [\Fvec_{\mathrm{ref}}]=\frac{\mathrm{N}}{\mathrm{m}^{k}},
+  \qquad
+  [\delta]=\frac{1}{\mathrm{m}^{d}},
+  \qquad
+  [d\Xvec]=\mathrm{m}^{k},
+\]
+so \([\fvec]=\mathrm{N}/\mathrm{m}^{d}\).
+
+\medskip
+\begin{center}
+\begin{tabular}{@{}llll@{}}
+\toprule
+Structure & \(k\) & Reference measure & Force-density units \\
+\midrule
+Fiber & 1 & length & \(\mathrm{N}/\mathrm{m}\) \\
+Surface & 2 & area & \(\mathrm{N}/\mathrm{m}^{2}\) \\
+Volumetric solid & \(d\) & \(d\)-volume & \(\mathrm{N}/\mathrm{m}^{d}\) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{punchbox}
+If the material labels are dimensionless, \(\Fvec\) instead has units of force per unit \hi{parameter measure}; any geometric scale factors are already part of that density or of the quadrature weight.
+\end{punchbox}
+\end{frame}
+
+% ----- Distributional force layer -----
+\begin{frame}{The continuum force can be a singular layer}
+For a lower-dimensional immersed structure, \(\fvec\) is a distribution supported on \(\chivec(\mathcal U,t)\), not an ordinary pointwise field.
+
+\begin{itemize}\itemsep7pt
+  \item A curve in 2-D or a surface in 3-D creates a delta-supported force layer.
+  \item Such a layer can produce jumps in pressure or viscous traction across the interface.
+  \item Under classical no-slip coupling, the fluid velocity itself remains continuous across a material interface, although its derivatives may jump.
+\end{itemize}
+
+\begin{punchbox}
+``Point force'' is misleading here: each material element carries finite force \(\Fvec\,d\Xvec\), and the collection forms a singular measure along the immersed geometry.
+\end{punchbox}
+\end{frame}
+
+\section{Regularized delta functions}
+
+% ----- 12. Regularization -----
+\begin{frame}{From a Dirac delta to a grid kernel}
+Conventional IB discretizations replace the singular delta distribution by a compactly supported kernel tied to the Eulerian spacing \(h\):
+\[
+  \boxed{
+  \delta_h(\xvec)
+  =\frac{1}{h^{d}}
+  \prod_{\alpha=1}^{d}
+  \phi\!\left(\frac{x_{\alpha}}{h}\right).}
+\]
+
+\begin{columns}[T,onlytextwidth]
+  \begin{column}{0.48\textwidth}
+  \begin{block}{Why regularize?}
+    \begin{itemize}
+      \item Couple nonmatching grids locally
+      \item Avoid placing a singular distribution on grid nodes
+      \item Obtain sparse interaction operators
+    \end{itemize}
+  \end{block}
+  \end{column}
+  \begin{column}{0.48\textwidth}
+  \begin{block}{What tensor products imply}
+    \begin{itemize}
+      \item Efficient, separable evaluation
+      \item Multidimensional moments inherited from \(\phi\)
+      \item Grid alignment: rotational invariance is only approximate
+    \end{itemize}
+  \end{block}
+  \end{column}
+\end{columns}
+
+\soft{Sharp-interface and fully variational immersed methods need not use a regularized delta kernel.}
+\end{frame}
+
+% ----- 13. Discrete transforms -----
+\begin{frame}{Discrete spreading and interpolation}
+Let \(\xvec_{\bm{i}}\) be Eulerian grid points, \(\chivec_m=\chivec(\Xvec_m)\), and \(w_m\) Lagrangian quadrature weights.
+
+\begin{block}{Matched interaction operators}
+\begin{align*}
+  \fvec_{\bm{i}}
+  &=\sum_m \Fvec_m\,
+  \delta_h(\xvec_{\bm{i}}-\chivec_m)\,w_m,
+  &&\text{(spread)}\\[2mm]
+  \Uvec_m
+  &=\sum_{\bm{i}} \uvec_{\bm{i}}\,
+  \delta_h(\xvec_{\bm{i}}-\chivec_m)\,h^d,
+  &&\text{(interpolate)}
+\end{align*}
+\end{block}
+
+\begin{punchbox}
+The same kernel is necessary but not, by itself, the whole consistency statement. The Eulerian cell-volume factors and Lagrangian quadrature weights determine the two discrete inner products.
+\end{punchbox}
+
+\small A finite-element IB method may evaluate \(\chivec\) and \(\Fvec\) at element quadrature points rather than only at structural nodes.
+\end{frame}
+
+% ----- Kernel design criteria -----
+\begin{frame}{Why does the regularized kernel need special properties?}
+A generic smooth bump can spread a marker force, but it may not respect the discrete mechanics.
+
+\begin{enumerate}\itemsep6pt
+  \item \hi{Compact support} keeps coupling local and sparse.
+  \item \hi{Discrete moments} reproduce constants and linear fields.
+  \item \hi{Reflection symmetry} avoids a built-in left--right bias.
+  \item A \hi{constant sum of squares} reduces sensitivity to subgrid translation.
+  \item \hi{Smoothness} controls how interaction values vary as markers cross the grid.
+\end{enumerate}
+
+\begin{punchbox}
+These are distinct algebraic conditions. Conservation and power consistency must be checked from the paired discrete operators, not inferred from a kernel's appearance.
+\end{punchbox}
+\end{frame}
+
+% ----- Compact support -----
+\begin{frame}{Property 1: compact support gives locality}
+For a four-point one-dimensional kernel,
+\[
+  \phi(r)=0\qquad\text{when }|r|\ge2 .
+\]
+In \(d\) dimensions,
+\[
+  \delta_h(\xvec)
+  =h^{-d}\prod_{\alpha=1}^{d}\phi(x_\alpha/h),
+\]
+so a Lagrangian sample interacts with only a small tensor-product stencil.
+
+\begin{columns}[T,onlytextwidth]
+  \begin{column}{0.48\textwidth}
+  \begin{block}{Benefit}
+  Sparse coupling, predictable cost, and communication confined to nearby grid cells.
+  \end{block}
+  \end{column}
+  \begin{column}{0.48\textwidth}
+  \begin{block}{Tradeoff}
+  Wider support can buy smoother or higher-moment kernels, but increases work and blurs the interface over more cells.
+  \end{block}
+  \end{column}
+\end{columns}
+\end{frame}
+
+% ----- Zeroth moment -----
+\begin{frame}{Property 2: the zeroth moment preserves total force}
+Require, for every real offset \(r\),
+\[
+  \boxed{\sum_{j\in\mathbb Z}\phi(r-j)=1 .}
+\]
+Then spreading a single material force \(\Fvec_m w_m\) gives
+\[
+  \sum_{\bm i}\fvec_{\bm i}h^d
+  =\Fvec_m w_m
+  \prod_{\alpha=1}^{d}\left(\sum_{i_\alpha}\phi(r_\alpha-i_\alpha)\right)
+  =\Fvec_m w_m .
+\]
+
+\begin{punchbox}
+The same identity makes interpolation reproduce constant Eulerian velocity fields exactly.
+\end{punchbox}
+\end{frame}
+
+% ----- First moment -----
+\begin{frame}{Property 3: the first moment centers the interaction}
+Require
+\[
+  \boxed{\sum_{j\in\mathbb Z}(r-j)\phi(r-j)=0 .}
+\]
+Equivalently, a marker at \(X=rh\) satisfies
+\[
+  \sum_j (X-jh)\,\delta_h(X-jh)\,h=0 .
+\]
+
+\begin{itemize}\itemsep6pt
+  \item The discrete force is centered at the marker rather than a nearby grid node.
+  \item Together with the zeroth moment, spreading preserves the corresponding first spatial moment and hence total torque.
+  \item Interpolation reproduces linear fields exactly.
+\end{itemize}
+\end{frame}
+
+% ----- Symmetry and translation -----
+\begin{frame}{Property 4: separate symmetry from translation invariance}
+Even symmetry,
+\[
+  \phi(r)=\phi(-r),
+\]
+gives reflection symmetry of the one-dimensional stencil.
+
+\medskip
+Peskin's constant-sum-of-squares condition,
+\[
+  \sum_{j\in\mathbb Z}\phi(r-j)^2=C
+  \qquad\text{independent of }r,
+\]
+reduces variation in a marker's self-coupling as it moves through one grid cell.
+
+\begin{punchbox}
+Neither condition makes a tensor-product kernel exactly rotationally or translationally invariant. They control specific grid-position effects.
+\end{punchbox}
+\end{frame}
+
+% ----- 14. Moments -----
+\begin{frame}{The first two discrete moment conditions}
+\small
+For every real offset \(r\), impose
+\begin{align*}
+  \sum_{j\in\mathbb Z}\phi(r-j)&=1,
+  &\text{zeroth moment},\\
+  \sum_{j\in\mathbb Z}(r-j)\phi(r-j)&=0,
+  &\text{first moment}.
+\end{align*}
+
+\begin{columns}[T,onlytextwidth]
+  \begin{column}{0.48\textwidth}
+  \begin{block}{Zeroth moment}
+    \begin{itemize}
+      \item interpolates constants exactly
+      \item preserves total force in spreading
+    \end{itemize}
+  \end{block}
+  \end{column}
+  \begin{column}{0.48\textwidth}
+  \begin{block}{First moment}
+    \begin{itemize}
+      \item centers the discrete force
+      \item gives total-torque agreement
+      \item permits exact interpolation of linear fields
+    \end{itemize}
+  \end{block}
+  \end{column}
+\end{columns}
+
+\begin{punchbox}
+Together these identities give \(O(h^2)\) interpolation error for sufficiently smooth fields; they do not imply high-order accuracy at a singular fluid--structure interface.
+\end{punchbox}
+\end{frame}
+
+% ----- 15. Other kernel properties -----
+\begin{frame}{Keep the other kernel properties distinct}
+\begin{description}
+  \item[Compact support] Localizes the \emph{coupling stencil}. The support radius is a kernel choice (for example, two mesh widths for a four-point kernel).
+  \item[Even symmetry] \(\phi(r)=\phi(-r)\) gives reflection symmetry. It does not make a tensor-product kernel exactly rotationally invariant.
+  \item[Sum of squares] Peskin's construction can impose
+  \[
+    \sum_{j\in\mathbb Z}\phi(r-j)^2=C,
+    \qquad C\text{ independent of }r.
+  \]
+  This reduces variation in self-coupling as a marker moves relative to the grid and is an \emph{approximate translation-invariance} condition.
+  \item[Smoothness] A smoother \(\phi\) produces smoother interpolated quantities, usually at the cost of a wider stencil or additional constraints.
+\end{description}
+
+\begin{punchbox}
+\warn{Do not confuse the sum-of-squares condition with energy consistency.} Energy consistency comes from discrete adjointness.
+\end{punchbox}
+\end{frame}
+
+% ----- 16. Power identity -----
+\begin{frame}{Why the two operators should be adjoints}
+Define the discrete inner products
+\[
+  (\uvec,\fvec)_h
+  =\sum_{\bm{i}}\uvec_{\bm{i}}\cdot\fvec_{\bm{i}}\,h^d,
+  \qquad
+  (\Uvec,\Fvec)_{\mathcal U,h}
+  =\sum_m\Uvec_m\cdot\Fvec_m\,w_m.
+\]
+Substituting the matched spreading formula and exchanging finite sums gives
+\[
+  \boxed{
+  (\uvec,\mathcal S_h\Fvec)_h
+  =(\mathcal J_h\uvec,\Fvec)_{\mathcal U,h}.}
+\]
+
+\begin{punchbox}
+\centering
+Thus \(\mathcal J_h=\mathcal S_h^{*}\) with respect to these inner products: the power delivered to the fluid equals the power removed from the structure.
+\end{punchbox}
+
+\medskip
+This identity depends on the paired operators, their weights, and evaluation locations. It does \emph{not} require the sum-of-squares condition.
+\end{frame}
+
+% ----- Kernel catalog transition -----
+\begin{frame}{Discrete kernels used in practice}
+All of the following start from
+\[
+  \delta_h(\xvec)
+  =\frac{1}{h^d}\prod_{\alpha=1}^{d}
+  \phi\!\left(\frac{x_\alpha}{h}\right),
+\]
+but their one-dimensional functions \(\phi\) make different compromises.
+
+\begin{itemize}\itemsep7pt
+  \item Three-point kernels use a smaller stencil.
+  \item Four-point kernels can combine exact low moments with greater smoothness.
+  \item Simple analytic kernels may satisfy only a subset of Peskin's conditions.
+  \item Wider kernels can target additional moments, smoother derivatives, or improved grid invariance.
+\end{itemize}
+
+\begin{punchbox}
+Compare kernels property by property; labels such as ``higher order'' or ``smoother'' do not determine performance for every immersed problem.
+\end{punchbox}
+\end{frame}
+
+% ----- 17. Kernel comparison -----
+\begin{frame}{Three classical one-dimensional kernels}
+\small
+Write \(M_0\) and \(M_1\) for the exact zeroth- and first-moment conditions.
+\begin{center}
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+Kernel & Support & \(M_0\) & \(M_1\) & \(C\) in \(\sum\phi^2=C\) & Class \\
+\midrule
+Roma--Peskin--Berger 3-point & 3 & yes & yes & \(C=1/2\) & \(C^1\) \\
+Peskin 4-point & 4 & yes & yes & \(C=3/8\) & \(C^1\) \\
+Cosine 4-point & 4 & yes & \warn{no} & \(C=3/8\) & \(C^1\) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\medskip
+For the cosine kernel,
+\[
+  \phi_{\cos}(r)=
+  \begin{cases}
+  \dfrac14\left(1+\cos\dfrac{\pi r}{2}\right),& |r|\le2,\\[4pt]
+  0,& |r|>2.
+  \end{cases}
+\]
+
+\begin{punchbox}
+The cosine kernel \hi{does satisfy} the constant sum-of-squares identity, but it fails the exact first-moment condition for generic subgrid offsets. These are different tests.
+\end{punchbox}
+\end{frame}
+
+% ----- Wider and higher-order kernels -----
+\begin{frame}{Higher-order and wider-support kernels}
+Examples include six-point IB kernels and B-spline-based families.
+
+\begin{columns}[T,onlytextwidth]
+  \begin{column}{0.48\textwidth}
+  \begin{block}{Possible benefits}
+  \begin{itemize}
+    \item additional exact moments;
+    \item smoother force and velocity transfer;
+    \item reduced subgrid-position sensitivity;
+    \item improved behavior for selected derivatives.
+  \end{itemize}
+  \end{block}
+  \end{column}
+  \begin{column}{0.48\textwidth}
+  \begin{block}{Possible costs}
+  \begin{itemize}
+    \item a larger interaction stencil;
+    \item more work and parallel communication;
+    \item broader regularization of stress jumps;
+    \item properties that may conflict, such as compactness and smoothness.
+  \end{itemize}
+  \end{block}
+  \end{column}
+\end{columns}
+
+\begin{punchbox}
+A wider kernel is not automatically more accurate for a solution with a singular interface force.
+\end{punchbox}
+\end{frame}
+
+% ----- 18. Choosing a kernel -----
+\begin{frame}{Kernel choice is an application-dependent tradeoff}
+There is no universally best kernel. A defensible choice reports which properties the application needs.
+
+\begin{columns}[T,onlytextwidth]
+  \begin{column}{0.48\textwidth}
+  \begin{block}{Numerical questions}
+    \begin{itemize}
+      \item Which moments are reproduced exactly?
+      \item How smooth must interpolated motion and force be?
+      \item Is nonnegativity important?
+      \item What stencil width is affordable?
+    \end{itemize}
+  \end{block}
+  \end{column}
+  \begin{column}{0.48\textwidth}
+  \begin{block}{Resolution questions}
+    \begin{itemize}
+      \item Are marker or quadrature points dense enough relative to \(h\)?
+      \item Does the structure remain watertight as it deforms?
+      \item How sensitive are results to subgrid translation and orientation?
+    \end{itemize}
+  \end{block}
+  \end{column}
+\end{columns}
+
+\begin{punchbox}
+Compare kernels with a problem-relevant convergence and conservation study; a wider or higher-moment kernel is not automatically more accurate near a singular interface.
+\end{punchbox}
+\end{frame}
+
+% ----- 19. Refinement -----
+\begin{frame}{What happens under refinement?}
+For a normalized family with width proportional to \(h\),
+\[
+  \delta_h\longrightarrow\delta
+  \qquad\text{in the sense of distributions as }h\to0.
+\]
+
+\begin{block}{That statement is about the kernel---not the whole algorithm}
+Convergence of a complete IB discretization additionally requires:
+\begin{itemize}
+  \item consistent Eulerian and Lagrangian spatial discretizations,
+  \item stable time integration and compatible refinement of \(\Delta t\),
+  \item adequate marker or interaction-quadrature density,
+  \item sufficient solution regularity for the claimed norm and order.
+\end{itemize}
+\end{block}
+
+\begin{punchbox}
+Regularization spreads an interface force over \(O(h)\), so stress jumps are smoothed at finite resolution. Leakage or residual slip need not disappear if the Lagrangian interaction points are under-resolved.
+\end{punchbox}
+\end{frame}
+
+% ----- 20. Takeaways -----
+\begin{frame}{Takeaways}
+\begin{enumerate}
+  \item The delta interaction is a \hi{push-forward from material measure to spatial measure}; it is not a hidden change of variables.
+  \item A volumetric strong form contains both \(\operatorname{Div}\Pten\) in \(\mathcal U\) and the transmission traction \(-\Pten\Nvec\) on \(\partial\mathcal U\).
+  \item Unified and partitioned weak forms organize those same two physical contributions differently.
+  \item Zeroth and first moments control total force, torque, and low-order interpolation; constant sum of squares addresses approximate translation invariance.
+  \item Matched spreading and interpolation should satisfy \(\mathcal J_h=\mathcal S_h^*\), which gives the discrete power identity.
+\end{enumerate}
+
+\begin{punchbox}
+\centering
+Always state the \hi{measure}, \hi{kernel properties}, and \hi{discrete inner products} together.
+\end{punchbox}
+\end{frame}
+
+% ----- 21. References -----
+\begin{frame}{Primary references}
+\small
+\begin{thebibliography}{99}
+\bibitem{Peskin2002}
+C.~S. Peskin,
+``The immersed boundary method,''
+\emph{Acta Numerica} 11 (2002), 479--517.
+\href{https://doi.org/10.1017/S0962492902000077}{doi:10.1017/S0962492902000077}.
+
+\bibitem{GriffithLuo2017}
+B.~E. Griffith and X.~Y. Luo,
+``Hybrid finite difference/finite element immersed boundary method,''
+\emph{Int. J. Numer. Meth. Biomed. Eng.} 33 (2017), e2888.
+\href{https://doi.org/10.1002/cnm.2888}{doi:10.1002/cnm.2888}.
+
+\bibitem{GriffithPatankar2020}
+B.~E. Griffith and N.~A. Patankar,
+``Immersed methods for fluid--structure interaction,''
+\emph{Annu. Rev. Fluid Mech.} 52 (2020), 421--448.
+\href{https://doi.org/10.1146/annurev-fluid-010719-060228}{doi:10.1146/annurev-fluid-010719-060228}.
+
+\bibitem{Roma1999}
+A.~M. Roma, C.~S. Peskin, and M.~J. Berger,
+``An adaptive version of the immersed boundary method,''
+\emph{J. Comput. Phys.} 153 (1999), 509--534.
+\href{https://doi.org/10.1006/jcph.1999.6293}{doi:10.1006/jcph.1999.6293}.
+\end{thebibliography}
+\end{frame}
+
+% =====================================================================
+% Optional appendix: detailed derivations and kernel formulas
+% =====================================================================
+\section{Appendix}
+
+\begin{frame}{Appendix: testing force on a spatial region}
+Let \(\Gamma\subset\Omega\). A formal indicator-function calculation suggests
+\[
+  \int_{\Gamma}\fvec(\xvec,t)\,d\xvec
+  =
+  \int_{\{\Xvec\in\mathcal U:\,\chivec(\Xvec,t)\in\Gamma\}}
+  \Fvec(\Xvec,t)\,d\Xvec.
+\]
+
+\begin{block}{The distributional caveat}
+The rigorous starting point is the smooth-test-field identity. Approximate the indicator of \(\Gamma\) by smooth functions and pass to the limit. The region identity is unambiguous when the pushed-forward force measure assigns zero mass to \(\partial\Gamma\).
+\end{block}
+
+\begin{punchbox}
+With a regularized \(\delta_h\), classical Fubini applies under ordinary integrability assumptions, but a marker within \(O(h)\) of \(\partial\Gamma\) contributes only partially to the region.
+\end{punchbox}
+\end{frame}
+
+\begin{frame}{Appendix: Peskin's four-point kernel}
+\small
+\[
+\phi_4(r)=
+\begin{cases}
+\dfrac18\left(3-2|r|+\sqrt{1+4|r|-4r^2}\right),
+&0\le |r|<1,\\[6pt]
+\dfrac18\left(5-2|r|-\sqrt{-7+12|r|-4r^2}\right),
+&1\le |r|<2,\\[6pt]
+0,&|r|\ge2.
+\end{cases}
+\]
+
+\begin{columns}[T,onlytextwidth]
+  \begin{column}{0.48\textwidth}
+  \begin{itemize}
+    \item support across four grid points
+    \item zeroth and first moments exact
+  \end{itemize}
+  \end{column}
+  \begin{column}{0.48\textwidth}
+  \begin{itemize}
+    \item \(\sum_j\phi_4(r-j)^2=3/8\)
+    \item nonnegative and \(C^1\)
+  \end{itemize}
+  \end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Appendix: Roma--Peskin--Berger three-point kernel}
+\small
+\[
+\phi_3(r)=
+\begin{cases}
+\dfrac13\left(1+\sqrt{1-3r^2}\right),
+&|r|<\dfrac12,\\[7pt]
+\dfrac16\left(5-3|r|-\sqrt{-2+6|r|-3r^2}\right),
+&\dfrac12\le |r|<\dfrac32,\\[7pt]
+0,&|r|\ge\dfrac32.
+\end{cases}
+\]
+
+\begin{punchbox}
+This \(C^1\), nonnegative kernel satisfies the zeroth and first moment conditions and \(\sum_j\phi_3(r-j)^2=1/2\), with support across three grid points for generic offsets.
+\end{punchbox}
+\end{frame}
+
+\begin{frame}{Appendix: checking the cosine kernel}
+For
+\[
+  \phi_{\cos}(r)=
+  \begin{cases}
+  \dfrac14\left(1+\cos\dfrac{\pi r}{2}\right),&|r|\le2,\\[4pt]
+  0,&|r|>2,
+  \end{cases}
+\]
+direct summation gives, for all real \(r\),
+\[
+  \sum_j\phi_{\cos}(r-j)=1,
+  \qquad
+  \sum_j\phi_{\cos}(r-j)^2=\frac38.
+\]
+However,
+\[
+  \sum_j(r-j)\phi_{\cos}(r-j)\ne0
+\]
+for a generic offset \(r\).
+
+\begin{punchbox}
+The example shows why zeroth moment, first moment, and constant sum of squares must be checked separately.
+\end{punchbox}
+\end{frame}
+
+\begin{frame}[plain]
+\centering
+\vfill
+{\Large\bfseries Questions?}
+
+\medskip
+{\color{blue!55!black}\rule{0.34\textwidth}{0.8pt}}
+
+\medskip
+{\small Integral transforms and regularized delta functions}
+\vfill
 \end{frame}
 
 \end{document}

@@ -4,8 +4,9 @@
 \usepackage{enumitem}
 \usepackage{geometry}
 \geometry{margin=1in}
+\setlist[enumerate]{itemsep=0.45em,topsep=0.25em,parsep=0pt,partopsep=0pt}
 
-\title{Mate's Immersed Boundary Method: Oral Exam Questions and Answers}
+\title{Matea's Immersed Boundary Method: Oral Exam Questions and Answers}
 \author{}
 \date{}
 
@@ -19,32 +20,32 @@
 \item \textbf{What is the order of convergence of the immersed boundary method?}
 
 \textit{Sample answer:}  
-The immersed boundary method is first-order accurate globally. Away from the immersed boundary, the solution is second-order accurate pointwise. The reduction in global accuracy is due to the presence of singular forces at the immersed boundary.
+There is no single order for every IB formulation, solution variable, or error norm. For a classical regularized-delta method with a smooth enough solution away from the interface, velocity is often first-order accurate globally and may recover the underlying solver's second-order pointwise accuracy away from the interface. Pressure, stress, and traction can converge more slowly near an interface because their continuum limits may be discontinuous. State the quantity, norm, kernel, and refinement path when reporting an order.
 
 \item \textbf{What is the order of convergence of the fluid solver you are using?}
 
 \textit{Sample answer:}  
-The underlying fluid solver is second-order accurate globally in space and time.
+For the tutorial's centered finite-difference prototype, the spatial operators are second-order accurate on smooth fields, while the displayed IMEX time step is first-order accurate. A different implementation may use a higher-order time integrator. The observed rate for the coupled IB calculation can still be lower because of interfacial regularity and coupling error.
 
 \item \textbf{Why does the overall IB method have lower accuracy than the fluid solver alone?}
 
 \textit{Sample answer:}  
-The immersed boundary introduces a singular force at the interface, which produces discontinuities in pressure and stress. These discontinuities are smoothed numerically using a regularized delta function, which degrades the global order of accuracy.
+In the continuum formulation, the interfacial force is singular and generally produces jumps in pressure or velocity derivatives. A regularized kernel spreads those jumps across a layer of thickness $O(h)$, so the solution has less regularity near the interface than the smooth problem for which the fluid stencil attains its formal order. Time integration, Lagrangian quadrature, geometry, and the chosen error norm also affect the coupled rate.
 
 \item \textbf{Why not use fully implicit time stepping?}
 
 \textit{Sample answer:}  
-Fully implicit time stepping requires solving for the fluid velocity, pressure, and boundary configuration simultaneously. This leads to large, tightly coupled nonlinear systems. While implicit IB methods exist for linear forces (such as linear springs), extending them to nonlinear elastic forces is computationally expensive and often not beneficial in practice.
+Fully implicit coupling solves for fluid velocity, pressure, and the new boundary configuration simultaneously. Nonlinear elastic laws lead to a large coupled nonlinear system that requires effective linearization and preconditioning. The extra work can be worthwhile for stiff structures because implicit coupling may remove severe explicit stability restrictions; the choice is a cost-versus-stability decision, not a general rejection of implicit methods.
 
 \item \textbf{How are you handling the singularity at the immersed boundary?}
 
 \textit{Sample answer:}  
-The singular force is regularized using a smooth delta function with finite width and height, which spreads the force over a small region of the grid.
+At finite grid spacing, replace the Dirac distribution by a bounded regularized kernel $\delta_h$ with width $O(h)$ and amplitude $O(h^{-d})$ in $d$ dimensions. This spreads the Lagrangian force over nearby Eulerian grid sites. The kernel is refined together with the grid so that it acts as an approximation to the identity.
 
 \item \textbf{What are the key properties of the discretized delta function?}
 
 \textit{Sample answer:}  
-The discretized delta function is continuous, compactly supported, symmetric, conserves force and torque, and has self-coupling properties that are approximately independent of the relative position of Lagrangian points with respect to the Eulerian grid.
+The precise properties depend on the kernel. Common Peskin kernels are compactly supported and satisfy a discrete partition of unity; a first-moment condition supports torque transfer, and an even--odd condition helps couple both grid sublattices. Symmetry, regularity, and a nearly translation-invariant sum-of-squares condition can reduce grid-phase sensitivity. Exact discrete conservation also requires compatible Eulerian and Lagrangian weights and an adjoint spreading/interpolation pair.
 
 \item \textbf{What is the support of the discretized delta function?}
 
@@ -59,22 +60,22 @@ No. Other discretized delta functions exist, including kernels with wider suppor
 \item \textbf{Why not use a delta function with smaller support, such as one grid cell?}
 
 \textit{Sample answer:}  
-A support of two grid cells in each direction is the smallest support that can satisfy the desired moment and symmetry conditions. Kernels with smaller support can work in some cases, but may introduce artifacts or reduce stability.
+Narrower kernels exist, but a smaller stencil leaves fewer degrees of freedom with which to satisfy partition-of-unity, moment, regularity, and grid-translation conditions simultaneously. It may also increase sensitivity to the boundary's position relative to the grid. There is no universal smallest acceptable support; the choice depends on which discrete properties the application requires.
 
 \item \textbf{Why not use a delta function with higher-order moments?}
 
 \textit{Sample answer:}  
-Higher-order moment conditions require wider support, which increases computational cost and spreads forces over a larger region. The standard 4-point delta function represents a good compromise between accuracy and efficiency.
+Additional moment conditions can improve polynomial reproduction, but satisfying them together with compact support, smoothness, nonnegativity, and translation control may require a wider stencil or introduce sign-changing weights. Wider support increases coupling cost and thickens the regularized interface. The four-point kernel is one common compromise, not an optimal choice for every problem.
 
 \item \textbf{If the delta function depends on grid spacing, why does the solution converge?}
 
 \textit{Sample answer:}  
-Although the regularized force depends on grid spacing, the Navier--Stokes equations integrate this force. As the grid is refined, the regularized force converges to a true singular force and the solution converges to the continuum IB formulation.
+The family $\delta_h$ is designed to approach the Dirac distribution in the weak sense as $h\to0$. Convergence of the full method also requires consistent refinement of the Eulerian grid, Lagrangian mesh or quadrature, time step, and solver tolerances, together with stability. The dependence on $h$ is therefore part of a consistent approximation, but $h\to0$ by itself is not a convergence proof.
 
 \item \textbf{Why does the interaction equation not require a Jacobian?}
 
 \textit{Sample answer:}  
-The force-spreading integral is not a change of variables but a distributional push-forward from material space to physical space. The integral is performed entirely over reference coordinates, so no Jacobian appears explicitly.
+The Lagrangian force density is defined per unit reference measure, and the spreading integral is a distributional push-forward integrated over those reference coordinates. It is not a change of variables from current to reference volume, so no additional Jacobian appears. A factor $J$ would appear if one first defined a density per current solid volume and then rewrote that integral over the reference domain.
 
 \end{enumerate}
 
@@ -82,40 +83,40 @@ The force-spreading integral is not a change of variables but a distributional p
 
 \begin{enumerate}[label=\arabic*.]
 
-\item \textbf{Why are there no true boundary conditions in IBM?}
+\item \textbf{In what sense are immersed-interface conditions not imposed as sharp boundary conditions in IBM?}
 
 \textit{Sample answer:}  
-Boundary conditions are enforced weakly. In the continuum limit, the interaction equations recover no-slip, a pressure jump proportional to the normal force, and a jump in the normal derivative of velocity proportional to the tangential force. This avoids the need for a body-fitted grid.
+The physical outer boundary of the fluid domain still requires boundary conditions. At the immersed interface, the classical IB method imposes kinematics and force balance through Eulerian--Lagrangian coupling rather than by applying sharp conditions on a body-fitted mesh. In the continuum description this coupling yields no slip together with the appropriate pressure and viscous-stress jumps; regularized discretizations spread those jumps over several grid cells.
 
 \item \textbf{Are you resolving pressure near the boundary?}
 
 \textit{Sample answer:}  
-No. The regularized delta smooths pressure near the boundary. However, the solution converges to the correct limit as the grid is refined.
+Pressure is computed near the immersed boundary, but a classical regularized delta method smears a sharp pressure jump across the kernel support. Pointwise pressure there can therefore have reduced accuracy even when pressure away from the interface converges well. State the norm and location used to assess resolution, and refine all parts of the coupled discretization when checking convergence.
 
 \item \textbf{Are you resolving the boundary layer?}
 
 \textit{Sample answer:}  
-No. The boundary layer is smoothed by the delta function and is not sharply resolved.
+A diffuse-interface IB discretization does not represent wall-normal gradients sharply inside its $O(h)$ coupling layer. Whether the physical boundary layer is resolved depends on its thickness, the local Eulerian spacing, the kernel, and the interface treatment. Adequate refinement or a sharp-interface or wall-modeled variant may be needed for accurate near-wall quantities.
 
 \item \textbf{Can IBM resolve turbulent flows?}
 
 \textit{Sample answer:}  
-IBM is not well suited for resolving boundary layers in high-Reynolds-number turbulent flows. It can capture bulk flow features but not fine near-wall turbulence dynamics.
+Yes. Immersed methods are used for turbulent-flow DNS and LES, but high-Reynolds-number wall turbulence places demanding resolution and accuracy requirements on any method. A classical diffuse-interface kernel may reduce the accuracy of wall stress unless the near-wall grid is sufficiently fine; sharp-interface, wall-resolved, and wall-modeled immersed variants address different regimes.
 
 \item \textbf{Is IBM appropriate at low Reynolds number?}
 
 \textit{Sample answer:}  
-Yes. IBM can be used in the Stokes regime, although many researchers prefer the method of regularized Stokeslets, which exploits the linearity of the Stokes equations.
+Yes. The IB formulation applies in the Stokes regime as well as at finite Reynolds number. Regularized Stokeslets are an attractive alternative for some unbounded or boundary-integral-style Stokes problems because they exploit linearity and known Green's functions, whereas IB methods remain useful for complex domains, many interacting structures, and extensions that include inertia.
 
 \item \textbf{You are not resolving the boundary layer. Justify the method.}
 
 \textit{Sample answer:}  
-IBM is appropriate when bulk flow dynamics are of interest and when resolving the immediate near-boundary structure is not critical. It is not suitable for applications that require detailed boundary-layer resolution.
+First establish with refinement evidence which near-boundary quantities the chosen discretization resolves. If the scientific question concerns bulk flow or integrated forces and those observables converge, a diffuse-interface treatment may be adequate. If wall stress, heat transfer, separation, or fine near-wall turbulence is central, use sufficient local refinement or a sharper or wall-modeled immersed formulation and validate it against an appropriate benchmark.
 
 \item \textbf{Does IBM have issues with volume conservation?}
 
 \textit{Sample answer:}  
-Yes. Classical IB methods can exhibit volume loss. More recent formulations address this by tuning discrete gradient and divergence operators to the interpolation scheme.
+Classical IB discretizations can exhibit volume drift even when the Eulerian velocity is discretely divergence-free, because regularized velocity interpolation need not be continuously divergence-free at the structure and time integration adds error. Remedies include divergence-free interpolation, compatible coupling operators, improved quadrature, smaller or higher-order time steps, and volumetric stabilization for solid models. The dominant remedy depends on the formulation.
 
 \end{enumerate}
 
@@ -126,22 +127,22 @@ Yes. Classical IB methods can exhibit volume loss. More recent formulations addr
 \item \textbf{Is your fluid solver implicit, explicit, or mixed?}
 
 \textit{Sample answer:}  
-It is a mixed method. The nonlinear convection and forcing terms are treated explicitly, while viscous terms are treated implicitly.
+The tutorial prototype is mixed (IMEX): nonlinear convection and the known immersed force are explicit, while viscosity and the pressure/incompressibility solve use the new velocity. This is one implementation choice. Semi-implicit and fully implicit IB couplings treat some or all elastic forces at the new configuration.
 
 \item \textbf{What is the ratio of IB points to fluid grid points?}
 
 \textit{Sample answer:}  
-The spacing between IB points is approximately half the fluid grid spacing, corresponding to roughly two IB points per fluid grid cell.
+A common rule of thumb for a nodal fiber discretization is $\Delta q\approx h/2$, or roughly two Lagrangian points per Eulerian spacing along the structure. This ratio is not universal. The appropriate density depends on the kernel support, geometry, force discretization, and local grid spacing; IBFE methods may instead control the density of interaction quadrature points independently of FE nodes.
 
 \item \textbf{Why choose this ratio?}
 
 \textit{Sample answer:}  
-If IB points are too sparse, fluid leakage occurs. If they are too dense, numerical stiffness and spurious oscillations appear. This ratio has been found empirically to work well.
+Too few interaction points can leave gaps in the regularized coupling and permit leakage. Excessively dense points add cost and redundant coupling, and a very fine structural mesh can introduce stiff modes when forces are treated explicitly. The chosen ratio should therefore be justified by leakage, force, stability, and convergence tests rather than by a universal rule.
 
 \item \textbf{Is the fluid discretized on a staggered grid?}
 
 \textit{Sample answer:}  
-No. In the FFT-based formulation used here, pressure--velocity decoupling is not an issue, so a staggered grid is not required.
+In the tutorial's classical prototype, yes: pressure is cell-centered and velocity components are face-centered on a MAC grid. Other compatible discretizations are possible. Using an FFT on a periodic domain is a linear-solver choice and does not by itself eliminate pressure--velocity decoupling in an incompatible collocated discretization.
 
 \end{enumerate}
 
@@ -152,12 +153,12 @@ No. In the FFT-based formulation used here, pressure--velocity decoupling is not
 \item \textbf{What are other approaches to fluid--structure interaction?}
 
 \textit{Sample answer:}  
-Other methods include the immersed interface method, ALE methods, level set methods, finite element and finite volume approaches, and the method of regularized Stokeslets.
+Other approaches include body-fitted arbitrary Lagrangian--Eulerian (ALE) methods, fictitious domain and distributed Lagrange multiplier methods, immersed interface and cut-cell or embedded boundary methods, and monolithic or partitioned finite element/finite volume FSI schemes. Level sets can represent an interface within several of these approaches, while regularized Stokeslets specialize to viscous-dominated flow.
 
 \item \textbf{Why use IBM rather than these alternatives?}
 
 \textit{Sample answer:}  
-IBM avoids body-fitted meshes, handles large deformations naturally, and has robust open-source implementations. Many alternative methods are more difficult to implement or less suited for elastic structures.
+IBM keeps a fixed Eulerian grid, avoids repeated body-fitted remeshing, and couples naturally to moving or highly deformable structures. It also supports efficient Cartesian-grid solvers and mature software. The tradeoff is a regularized interface and often lower accuracy for pressure, traction, or wall quantities; a sharp-interface or body-fitted method may be preferable when those quantities dominate the application.
 
 \end{enumerate}
 

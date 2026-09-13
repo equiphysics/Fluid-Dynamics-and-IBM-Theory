@@ -1,468 +1,986 @@
-\documentclass[aspectratio=169]{beamer}
+% =====================================================================
+% IBFE Tutorials: turbulence closure, RANS, LES, and hybrid methods
+% =====================================================================
+\documentclass[aspectratio=169,11pt]{beamer}
 
-\usetheme{Madrid}
-\usecolortheme{default}
+% Match the visual language of the SIAM Waves talk.
+\usetheme{Boadilla}
+\usecolortheme{seahorse}
+\useinnertheme{rectangles}
+\useoutertheme{infolines}
+
+\setbeamercolor{structure}{fg=blue!55!black}
+\setbeamercolor{title}{fg=white,bg=blue!55!black}
+\setbeamercolor{frametitle}{fg=blue!55!black}
+\setbeamercolor{block title}{bg=blue!12,fg=blue!55!black}
+\setbeamercolor{block body}{bg=blue!4}
 \setbeamertemplate{navigation symbols}{}
+\setbeamerfont{frametitle}{series=\bfseries,size=\large}
+\setbeamerfont{title}{series=\bfseries,size=\Large}
 
-\usepackage{amsmath,amssymb,bm}
-\usepackage{mathtools}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\DeclareFontShape{T1}{cmss}{b}{n}{<->ssub*cmss/bx/n}{}
+\usepackage{amsmath,amssymb,bm,mathtools}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,calc,positioning,patterns,decorations.pathmorphing}
+\usepackage{tcolorbox}
+\tcbuselibrary{skins}
+\usepackage{hyperref}
 
-% -------------------- Notation --------------------
-\newcommand{\x}{\bm{x}}
-\newcommand{\uu}{\bm{u}}
-\newcommand{\pp}{p}
+\hypersetup{colorlinks=true,urlcolor=blue!55!black}
+
+\definecolor{modelblue}{RGB}{38,86,145}
+\definecolor{modelorange}{RGB}{208,112,44}
+\definecolor{modelgreen}{RGB}{53,128,95}
+\definecolor{modelgray}{RGB}{92,101,112}
+
+\newcommand{\hi}[1]{\textcolor{blue!55!black}{\textbf{#1}}}
+\newcommand{\warn}[1]{\textcolor{red!70!black}{\textbf{#1}}}
+\newcommand{\soft}[1]{\textcolor{gray!55!black}{#1}}
+\newcommand{\mean}[1]{\overline{#1}}
 \newcommand{\Rey}{\mathrm{Re}}
-\newcommand{\avg}[1]{\overline{#1}}
-\newcommand{\up}{\uu'}
-\newcommand{\ubar}{\avg{\uu}}
-\newcommand{\grad}{\nabla}
-\newcommand{\Div}{\nabla\cdot}
-\newcommand{\Lap}{\Delta}
+\newcommand{\uu}{\bm{u}}
+\newcommand{\xvec}{\bm{x}}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
 
-\title[Turbulence Modeling]{Turbulence Modeling: RANS, LES, and Hybrid Ideas}
-\author{(adapted from Steve Brunton)}
+\newtcolorbox{punchbox}{
+  enhanced,
+  colback=blue!4,
+  colframe=blue!55!black,
+  boxrule=0.6pt,
+  arc=2pt,
+  left=4pt,right=4pt,top=3pt,bottom=3pt
+}
+
+\title[Turbulence closure]{Turbulence closure: RANS, LES, and hybrid ideas}
+\subtitle{What is averaged, what is filtered, and what must be modeled?}
+\author[Miller]{Laura A. Miller}
+\institute[UArizona]{Department of Mathematics, University of Arizona}
 \date{}
 
 \begin{document}
 
-% ------------------------------------------------------------
-\begin{frame}
-  \titlepage
+% ----- 1. Title -----
+\begin{frame}[plain]
+  \begin{beamercolorbox}[sep=10pt,center]{title}
+    {\bfseries\Large Turbulence closure: RANS, LES, and hybrid ideas}\\[3pt]
+    {\normalsize What is averaged, what is filtered, and what must be modeled?}
+  \end{beamercolorbox}
+  \vspace{1.0em}
+  \begin{columns}[T,onlytextwidth]
+  \begin{column}{0.55\textwidth}
+    \textbf{\large Laura A. Miller}\\[4pt]
+    Department of Mathematics\\
+    University of Arizona\\[12pt]
+    {\small IBFE Tutorials}\\[10pt]
+    {\tiny AI tools were used to assist with formatting, organization, and clarification of the instructor's original notes.}
+  \end{column}
+  \begin{column}{0.45\textwidth}
+    \begin{punchbox}
+    \centering
+    \begin{tikzpicture}[x=0.78cm,y=0.62cm]
+      \draw[->,thick] (0,0)--(5.1,0) node[right]{\scriptsize wavenumber};
+      \draw[->,thick] (0,0)--(0,3.2) node[above]{\scriptsize energy};
+      \draw[very thick,modelblue] plot[smooth] coordinates{(0.2,0.4)(0.8,2.7)(1.5,2.3)(2.4,1.7)(3.4,1.15)(4.7,0.25)};
+      \draw[dashed,modelorange,thick] (3.05,0)--(3.05,2.0);
+      \node[modelblue] at (1.35,2.85){\scriptsize resolved};
+      \node[modelorange,align=center] at (4.05,2.0){\scriptsize modeled\\[-2pt]\scriptsize scales};
+    \end{tikzpicture}
+    \end{punchbox}
+  \end{column}
+  \end{columns}
 \end{frame}
 
-% ------------------------------------------------------------
-\begin{frame}{Why turbulence modeling? (design + HPC)}
-Engineering design often needs \textbf{quantities of interest}:
-\begin{itemize}
-  \item lift and drag on wings / bodies,
-  \item separation and stall prediction,
-  \item turbine performance and noise,
-  \item wake interactions (wind farms, vehicles).
-\end{itemize}
-
-\begin{block}{Core tension}
-High fidelity $\Rightarrow$ expensive. \\
-Design optimization/control requires \emph{many} simulation runs $\Rightarrow$ we need models that are cheaper than DNS.
-\end{block}
-
-\vspace{1em}
-\textbf{Figure placeholder:} DNS movie / boundary layer turbulence visualization.
-\end{frame}
-
-% ------------------------------------------------------------
-\begin{frame}{DNS is amazing... and usually too expensive}
-Direct Numerical Simulation (DNS) resolves \emph{all} relevant space/time scales.
-
-\begin{itemize}
-  \item Even a \textbf{small} region (e.g., section of an airfoil) can require massive resources.
-  \item A full aircraft / full automobile at realistic Reynolds numbers: typically out of reach.
-\end{itemize}
-
-\begin{block}{Cost scaling intuition}
-As Reynolds number increases, the range of scales widens (largest eddies $\to$ smallest eddies), so grid/time-step requirements explode.
-\end{block}
-
-\textbf{Figure placeholder:} mesh + reported core-hours (e.g., ``35 million core hours'') from the example.
-\end{frame}
-
-% ------------------------------------------------------------
-\begin{frame}{Goal of turbulence modeling}
-Instead of resolving everything, we seek \textbf{approximations} that yield:
-\begin{itemize}
-  \item acceptable accuracy for engineering quantities,
-  \item much lower computational cost,
-  \item robustness across many parameter changes (geometry, speed, AoA, etc.).
-\end{itemize}
-
-\begin{block}{Two major families}
-\begin{itemize}
-  \item Reynolds-Averaged Navier--Stokes (RANS): model \emph{statistics} of turbulence.
-  \item Large Eddy Simulation (LES): resolve large eddies, model subgrid scales (SGS).
-\end{itemize}
-\end{block}
-
-\textbf{Preview:} Hybrid ideas (DES) mix RANS + LES.
-\end{frame}
-
-% ------------------------------------------------------------
-\begin{frame}{Review: Reynolds decomposition (RANS entry point)}
-Decompose the velocity (and pressure):
-\[
-\uu(\x,t)=\ubar(\x)+\up(\x,t),
-\qquad
-\pp(\x,t)=\avg{\pp}(\x)+\pp'(\x,t),
-\qquad
-\avg{\up}=0,\ \avg{\pp'}=0.
-\]
-
-Start from incompressible Navier--Stokes (nondimensional):
-\begin{align*}
-\partial_t \uu + (\uu\cdot\grad)\uu &= -\grad \pp + \frac{1}{\Rey}\Lap\uu,\\
-\Div\uu &= 0.
-\end{align*}
-
-\begin{block}{From the continuity equation}
-\[
-\Div\ubar=0,\qquad \Div\up=0.
-\]
-\end{block}
-\end{frame}
-
-% ------------------------------------------------------------
-\begin{frame}{Review: where closure appears (momentum)}
-After averaging momentum you get mean-flow equations with extra terms:
-\[
-(\ubar\cdot\grad)\ubar
-=
--\grad \avg{\pp}
-+\frac{1}{\Rey}\Lap \ubar
--\Div \bm{R},
-\qquad
-\bm{R}=\avg{\up\,\up^T}.
-\]
-
-\begin{block}{Reynolds stresses}
-\[
-\bm{R}=
-\begin{bmatrix}
-\avg{u'u'} & \avg{u'v'} & \avg{u'w'}\\
-\avg{v'u'} & \avg{v'v'} & \avg{v'w'}\\
-\avg{w'u'} & \avg{w'v'} & \avg{w'w'}
-\end{bmatrix}.
-\]
-\end{block}
-
-\textbf{Closure problem:} $\bm{R}$ is unknown and depends on the turbulent fluctuations.
-We need $\bm{R}\approx \mathcal{M}(\ubar,\grad\ubar,\ldots)$.
-\end{frame}
-
-% ------------------------------------------------------------
-\begin{frame}{Why not write an exact equation for $\bm{R}$? (hierarchy)}
-If you try to derive transport equations for the Reynolds stresses by multiplying the fluctuating equations and averaging, you get terms involving \textbf{triple correlations} (third moments):
-\[
-\avg{u'_i u'_j u'_k}, \quad \text{etc.}
-\]
-
-Then equations for third moments involve fourth moments, and so on.
-
-\begin{block}{The never-ending ladder}
-Second moments depend on third moments \\
-Third moments depend on fourth moments \\
-$\vdots$ \\
-This is a genuine mathematical closure issue.
-\end{block}
-
-\textbf{Takeaway:} practical modeling requires assumptions/approximations.
-\end{frame}
-
-% ------------------------------------------------------------
-\begin{frame}{Stress form in Einstein notation (compact RANS statement)}
-A common compact form emphasizes ``stress divergence'' structure.
-(Here, indices $i,j\in\{1,2,3\}$; repeated indices are summed.)
-
-\[
-\partial_t \avg{u_i} + \avg{u_j}\,\partial_j \avg{u_i}
-=
--\partial_i \avg{p}
-+\frac{1}{\Rey}\partial_j\partial_j \avg{u_i}
--\partial_j \avg{u_i' u_j'}.
-\]
-
-\begin{block}{Interpretation}
-Pressure, viscosity, and Reynolds stresses all appear as stress/flux divergences.
-\end{block}
-\end{frame}
-
-% ------------------------------------------------------------
-\begin{frame}{Turbulent kinetic energy (TKE) as a modeling lens}
-Define turbulent kinetic energy:
-\[
-k := \frac12\,\avg{u_i' u_i'} = \frac12\left(\avg{(u')^2}+\avg{(v')^2}+\avg{(w')^2}\right).
-\]
-
-TKE helps track the \textbf{energy exchange} between:
-\begin{itemize}
-  \item mean-flow kinetic energy,
-  \item turbulent fluctuations.
-\end{itemize}
-
-\begin{block}{Conceptual idea}
-Many closures aim to model $\bm{R}$ by modeling how $k$ is produced, transported, and dissipated.
-\end{block}
-
-\textbf{Figure placeholder:} energy budget / ``competing terms'' schematic.
-\end{frame}
-
-% ------------------------------------------------------------
-\begin{frame}{TKE equation: anatomy (high-level)}
-A typical TKE transport equation has the structure:
-\[
-\frac{\partial k}{\partial t} + \avg{u_j}\,\partial_j k
-=
-\underbrace{\mathcal{P}}_{\text{production}}
-+\underbrace{\mathcal{T}}_{\text{transport}}
-+\underbrace{\mathcal{D}}_{\text{diffusion}}
--\underbrace{\varepsilon}_{\text{dissipation}}.
-\]
-
-\begin{block}{Production term (key intuition)}
-Production is driven by \textbf{mean shear}:
-\[
-\mathcal{P}\ \sim\ -\avg{u_i' u_j'}\,\partial_j \avg{u_i}.
-\]
-Large gradients in the mean flow (shear layers, separation) pump energy into turbulence.
-\end{block}
-
-\textbf{Use this in words:} ``Separation $\Rightarrow$ strong shear $\Rightarrow$ more turbulence production.''
-\end{frame}
-
-% ------------------------------------------------------------
-\begin{frame}{Eddy viscosity modeling: simplest closure idea}
-Old but still foundational idea: turbulence acts like an \textbf{effective viscosity}.
-
-\begin{block}{Boussinesq hypothesis (eddy viscosity)}
-Model Reynolds stresses via
-\[
--\avg{u_i' u_j'}
-\approx
-2\nu_t S_{ij} - \frac{2}{3}k\,\delta_{ij},
-\qquad
-S_{ij}:=\frac12(\partial_i \avg{u_j}+\partial_j \avg{u_i}).
-\]
-\end{block}
-
-\begin{itemize}
-  \item $\nu_t$ is the turbulent (eddy) viscosity.
-  \item The $-\tfrac{2}{3}k\,\delta_{ij}$ term corrects the isotropic part (normal stresses).
-\end{itemize}
-
-\textbf{Figure placeholder:} channel flow / boundary layer sketch + shear.
-\end{frame}
-
-% ------------------------------------------------------------
-\begin{frame}{Eddy viscosity model 0: constant $\nu_t$}
-Most basic choice:
-\[
-\nu_t = \text{constant}.
-\]
-
-Pros:
-\begin{itemize}
-  \item extremely simple,
-  \item sometimes works acceptably after tuning for a specific configuration.
-\end{itemize}
-
-Cons:
-\begin{itemize}
-  \item not predictive across geometries/conditions,
-  \item cannot capture strong spatial variation (near-wall, separation, etc.).
-\end{itemize}
-\end{frame}
-
-% ------------------------------------------------------------
-\begin{frame}{Prandtl mixing length model: spatially varying $\nu_t$}
-Prandtl's correction: $\nu_t$ varies with local shear and a mixing length $\ell_m$.
-
-A common form:
-\[
-\nu_t \sim \ell_m^2\,\left|\frac{\partial \avg{u}}{\partial y}\right|.
-\]
-
-\begin{itemize}
-  \item Useful for wall-bounded flows (boundary layers, channels).
-  \item Requires empirical/physical choices for $\ell_m$ (near-wall behavior matters).
-\end{itemize}
-
-\textbf{Figure placeholder:} boundary layer thickness growth and mixing length profile.
-\end{frame}
-
-% ------------------------------------------------------------
-\begin{frame}{Two-equation models: $k$--$\varepsilon$ and $k$--$\omega$}
-Modern ``workhorse'' RANS models solve extra PDEs.
-
-\begin{block}{$k$--$\varepsilon$ idea}
-Solve for:
-\begin{itemize}
-  \item $k$ (turbulent kinetic energy),
-  \item $\varepsilon$ (dissipation rate of $k$).
-\end{itemize}
-Then set eddy viscosity via:
-\[
-\nu_t = C_\mu \frac{k^2}{\varepsilon}
-\quad\text{(often with }C_\mu\approx 0.09\text{ empirically).}
-\]
-\end{block}
-
-\textbf{Point to emphasize:} better than constant/mixing-length in many cases, but still imperfect.
-\end{frame}
-
-% ------------------------------------------------------------
-\begin{frame}{Known weakness: adverse pressure gradients + separation}
-Many standard RANS closures struggle with separated flows.
-
-\begin{itemize}
-  \item Adverse pressure gradient can cause flow reversal near the wall.
-  \item Mean profile shows a \textbf{recirculation/separation bubble}.
-\end{itemize}
-
-\begin{block}{Why it matters}
-Predicting separation and stall is critical for aircraft performance and safety.
-\end{block}
-
-\textbf{Figure placeholder:} separation bubble sketch + boundary layer velocity profiles (show reversal).
-\end{frame}
-
-% ------------------------------------------------------------
-\begin{frame}{Spalart--Allmaras: practical aerospace workhorse}
-Spalart--Allmaras (SA) is a widely used \textbf{one-equation} model, tuned for aerospace applications.
-
-\begin{itemize}
-  \item More efficient than two-equation models.
-  \item Strong historical impact in CFD for lift/drag prediction.
-\end{itemize}
-
-\begin{block}{What to say out loud}
-``SA is a compromise: relatively cheap, reasonably accurate for many aerodynamic flows, and widely validated in industry.''
-\end{block}
-
-\textbf{Figure placeholder:} ``turbulence model options'' screenshot / SA citation mention.
-\end{frame}
-
-% ------------------------------------------------------------
-\begin{frame}{Transition: a different perspective (LES)}
-So far: RANS models \textbf{all} turbulence statistically.
-
-LES takes a different view:
-\begin{itemize}
-  \item Resolve \textbf{large} energetic eddies on the grid,
-  \item Model only \textbf{subgrid} (small) scales.
-\end{itemize}
-
-\begin{block}{Why do this?}
-Large eddies dominate transport and coherent structures (especially in separated flows),
-so resolving them often increases accuracy.
-\end{block}
-\end{frame}
-
-% ------------------------------------------------------------
-\begin{frame}{LES concept: filtering / coarse-graining}
-LES applies a spatial filter (low-pass) to the Navier--Stokes equations:
-\[
-\uu = \tilde{\uu} + \uu_{\mathrm{sgs}},
-\]
-where $\tilde{\uu}$ is the resolved (filtered) velocity.
-
-\begin{itemize}
-  \item Solve filtered equations on a coarser grid.
-  \item Nonlinearity couples scales $\Rightarrow$ a closure term appears (SGS stress).
-\end{itemize}
-
-\begin{block}{Subgrid-scale (SGS) closure}
-We must model the effect of unresolved scales on resolved scales (analogous to RANS closure, but ``below the filter'').
-\end{block}
-
-\textbf{Figure placeholder:} coarse grid boxes / ``under the hood'' schematic.
-\end{frame}
-
-% ------------------------------------------------------------
-\begin{frame}{Kolmogorov cascade picture (why SGS looks like viscosity)}
-Energy moves from large to small scales (heuristic cascade):
-\begin{itemize}
-  \item production at large scales (driven by mean shear / instabilities),
-  \item inertial transfer across scales,
-  \item dissipation at the smallest scales.
-\end{itemize}
-
-\begin{block}{LES modeling idea}
-Do \emph{not} resolve deep into the dissipation range; treat unresolved small scales as an effective dissipation (often via eddy viscosity SGS models).
-\end{block}
-
-\textbf{Figure placeholder:} Kolmogorov energy spectrum / cascade diagram.
-\end{frame}
-
-% ------------------------------------------------------------
-\begin{frame}{LES vs RANS: accuracy vs cost}
+% ----- 2. Why model? -----
+\begin{frame}{Why turbulence modeling?}
 \begin{columns}[T,onlytextwidth]
-\column{0.5\textwidth}
-\textbf{RANS}
-\begin{itemize}
-  \item cheaper (often practical for design loops),
-  \item solves mean field + closure PDEs,
-  \item may struggle with strong separation / unsteady structures.
+\begin{column}{0.52\textwidth}
+Engineering design asks for quantities such as
+\begin{itemize}\itemsep4pt
+  \item lift, drag, stall, and wall loading;
+  \item wake recovery, mixing, heat transfer, and noise;
+  \item performance over \emph{many} geometries and operating points.
 \end{itemize}
+\begin{block}{The modeling bargain}
+Spend fewer degrees of freedom on the smallest motions, but retain the physics needed for the chosen quantity of interest.
+\end{block}
+\end{column}
+\begin{column}{0.45\textwidth}
+\centering
+\begin{tikzpicture}[node distance=0.35cm]
+  \node[draw,rounded corners,fill=modelblue!12,minimum width=4.5cm,minimum height=0.68cm] (dns) {DNS: nearly all scales resolved};
+  \node[draw,rounded corners,fill=modelgreen!12,below=of dns,minimum width=4.5cm,minimum height=0.68cm] (les) {LES: large eddies resolved};
+  \node[draw,rounded corners,fill=modelorange!14,below=of les,minimum width=4.5cm,minimum height=0.68cm] (rans) {RANS: statistics predicted};
+  \draw[<->,very thick,modelgray] ([yshift=-0.38cm]rans.south west)--([yshift=-0.38cm]rans.south east);
+  \node[anchor=north west,modelgray] at ([yshift=-0.45cm]rans.south west){\scriptsize lower cost};
+  \node[anchor=north east,modelgray] at ([yshift=-0.45cm]rans.south east){\scriptsize higher fidelity};
+\end{tikzpicture}
+\vspace{0.5em}
 
-\column{0.5\textwidth}
-\textbf{LES}
-\begin{itemize}
-  \item more detailed flow structures,
-  \item typically better for separation / wakes,
-  \item much more expensive (often needs HPC).
-\end{itemize}
+\soft{No method is ``best'' without a flow, grid, wall treatment, and target output.}
+\end{column}
+\end{columns}
+\end{frame}
+
+% ----- 3. DNS cost -----
+\begin{frame}{DNS resolves the cascade---at a steep cost}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.52\textwidth}
+DNS advances the Navier--Stokes equations without a turbulence closure and resolves down to the dissipative scales.
+
+For idealized three-dimensional turbulence,
+\[
+  \frac{\eta}{L}\sim \Rey_L^{-3/4},
+  \qquad
+  N_{\mathrm{grid}}\sim \left(\frac{L}{\eta}\right)^3\sim \Rey_L^{9/4}.
+\]
+The time-step count also grows as the smallest time scale shrinks.
+
+\begin{block}{Interpret the scaling carefully}
+It is an order-of-magnitude argument, not a universal cost law for every geometry or numerical method.
+\end{block}
+\end{column}
+\begin{column}{0.45\textwidth}
+\centering
+\begin{tikzpicture}
+  \draw[very thick,modelblue] (0,0) circle (2.05);
+  \draw[thick,modelblue!75] (0.45,0.25) circle (1.20);
+  \draw[thick,modelgreen] (-0.25,-0.25) circle (0.65);
+  \foreach \x/\y in {-0.20/0.12,0.12/-0.25,0.28/0.22,-0.42/-0.43}{
+    \draw[modelorange,thick] (\x,\y) circle (0.15);
+  }
+  \node[modelblue] at (0,2.35){\small energy-containing eddy $L$};
+  \node[modelorange,align=center] at (0,-2.55){\small dissipative eddies $\eta$\\[-2pt]\scriptsize each must fit on the mesh};
+  \draw[<->,modelgray] (-2.05,-1.65)--(2.05,-1.65) node[midway,fill=white]{\scriptsize widening scale range};
+\end{tikzpicture}
+\end{column}
+\end{columns}
+\end{frame}
+
+% ----- 4. Goal -----
+\begin{frame}{Choose the fidelity that answers the question}
+\small
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}L{0.16\textwidth}L{0.23\textwidth}L{0.25\textwidth}L{0.23\textwidth}@{}}
+\toprule
+\textbf{Method} & \textbf{Directly computed} & \textbf{Modeled} & \textbf{Typical role}\\
+\midrule
+DNS & all dynamically relevant velocity scales & no turbulence closure & canonical flows; reference data\\[3pt]
+LES & filtered, unsteady large scales & subfilter stress; often wall effects & wakes, mixing, separated unsteadiness\\[3pt]
+RANS/URANS & mean or phase-resolved mean field & all turbulent correlations & design sweeps; attached wall flows\\[3pt]
+Hybrid RANS--LES & RANS region plus resolved eddies elsewhere & region- and grid-dependent & high-$\Rey$ separated flows\\
+\bottomrule
+\end{tabular}
+
+\vspace{0.6em}
+\begin{punchbox}
+\centering
+\hi{Closure} means representing terms created by averaging or filtering that are not determined by the retained variables.
+\end{punchbox}
+\end{frame}
+
+% ----- 5. Reynolds averaging -----
+\begin{frame}{RANS begins with an averaging operator}
+For velocity and kinematic pressure,
+\[
+  u_i(\xvec,t)=U_i(\xvec,t)+u_i'(\xvec,t),
+  \qquad
+  p=P+p',
+  \qquad
+  \mean{u_i'}=\mean{p'}=0.
+\]
+Here $U_i=\mean{u_i}$ may be an ensemble, long-time, or statistically equivalent average.
+
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.48\textwidth}
+\begin{block}{Steady RANS}
+For statistically stationary flow, a long-time mean is independent of time: $\partial_t U_i=0$.
+\end{block}
+\end{column}
+\begin{column}{0.48\textwidth}
+\begin{block}{URANS}
+Retain $\partial_t U_i$ when the chosen mean is time dependent; modeled turbulence still lies beneath that mean.
+\end{block}
+\end{column}
 \end{columns}
 
-\vspace{0.8em}
-\textbf{Figure placeholder:} side-by-side LES (top) vs unsteady RANS (bottom) visualization for wake/separation.
+For incompressible constant-density flow, $\partial_i U_i=0$ and $\partial_i u_i'=0$.
 \end{frame}
 
-% ------------------------------------------------------------
-\begin{frame}{Large-scale LES application example}
-LES enables simulations at scales where DNS is impossible, e.g.:
-\begin{itemize}
-  \item wind-farm wake interactions across kilometers,
-  \item atmospheric boundary layer transport,
-  \item renewable energy control and optimization studies.
-\end{itemize}
+% ----- 6. RANS equation -----
+\begin{frame}{Averaging creates the Reynolds-stress divergence}
+With pressure normalized by density, the incompressible RANS/URANS equations are
+\begin{align*}
+  \partial_t U_i+U_j\partial_jU_i
+  &= -\partial_iP+\nu\partial_{jj}U_i-\partial_jR_{ij},\\
+  \partial_iU_i&=0,
+  \qquad R_{ij}:=\mean{u_i'u_j'}.
+\end{align*}
 
-\begin{block}{How to frame it}
-LES is not ``exact,'' but often captures the large-scale mixing and unsteady dynamics that matter for engineering decisions.
+\begin{punchbox}
+\centering
+The physical turbulent stress is $-\rho R_{ij}$; the equation contains $-\partial_jR_{ij}$.
+The sign convention must remain paired with the closure.
+\end{punchbox}
+
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.48\textwidth}
+$R_{ij}$ is symmetric and positive semidefinite.
+\end{column}
+\begin{column}{0.48\textwidth}
+$R_{ii}=2k$ fixes its trace through the TKE.
+\end{column}
+\end{columns}
+\end{frame}
+
+% ----- 7. Hierarchy -----
+\begin{frame}{Why not derive an exact equation for $R_{ij}$?}
+\centering
+\begin{tikzpicture}[node distance=0.7cm,>=Latex]
+  \node[draw,rounded corners,fill=modelblue!12,minimum width=3.8cm,minimum height=0.7cm] (mean) {mean momentum: $U_i$};
+  \node[draw,rounded corners,fill=modelgreen!12,below=of mean,minimum width=3.8cm,minimum height=0.7cm] (second) {second moment: $R_{ij}$};
+  \node[draw,rounded corners,fill=modelorange!14,below=of second,minimum width=3.8cm,minimum height=0.7cm] (third) {third moments: $\mean{u_i'u_j'u_k'}$};
+  \node[below=0.55cm of third] (dots) {$\vdots$};
+  \draw[->,very thick,modelgray] (mean)--(second) node[midway,right]{\scriptsize needs};
+  \draw[->,very thick,modelgray] (second)--(third) node[midway,right]{\scriptsize needs};
+  \draw[->,very thick,modelgray] (third)--(dots);
+  \node[align=left,anchor=west] at (4.4,-1.25) {\textbf{Exact transport adds new unknowns:}\\[3pt]
+    pressure--strain correlations,\\
+    triple-velocity transport,\\
+    dissipation tensors, $\ldots$};
+\end{tikzpicture}
+
+\vspace{0.7em}
+\begin{block}{Closure is structural, not a bookkeeping nuisance}
+Moment equations form a hierarchy: an assumption, modeled equation, or data-driven relation is needed to stop it.
 \end{block}
-
-\textbf{Figure placeholder:} wind farm LES vorticity/wake visualization.
 \end{frame}
 
-% ------------------------------------------------------------
-\begin{frame}{Hybrid idea: Detached Eddy Simulation (DES)}
-DES attempts to combine strengths of RANS and LES:
-\begin{itemize}
-  \item use RANS near walls / attached regions (efficiency),
-  \item switch to LES in massively separated wakes (accuracy).
-\end{itemize}
-
-\begin{block}{Mental model}
-``RANS where the flow is comparatively steady/attached; LES where large unsteady eddies dominate.''
-\end{block}
-
-\textbf{Figure placeholder:} schematic showing RANS region near wall + LES region in wake.
-\end{frame}
-
-% ------------------------------------------------------------
-\begin{frame}{Where machine learning enters (preview)}
-Both RANS and LES hinge on closure:
-\begin{itemize}
-  \item RANS: model Reynolds stresses $\avg{u_i' u_j'}$,
-  \item LES: model subgrid stresses / SGS fluxes.
-\end{itemize}
-
-\begin{block}{ML promise (high-level)}
-Use high-fidelity data (DNS/experiments) to learn improved closures:
+% ----- 8. TKE -----
+\begin{frame}{Turbulent kinetic energy condenses the normal stresses}
 \[
-\text{closure} \approx \text{function of resolved/mean features},
+  k:=\frac12R_{ii}
+  =\frac12\left(\mean{u'^2}+\mean{v'^2}+\mean{w'^2}\right).
 \]
-potentially improving accuracy in hard regimes (separation, adverse pressure gradients).
-\end{block}
 
-\textbf{Next lecture (as in transcript):} deep learning for closure models.
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.49\textwidth}
+\begin{block}{What $k$ measures}
+Fluctuation kinetic energy per unit mass. It is nonnegative and has units $L^2/T^2$.
+\end{block}
+\end{column}
+\begin{column}{0.47\textwidth}
+\begin{block}{What $k$ does not determine}
+The scalar $k$ fixes only $\mathrm{tr}(R)$; it does not determine stress anisotropy or shear stresses.
+\end{block}
+\end{column}
+\end{columns}
+
+\vspace{0.5em}
+\hi{Modeling lens:} follow how mean-flow energy becomes turbulent energy, moves through space and scale, and is dissipated by viscosity.
 \end{frame}
 
-% ------------------------------------------------------------
-\begin{frame}{Summary}
-\begin{itemize}
-  \item DNS is accurate but often too expensive for real design loops.
-  \item RANS: average the equations $\Rightarrow$ Reynolds stresses appear $\Rightarrow$ closure problem.
-  \item Eddy viscosity modeling (Boussinesq) is the simplest closure; mixing-length, $k$--$\varepsilon$, SA extend it.
-  \item LES: filter the equations and resolve large eddies; model SGS effects.
-  \item LES is often more accurate (especially for separated flows) but typically much more expensive.
-  \item DES and other hybrids aim to mix RANS efficiency with LES accuracy.
+% ----- 9. TKE budget -----
+\begin{frame}{The exact TKE budget names the competing processes}
+For incompressible, constant-property flow,
+\[
+  \partial_tk+U_j\partial_jk
+  =\underbrace{-R_{ij}\partial_jU_i}_{\mathcal P}
+   -\underbrace{\varepsilon}_{\ge 0}
+   -\partial_jT_j,
+\]
+\[
+  \varepsilon=\nu\mean{\partial_ju_i'\,\partial_ju_i'},
+  \qquad
+  T_j=\tfrac12\mean{u_i'u_i'u_j'}+\mean{p'u_j'}-\nu\partial_jk.
+\]
+{\small This is the pseudo-dissipation; it differs from $2\nu\mean{s_{ij}'s_{ij}'}$ by a term that vanishes in homogeneous turbulence.}
+
+\centering
+\begin{tikzpicture}[node distance=0.45cm,>=Latex]
+  \node[draw,rounded corners,fill=modelblue!12,minimum width=2.5cm,minimum height=0.72cm] (mean) {mean kinetic energy};
+  \node[draw,rounded corners,fill=modelgreen!12,right=1.25cm of mean,minimum width=2.5cm,minimum height=0.72cm] (tke) {TKE $k$};
+  \node[draw,rounded corners,fill=modelorange!14,right=1.25cm of tke,minimum width=2.5cm,minimum height=0.72cm] (heat) {internal energy};
+  \draw[->,very thick,modelblue] (mean)--(tke) node[midway,above]{\scriptsize production $\mathcal P$};
+  \draw[->,very thick,modelorange] (tke)--(heat) node[midway,above]{\scriptsize dissipation $\varepsilon$};
+  \draw[<->,thick,modelgray] ([yshift=-0.48cm]tke.south west)--([yshift=-0.48cm]tke.south east)
+    node[midway,below]{\scriptsize transport redistributes $k$};
+\end{tikzpicture}
+\end{frame}
+
+% ----- 10. Production -----
+\begin{frame}{Production is a signed exchange with the mean flow}
+Because $R_{ij}$ is symmetric,
+\[
+  \mathcal P=-R_{ij}\partial_jU_i=-R_{ij}S_{ij},
+  \qquad
+  S_{ij}=\tfrac12(\partial_jU_i+\partial_iU_j).
+\]
+
+For a parallel shear flow $U=(U(y),0,0)$,
+\[
+  \mathcal P=-\mean{u'v'}\,\frac{\mathrm dU}{\mathrm dy}.
+\]
+
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.49\textwidth}
+\begin{block}{Common wall-flow signs}
+$\mathrm dU/\mathrm dy>0$ and $\mean{u'v'}<0$ give $\mathcal P>0$: mean energy feeds turbulence.
+\end{block}
+\end{column}
+\begin{column}{0.47\textwidth}
+\begin{alertblock}{Do not infer the sign from ``separation''}
+Separated shear often produces turbulence strongly, but local production can be negative.
+\end{alertblock}
+\end{column}
+\end{columns}
+\end{frame}
+
+% ----- 11. Boussinesq -----
+\begin{frame}{Boussinesq closes stress with a scalar eddy viscosity}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.57\textwidth}
+The linear eddy-viscosity hypothesis is
+\[
+  -R_{ij}=2\nu_tS_{ij}-\frac23k\delta_{ij},
+\]
+or equivalently $R_{ij}=\tfrac23k\delta_{ij}-2\nu_tS_{ij}$.
+
+For incompressible flow, absorb the isotropic part into
+\[
+  P^*=P+\frac23k.
+\]
+
+\begin{block}{Modeling task}
+Specify the scalar field $\nu_t\ge 0$ from algebra, auxiliary transport equations, or data.
+\end{block}
+\end{column}
+\begin{column}{0.40\textwidth}
+\centering
+\begin{tikzpicture}[x=0.82cm,y=0.82cm]
+  \fill[blue!5] (0,0) rectangle (4.5,3.5);
+  \draw[very thick] (0,0)--(4.5,0);
+  \draw[->,modelblue,very thick] (0.5,0.45)--(1.0,0.45);
+  \draw[->,modelblue,very thick] (0.5,1.05)--(1.75,1.05);
+  \draw[->,modelblue,very thick] (0.5,1.65)--(2.55,1.65);
+  \draw[->,modelblue,very thick] (0.5,2.25)--(3.25,2.25);
+  \draw[->,modelblue,very thick] (0.5,2.85)--(3.9,2.85);
+  \draw[dashed,modelorange,thick] (0.5,0.15)--(0.5,3.15);
+  \node[rotate=90] at (-0.25,1.75){\scriptsize wall normal $y$};
+  \node at (2.6,3.25){\scriptsize mean velocity $U(y)$};
+  \draw[<->,modelorange,thick] (4.05,0.25)--(4.05,2.95)
+    node[midway,right,align=left]{\scriptsize shear\\[-2pt]\scriptsize transports\\[-2pt]\scriptsize momentum};
+\end{tikzpicture}
+\end{column}
+\end{columns}
+\end{frame}
+
+% ----- 12. Constant eddy viscosity -----
+\begin{frame}{Zero-equation baseline: constant $\nu_t$}
+The simplest choice is
+\[
+  \nu_t=\text{constant},
+  \qquad
+  \nu_{\mathrm{eff}}=\nu+\nu_t.
+\]
+
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.48\textwidth}
+\begin{block}{Why keep this model?}
+It exposes the mechanism, is inexpensive, and can be calibrated for a narrow configuration.
+\end{block}
+\end{column}
+\begin{column}{0.48\textwidth}
+\begin{alertblock}{Why it is not predictive}
+One constant cannot represent wall damping, free-stream intermittency, spatially varying shear, or history effects.
+\end{alertblock}
+\end{column}
+\end{columns}
+
+\vspace{0.6em}
+\hi{Useful baseline question:} which observed behavior can be explained by enhanced momentum diffusion alone?
+\end{frame}
+
+% ----- 13. Mixing length -----
+\begin{frame}{Prandtl mixing length connects shear and momentum exchange}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.56\textwidth}
+For a parallel shear flow,
+\[
+  \nu_t=\ell_m^2\left|\frac{\mathrm dU}{\mathrm dy}\right|.
+\]
+The mixing length $\ell_m$ represents a displacement over which a fluid parcel retains velocity contrast.
+
+\begin{itemize}\itemsep3pt
+  \item In the logarithmic layer, $\ell_m\approx\kappa y$ with the von K\'arm\'an constant $\kappa\approx0.41$.
+  \item Near the wall and outside that layer, damping and outer-length caps are needed.
+  \item This algebraic form is not a general three-dimensional closure.
+\end{itemize}
+\end{column}
+\begin{column}{0.41\textwidth}
+\centering
+\begin{tikzpicture}[x=0.82cm,y=0.82cm,>=Latex]
+  \draw[very thick] (0,0)--(4.4,0);
+  \draw[modelblue,very thick] plot[smooth] coordinates{(0.3,0.15)(0.7,0.8)(1.45,1.6)(2.5,2.35)(3.8,2.9)};
+  \node[modelblue] at (3.05,3.25){\scriptsize $U(y)$};
+  \fill[modelorange] (1.35,1.55) circle (0.10);
+  \fill[modelorange] (2.25,2.18) circle (0.10);
+  \draw[<->,very thick,modelorange] (1.4,1.65) to[bend left=28] (2.15,2.2)
+    node[midway,above left]{\scriptsize $\ell_m$};
+  \draw[->,modelgray] (0.1,0)--(0.1,3.25) node[above]{$y$};
+  \node[align=center] at (2.45,0.5){\scriptsize parcel exchange\\\scriptsize creates $-\mean{u'v'}$};
+\end{tikzpicture}
+\end{column}
+\end{columns}
+\end{frame}
+
+% ----- 13b. Wall scaling and the log law -----
+\begin{frame}{Wall scaling and the log law}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.54\textwidth}
+Wall units are built from the friction velocity:
+\[
+  u_\tau=\sqrt{\frac{\tau_w}{\rho}},
+  \qquad
+  y^+=\frac{y\,u_\tau}{\nu},
+  \qquad
+  U^+=\frac{U}{u_\tau}.
+\]
+
+\begin{itemize}\itemsep3pt
+  \item \hi{Viscous sublayer:} $U^+=y^+$ for $y^+\lesssim5$.
+  \item \hi{Log layer:} $U^+=\dfrac1\kappa\ln y^++B$ with $\kappa\approx0.41$ and $B\approx5.0$--$5.2$, for $30\lesssim y^+\lesssim0.1$--$0.2\,\delta^+$.
+\end{itemize}
+\end{column}
+\begin{column}{0.43\textwidth}
+\centering
+\begin{tikzpicture}[x=0.95cm,y=0.62cm]
+  \draw[->,thick] (0,0)--(4.9,0) node[right]{\scriptsize $\ln y^+$};
+  \draw[->,thick] (0,0)--(0,4.3) node[above]{\scriptsize $U^+$};
+  \draw[modelgreen,very thick] (0.2,0.25)--(1.35,2.05);
+  \draw[modelblue,very thick] (2.05,2.55)--(4.35,3.85);
+  \draw[modelgray,thick,dashed] (1.35,2.05) .. controls (1.7,2.35) .. (2.05,2.55);
+  \node[modelgreen,anchor=west] at (0.15,2.75){\scriptsize $U^+=y^+$};
+  \node[modelblue,anchor=east] at (4.6,2.35){\scriptsize log layer};
+  \node[modelgray] at (1.75,1.15){\scriptsize buffer};
+\end{tikzpicture}
+\end{column}
+\end{columns}
+
+\vspace{0.4em}
+\begin{punchbox}
+A \hi{wall function} imposes this profile at the first cell instead of resolving the sublayer, and needs the first cell centre near $30<y^+<300$. A \hi{low-$\Rey$} model instead resolves to $y^+\approx1$.
+\end{punchbox}
+\end{frame}
+
+% ----- 14. Two equation models -----
+\begin{frame}{Two-equation models evolve turbulence scales}
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}L{0.18\textwidth}L{0.25\textwidth}L{0.20\textwidth}L{0.22\textwidth}@{}}
+\toprule
+\textbf{Family} & \textbf{Transported variables} & \textbf{Eddy viscosity} & \textbf{Key sensitivity}\\
+\midrule
+standard $k$--$\varepsilon$ & TKE $k$ and dissipation rate $\varepsilon$ & $\nu_t=C_\mu k^2/\varepsilon$ & near-wall treatment; separation\\[5pt]
+$k$--$\omega$ & TKE $k$ and specific dissipation $\omega$ & $\nu_t=k/\omega$ (Wilcox) & free-stream $\omega$; practical limiters\\[5pt]
+blended variants, e.g.\ Menter's SST $k$--$\omega$ (blending functions $F_1$, $F_2$ and a shear-stress limiter) & combine near-wall and outer-flow behavior & formulation dependent & calibration and blending functions\\
+\bottomrule
+\end{tabular}
+
+\vspace{0.4em}
+For the \emph{standard} $k$--$\varepsilon$ model, $C_\mu\approx0.09$ is a conventional empirical value; it is not universal across all variants.
+The standard constants are $C_\mu=0.09$, $C_{\varepsilon1}=1.44$, $C_{\varepsilon2}=1.92$, $\sigma_k=1.0$, $\sigma_\varepsilon=1.3$ (Launder \& Spalding 1974).
+
+\begin{punchbox}
+Extra PDEs introduce memory, transport, and length/time scales---but they do not remove modeling assumptions.
+\end{punchbox}
+\end{frame}
+
+% ----- 14b. The k-epsilon and k-omega transport equations -----
+\begin{frame}{The $k$--$\varepsilon$ and $k$--$\omega$ transport equations}
+\footnotesize
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.485\textwidth}
+\hi{Standard $k$--$\varepsilon$} \soft{(Launder \& Spalding 1974)}
+\begin{align*}
+  \partial_t k + U_j\partial_j k &= P_k-\varepsilon
+    +\partial_j\!\left[\left(\nu+\tfrac{\nu_t}{\sigma_k}\right)\partial_j k\right],\\
+  \partial_t \varepsilon + U_j\partial_j \varepsilon &= C_{\varepsilon1}\frac{\varepsilon}{k}P_k
+    -C_{\varepsilon2}\frac{\varepsilon^{2}}{k}
+    +\partial_j\!\left[\left(\nu+\tfrac{\nu_t}{\sigma_\varepsilon}\right)\partial_j \varepsilon\right],
+\end{align*}
+\vspace{-1.1em}
+\[
+  \nu_t=C_\mu\frac{k^{2}}{\varepsilon}.
+\]
+\vspace{-1.0em}
+\[
+  P_k=-\langle u_i'u_j'\rangle\,\partial_j U_i=2\nu_t S_{ij}S_{ij}.
+\]
+\vspace{-0.6em}
+
+Constants: $C_\mu=0.09$, $C_{\varepsilon1}=1.44$, $C_{\varepsilon2}=1.92$, $\sigma_k=1.0$, $\sigma_\varepsilon=1.3$.
+\end{column}
+\begin{column}{0.485\textwidth}
+\hi{Wilcox $k$--$\omega$} \soft{(1988 form; the 2006 revision adds a cross-diffusion limiter and restresses $\sigma$'s)}
+\begin{align*}
+  \partial_t k + U_j\partial_j k &= P_k-\beta^{*}k\omega
+    +\partial_j\!\left[\left(\nu+\sigma_k\nu_t\right)\partial_j k\right],\\
+  \partial_t \omega + U_j\partial_j \omega &= \alpha\frac{\omega}{k}P_k-\beta\omega^{2}
+    +\partial_j\!\left[\left(\nu+\sigma_\omega\nu_t\right)\partial_j \omega\right],
+\end{align*}
+\vspace{-1.1em}
+\[
+  \nu_t=\frac{k}{\omega}.
+\]
+\vspace{-0.6em}
+
+1988 constants: $\alpha=5/9$, $\beta=3/40$, $\beta^{*}=0.09$, $\sigma_k=\sigma_\omega=0.5$.
+
+\soft{Note $\varepsilon\approx\beta^{*}k\omega$, so $\omega$ is a specific dissipation rate.}
+\end{column}
+\end{columns}
+
+\vspace{0.3em}
+\begin{punchbox}
+\footnotesize
+$k$--$\varepsilon$ needs wall functions or damping terms near walls, because $\varepsilon$ does not behave well as $y\to0$.\\
+$k$--$\omega$ integrates cleanly to the wall but is sensitive to the free-stream value of $\omega$---which is exactly why Menter's SST blends $k$--$\omega$ near the wall with $k$--$\varepsilon$ in the outer flow.
+\end{punchbox}
+\end{frame}
+
+% ----- 15. SA -----
+\begin{frame}{Spalart--Allmaras: a one-equation aerodynamic model}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.58\textwidth}
+SA transports a modified kinematic viscosity $\tilde\nu$ and reconstructs
+\[
+  \nu_t=\tilde\nu f_{v1}.
+\]
+Its transport equation balances production, diffusion, and near-wall destruction, with wall distance $d$ entering the model.
+
+\begin{itemize}\itemsep3pt
+  \item designed for aerodynamic, predominantly attached boundary layers;
+  \item relatively economical and extensively used;
+  \item behavior in separation, transition, rotation, and free shear depends on variant and setup.
+\end{itemize}
+\end{column}
+\begin{column}{0.39\textwidth}
+\centering
+\begin{tikzpicture}[x=0.82cm,y=0.82cm]
+  \fill[blue!5] (0,0) rectangle (4.5,3.4);
+  \draw[very thick] (0,0)--(4.5,0);
+  \draw[modelblue,very thick] plot[smooth] coordinates{(0.15,0.05)(0.65,0.55)(1.45,1.05)(2.55,1.5)(3.9,1.75)};
+  \fill[modelorange] (1.7,1.17) circle (0.09);
+  \draw[<->,modelorange,thick] (1.7,0.03)--(1.7,1.12) node[midway,right]{$d$};
+  \node[modelblue] at (3.35,2.05){\scriptsize boundary-layer profile};
+  \node[draw,rounded corners,fill=modelgreen!12,align=center] at (2.4,2.75){\scriptsize transport $\tilde\nu$\\\scriptsize then compute $\nu_t$};
+\end{tikzpicture}
+
+\vspace{0.35em}
+{\scriptsize Model definition and variants: \href{https://tmbwg.github.io/turbmodels/spalart.html}{NASA Turbulence Modeling Resource}.}
+\end{column}
+\end{columns}
+\end{frame}
+
+% ----- 16. Separation -----
+\begin{frame}{Separation exposes limits of scalar eddy viscosity}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.50\textwidth}
+Adverse pressure gradients can decelerate near-wall fluid, producing reversal and a recirculation region.
+
+Linear eddy-viscosity models constrain stress anisotropy to align with the mean strain tensor. They may miss
+\begin{itemize}\itemsep3pt
+  \item anisotropy and curvature/rotation effects,
+  \item nonequilibrium response and history,
+  \item the onset and extent of separation.
+\end{itemize}
+
+\soft{This is a limitation of the closure class, not of Reynolds averaging itself.}
+\end{column}
+\begin{column}{0.47\textwidth}
+\centering
+\begin{tikzpicture}[x=0.78cm,y=0.78cm,>=Latex]
+  \draw[very thick] (0,0)--(5.7,0);
+  \foreach \y in {0.5,1.0,1.5,2.0}{
+    \draw[->,modelblue,thick] (0.1,\y)--(1.3+0.28*\y,\y);
+  }
+  \draw[modelorange,very thick,->] (1.6,0.12) .. controls (2.3,1.5) and (4.35,1.45) .. (5.25,0.16);
+  \draw[modelorange,very thick,->] (4.8,0.38) .. controls (4.0,0.95) and (2.75,0.85) .. (2.15,0.3);
+  \node[modelorange] at (3.5,1.65){\scriptsize separated shear layer};
+  \node[align=center] at (3.55,0.48){\scriptsize recirculation\\[-2pt]\scriptsize $U<0$ near wall};
+  \draw[->,modelgray] (4.9,2.6)--(5.7,2.6) node[right]{\scriptsize increasing $x$};
+  \node at (2.4,2.7){\scriptsize adverse $\mathrm dp/\mathrm dx>0$};
+\end{tikzpicture}
+\end{column}
+\end{columns}
+\end{frame}
+
+% ----- 17. RANS checkpoint -----
+\begin{frame}{RANS checkpoint: keep three layers distinct}
+\begin{enumerate}\itemsep8pt
+  \item \hi{Exact averaged equation:}
+  $R_{ij}=\mean{u_i'u_j'}$ appears through $-\partial_jR_{ij}$.
+  \item \hi{Constitutive hypothesis:}
+  a scalar eddy viscosity sets $-R_{ij}^{\mathrm{dev}}=2\nu_tS_{ij}$.
+  \item \hi{Model for $\nu_t$:}
+  constant, mixing length, $k$--$\varepsilon$, $k$--$\omega$, SA, or another closure.
+\end{enumerate}
+
+\begin{punchbox}
+\centering
+Changing the equation for $\nu_t$ cannot repair every limitation imposed by the scalar Boussinesq relation.
+\end{punchbox}
+\end{frame}
+
+% ----- 18. LES transition -----
+\begin{frame}{LES asks a different question}
+RANS asks: \emph{what are the statistics?}\\[3pt]
+LES asks: \emph{which motions can this grid resolve, and how do the rest affect them?}
+
+\vspace{0.6em}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.48\textwidth}
+\begin{block}{Resolve}
+Large, geometry-dependent, energy-containing motions and their unsteady transport.
+\end{block}
+\end{column}
+\begin{column}{0.48\textwidth}
+\begin{block}{Model}
+The effect of motions below the filter width, including energy transfer across the cutoff.
+\end{block}
+\end{column}
+\end{columns}
+
+\begin{alertblock}{Conditional advantage}
+LES can improve predictions of wakes and separated unsteadiness only when grid resolution, numerics, inflow, SGS closure, and wall treatment are adequate.
+\end{alertblock}
+\end{frame}
+
+% ----- 19. Filtering -----
+\begin{frame}{Filtering is not Reynolds averaging}
+Define a spatially filtered field by convolution,
+\[
+  \widetilde{u}_i(\xvec,t)
+  =\int G_\Delta(\xvec-\bm r)u_i(\bm r,t)\,\mathrm d\bm r.
+\]
+
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.53\textwidth}
+\begin{itemize}\itemsep4pt
+  \item $\widetilde u_i$ is a coarse-grained field, not generally an ensemble mean.
+  \item A finite-width filter is generally not idempotent: $\widetilde{\widetilde{u}}\ne\widetilde{u}$.
+  \item In implicit LES, grid and numerics help define the effective filter.
+\end{itemize}
+\end{column}
+\begin{column}{0.44\textwidth}
+\centering
+\begin{tikzpicture}[x=0.72cm,y=0.72cm]
+  \draw[modelgray,thin] plot[smooth] coordinates{(0,1.4)(0.35,2.25)(0.7,0.45)(1.0,2.65)(1.35,0.75)(1.7,2.0)(2.05,0.9)(2.4,2.45)(2.75,0.55)(3.1,1.75)(3.45,1.0)(3.8,2.1)(4.15,0.8)(4.5,1.6)};
+  \draw[modelblue,very thick] plot[smooth] coordinates{(0,1.5)(0.7,1.45)(1.4,1.55)(2.1,1.62)(2.8,1.35)(3.5,1.42)(4.5,1.38)};
+  \draw[<->,modelorange,thick] (1.3,0.15)--(2.7,0.15) node[midway,below]{$\Delta$};
+  \draw[dashed,modelorange] (1.3,0.25)--(1.3,2.85);
+  \draw[dashed,modelorange] (2.7,0.25)--(2.7,2.85);
+  \node[modelgray] at (3.95,2.65){\scriptsize $u$};
+  \node[modelblue] at (3.95,1.75){\scriptsize $\widetilde u$};
+\end{tikzpicture}
+\end{column}
+\end{columns}
+\end{frame}
+
+% ----- 20. Filtered equations -----
+\begin{frame}{Filtering the nonlinearity creates SGS stress}
+Assuming a homogeneous filter that commutes with differentiation,
+\begin{align*}
+  \partial_t\widetilde u_i+\widetilde u_j\partial_j\widetilde u_i
+  &= -\partial_i\widetilde p+\nu\partial_{jj}\widetilde u_i
+     -\partial_j\tau_{ij},\\
+  \partial_i\widetilde u_i&=0,
+\end{align*}
+with
+\[
+  \boxed{\tau_{ij}:=\widetilde{u_iu_j}-\widetilde u_i\widetilde u_j.}
+\]
+
+\begin{punchbox}
+There is no need to assert a unique additive ``subgrid velocity.'' The exact closure term is the difference between a filtered product and the product of filtered fields.
+\end{punchbox}
+\end{frame}
+
+% ----- 21. Filter width -----
+\begin{frame}{The LES cutoff is tied to grid and numerics}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.54\textwidth}
+In an explicit-filter view, $G_\Delta$ defines the cutoff. In many practical LES calculations, the discretization supplies an \emph{effective} filter.
+
+\begin{itemize}\itemsep4pt
+  \item Variable filter width and boundaries can make filtering and differentiation fail to commute.
+  \item A nominal SGS model cannot compensate for an under-resolved, overly dissipative, or dispersive scheme in every regime.
+  \item Report $\Delta$, mesh anisotropy, and numerical method with the closure.
+\end{itemize}
+\end{column}
+\begin{column}{0.43\textwidth}
+\centering
+\begin{tikzpicture}[x=0.58cm,y=0.58cm]
+  \foreach \i in {0,...,6}{\draw[modelgray!55] (\i,0) -- (\i,5);}
+  \foreach \j in {0,...,5}{\draw[modelgray!55] (0,\j) -- (6,\j);}
+  \fill[modelblue!20] (1,1) rectangle (4,4);
+  \draw[modelblue,very thick] (1,1) rectangle (4,4);
+  \node[modelblue,fill=white] at (2.5,2.5){\small filter support};
+  \draw[<->,modelorange,thick] (1,0.55)--(4,0.55) node[midway,fill=white]{$\Delta$};
+  \draw[modelgreen,very thick,->] (4.3,4.4) .. controls (5.0,4.0) and (5.3,3.2) .. (5.45,2.4);
+  \node[modelgreen,align=center] at (4.9,4.8){\scriptsize wall / changing\\[-2pt]\scriptsize resolution};
+\end{tikzpicture}
+\end{column}
+\end{columns}
+\end{frame}
+
+% ----- 22. Smagorinsky -----
+\begin{frame}{Smagorinsky closes the deviatoric SGS stress}
+The eddy-viscosity SGS hypothesis is
+\[
+  \tau_{ij}^{\mathrm{dev}}=-2\nu_{\mathrm{sgs}}\widetilde S_{ij},
+  \qquad
+  \widetilde S_{ij}=\tfrac12(\partial_j\widetilde u_i+\partial_i\widetilde u_j).
+\]
+The classical Smagorinsky model sets
+\[
+  \nu_{\mathrm{sgs}}=(C_s\Delta)^2|\widetilde S|,
+  \qquad
+  |\widetilde S|=\sqrt{2\widetilde S_{ij}\widetilde S_{ij}}.
+\]
+{\small $C_s\approx0.17$ for isotropic turbulence (Lilly), reduced to $\approx0.1$ in shear flows.}
+
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.52\textwidth}
+For $\nu_{\mathrm{sgs}}\ge0$, the modeled transfer is
+\[
+  \Pi=-\tau_{ij}\widetilde S_{ij}
+  =2\nu_{\mathrm{sgs}}\widetilde S_{ij}\widetilde S_{ij}\ge0.
+\]
+\end{column}
+\begin{column}{0.44\textwidth}
+\begin{alertblock}{Consequence}
+The basic model is purely dissipative and needs wall damping or a dynamic treatment near walls.
+\end{alertblock}
+\end{column}
+\end{columns}
+\end{frame}
+
+% ----- 23. Dynamic procedure -----
+\begin{frame}{The Germano procedure estimates coefficients from resolved scales}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.55\textwidth}
+Apply a second, wider \emph{test filter} $\widehat{(\cdot)}$ and use the identity
+\[
+  L_{ij}=T_{ij}-\widehat{\tau}_{ij}
+  =\widehat{\widetilde u_i\widetilde u_j}
+   -\widehat{\widetilde u}_i\widehat{\widetilde u}_j.
+\]
+A modeled form on both filter levels gives an equation for a local or averaged coefficient.
+
+\begin{itemize}\itemsep3pt
+  \item adapts to flow and resolution;
+  \item clipping/averaging is often used for robustness;
+  \item local backscatter can occur when the inferred coefficient is negative.
+\end{itemize}
+\end{column}
+\begin{column}{0.42\textwidth}
+\centering
+\begin{tikzpicture}[node distance=0.48cm,>=Latex]
+  \node[draw,rounded corners,fill=modelgray!10,minimum width=3.8cm] (raw) {velocity $u_i$};
+  \node[draw,rounded corners,fill=modelblue!12,below=of raw,minimum width=3.8cm] (grid) {grid filter $\Delta$: $\widetilde u_i$};
+  \node[draw,rounded corners,fill=modelorange!14,below=of grid,minimum width=3.8cm] (test) {test filter $\widehat\Delta$: $\widehat{\widetilde u}_i$};
+  \node[draw,rounded corners,fill=modelgreen!12,below=of test,minimum width=3.8cm] (coef) {fit model coefficient};
+  \draw[->,very thick,modelgray] (raw)--(grid);
+  \draw[->,very thick,modelgray] (grid)--(test);
+  \draw[->,very thick,modelgreen] (test)--(coef);
+\end{tikzpicture}
+\end{column}
+\end{columns}
+\end{frame}
+
+% ----- 24. Cascade -----
+\begin{frame}{The spectral picture motivates---but does not prove---eddy viscosity}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.52\textwidth}
+In three-dimensional turbulence, kinetic energy transfers toward smaller scales \emph{on average} through the inertial range and is dissipated near the Kolmogorov scale.
+
+\begin{itemize}\itemsep4pt
+  \item LES resolves $k\lesssim k_c$ (length scales $\gtrsim\Delta$); adequate numerical resolution is still required.
+  \item SGS models represent net transfer through that cutoff.
+  \item Instantaneous, local transfer can be upscale (backscatter).
+\end{itemize}
+
+\soft{The $-5/3$ spectrum is an inertial-range idealization, not a guarantee in every finite, anisotropic flow.}
+\end{column}
+\begin{column}{0.45\textwidth}
+\centering
+\begin{tikzpicture}[x=0.8cm,y=0.76cm]
+  \draw[->,thick] (0,0)--(5.4,0) node[right]{\scriptsize $\log k$};
+  \draw[->,thick] (0,0)--(0,4.1) node[above]{\scriptsize $\log E(k)$};
+  \draw[modelblue,very thick] plot[smooth] coordinates{(0.2,0.6)(0.8,3.4)(1.4,3.0)(2.2,2.55)(3.0,2.05)(3.8,1.5)(4.6,0.7)(5.0,0.22)};
+  \draw[dashed,modelorange,very thick] (3.55,0)--(3.55,2.0);
+  \node[modelorange] at (3.55,-0.35){\scriptsize $k_c$};
+  \draw[->,modelgreen,very thick] (1.15,3.65)--(3.15,2.35) node[midway,above right]{\scriptsize mean flux};
+  \node[modelblue] at (1.25,1.2){\scriptsize resolved};
+  \node[modelorange] at (4.35,1.8){\scriptsize SGS};
+  \node[rotate=-29,modelgray] at (2.4,2.95){\scriptsize $k^{-5/3}$};
+\end{tikzpicture}
+\end{column}
+\end{columns}
+\end{frame}
+
+% ----- 25. LES vs RANS -----
+\begin{frame}{LES versus RANS: compare requirements, not slogans}
+\small
+\begin{tabular}{@{}L{0.27\textwidth}L{0.32\textwidth}L{0.34\textwidth}@{}}
+\toprule
+& \textbf{RANS/URANS} & \textbf{LES}\\
+\midrule
+Primary output & mean or phase-resolved mean & filtered unsteady field plus statistics\\[3pt]
+Closure target & Reynolds stress $R_{ij}$ & SGS stress $\tau_{ij}$\\[3pt]
+Grid demand & resolve mean gradients and wall treatment & resolve energy-containing eddies; wall-resolved demand grows steeply with $\Rey$\\[3pt]
+Strength & economical design calculations & unsteady structures, mixing, wakes\\[3pt]
+Risk & closure bias in nonequilibrium flow & grid/numerics/inflow/wall-model dependence\\
+\bottomrule
+\end{tabular}
+
+\vspace{0.55em}
+\begin{punchbox}
+LES is not generically ``more accurate.'' Its advantage is conditional on resolving the motions that control the target quantity.
+\end{punchbox}
+\end{frame}
+
+% ----- 26. Wind farm -----
+\begin{frame}{Application: LES can expose interacting turbine wakes}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.48\textwidth}
+Wind-farm calculations illustrate why resolved unsteadiness matters:
+\begin{itemize}\itemsep4pt
+  \item atmospheric turbulence enters the array;
+  \item rotating turbines extract momentum;
+  \item wakes expand, meander, and merge;
+  \item downstream power and loading depend on recovery.
+\end{itemize}
+
+\soft{The turbine and near-wall physics may still require actuator and wall models.}
+\end{column}
+\begin{column}{0.49\textwidth}
+\centering
+\begin{tikzpicture}[x=0.72cm,y=0.72cm]
+  \fill[blue!4] (0,0) rectangle (7.0,4.1);
+  \foreach \x/\y in {1.0/2.8,2.6/1.4,4.0/3.0,5.6/1.65}{
+    \draw[modelgray,thick] (\x,\y-0.7)--(\x,\y);
+    \draw[modelgray,thick] (\x,\y) circle (0.45);
+    \draw[modelgray,thick] (\x,\y)--(\x+0.42,\y+0.12);
+    \draw[modelgray,thick] (\x,\y)--(\x-0.12,\y-0.42);
+    \draw[modelgray,thick] (\x,\y)--(\x-0.30,\y+0.32);
+    \draw[modelblue!55,line width=8pt,opacity=0.25] (\x+0.48,\y) .. controls (\x+1.0,\y+0.18) and (\x+1.4,\y-0.25) .. (\x+2.1,\y+0.1);
+  }
+  \foreach \a/\b/\c/\d in {0.2/0.6/1.0/0.7,1.2/3.7/2.0/3.5,3.0/0.5/4.2/0.8,4.4/3.8/5.4/3.55,5.8/0.6/6.7/0.9}{
+    \draw[decorate,decoration={snake,amplitude=1.2pt,segment length=5pt},modelorange,->] (\a,\b)--(\c,\d);
+  }
+  \node[modelblue] at (5.55,3.95){\scriptsize velocity-deficit wakes};
+  \node[modelorange] at (1.7,0.25){\scriptsize resolved atmospheric eddies};
+\end{tikzpicture}
+\end{column}
+\end{columns}
+\end{frame}
+
+% ----- 27. DES -----
+\begin{frame}{Hybrid RANS--LES partitions modeled and resolved regions}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.52\textwidth}
+Detached-Eddy Simulation (DES) was introduced as an SA-based method that uses a grid-sensitive length scale:
+\begin{itemize}\itemsep4pt
+  \item RANS-like behavior in attached near-wall layers;
+  \item LES-like behavior where the grid supports separated eddies.
+\end{itemize}
+
+It is not a sharp switch based only on ``steady'' versus ``unsteady'' flow. Grid-induced separation and modeled-stress depletion motivated shielding strategies such as DDES.
+\end{column}
+\begin{column}{0.45\textwidth}
+\centering
+\begin{tikzpicture}[x=0.75cm,y=0.75cm]
+  \fill[modelorange!15] (0,0) rectangle (5.8,0.85);
+  \fill[modelblue!12] (0,0.85) rectangle (5.8,3.8);
+  \draw[very thick] (0,0)--(5.8,0);
+  \draw[modelgreen,very thick] (0.2,0.2) .. controls (1.7,0.7) and (2.35,1.6) .. (2.7,2.2)
+    .. controls (3.25,3.0) and (4.5,3.15) .. (5.6,2.55);
+  \draw[modelgreen,very thick,->] (4.95,2.05) .. controls (4.1,1.35) and (3.25,1.5) .. (2.9,2.25);
+  \node[modelorange] at (1.25,0.43){\scriptsize RANS shield};
+  \node[modelblue] at (4.35,3.45){\scriptsize resolved wake eddies};
+  \draw[dashed,modelgray] (2.35,0)--(2.35,3.4);
+  \node[rotate=90,modelgray] at (2.17,2.7){\scriptsize separation};
+\end{tikzpicture}
+\end{column}
+\end{columns}
+\end{frame}
+
+% ----- 28. ML -----
+\begin{frame}{Machine-learned closure must survive the solver loop}
+\centering
+\begin{tikzpicture}[node distance=0.7cm,>=Latex]
+  \node[draw,rounded corners,fill=modelblue!12,minimum width=3.0cm] (data) {DNS / experiments};
+  \node[draw,rounded corners,fill=modelgreen!12,right=of data,minimum width=3.0cm] (fit) {learned closure};
+  \node[draw,rounded corners,fill=modelorange!14,right=of fit,minimum width=3.0cm] (solver) {RANS / LES solver};
+  \node[draw,rounded corners,fill=modelgray!12,below=0.75cm of fit,minimum width=3.0cm] (test) {a posteriori test};
+  \draw[->,very thick,modelgray] (data)--(fit);
+  \draw[->,very thick,modelgray] (fit)--(solver);
+  \draw[->,very thick,modelgray] (solver)--(test);
+  \draw[->,very thick,modelgray] (test)--(fit);
+\end{tikzpicture}
+
+\vspace{0.65em}
+Useful training accuracy is not sufficient. A closure should respect relevant
+\begin{itemize}\itemsep3pt
+  \item symmetries/invariance and dimensional consistency;
+  \item realizability and appropriate energy transfer;
+  \item numerical stability and out-of-distribution behavior;
+  \item coupled, \emph{a posteriori} performance in the PDE solver.
+\end{itemize}
+\end{frame}
+
+% ----- 29. Summary -----
+\begin{frame}{A closure decision tree}
+\centering
+\begin{tikzpicture}[scale=0.90,transform shape,node distance=0.55cm and 0.65cm,>=Latex]
+  \node[draw,rounded corners,fill=modelblue!12,minimum width=3.4cm] (qoi) {What quantity and accuracy?};
+  \node[draw,rounded corners,fill=modelgreen!12,below left=0.8cm and 1.0cm of qoi,minimum width=3.2cm] (mean) {mean loads / design sweep};
+  \node[draw,rounded corners,fill=modelorange!14,below right=0.8cm and 1.0cm of qoi,minimum width=3.2cm] (unsteady) {unsteady wakes / mixing};
+  \node[draw,rounded corners,fill=modelgreen!8,below=of mean,minimum width=3.2cm] (rans) {RANS + validated closure};
+  \node[draw,rounded corners,fill=modelorange!10,below=of unsteady,minimum width=3.2cm] (les) {LES or hybrid + resolution study};
+  \node[draw,rounded corners,fill=modelgray!10,below=0.75cm of $(rans)!0.5!(les)$,minimum width=5.4cm] (verify) {verify numerics; validate the target output};
+  \draw[->,very thick,modelgray] (qoi)--(mean);
+  \draw[->,very thick,modelgray] (qoi)--(unsteady);
+  \draw[->,very thick,modelgray] (mean)--(rans);
+  \draw[->,very thick,modelgray] (unsteady)--(les);
+  \draw[->,very thick,modelgray] (rans)--(verify);
+  \draw[->,very thick,modelgray] (les)--(verify);
+\end{tikzpicture}
+
+\vspace{0.65em}
+\begin{punchbox}
+\centering
+RANS averages; LES filters. Both create exact unresolved stresses, and every practical closure carries assumptions that must be tested in the intended regime.
+\end{punchbox}
+\end{frame}
+
+% ----- 30. References -----
+\begin{frame}{Primary sources and durable resources}
+\footnotesize
+\begin{itemize}\itemsep4pt
+  \item J. Smagorinsky, ``General circulation experiments with the primitive equations. I. The basic experiment,'' \emph{Monthly Weather Review} 91 (1963), 99--164. \href{https://doi.org/10.1175/1520-0493(1963)091\%3C0099:GCEWTP\%3E2.3.CO;2}{\texttt{doi:10.1175/1520-0493(1963)091\textless{}0099:GCEWTP\textgreater{}2.3.CO;2}}.
+  \item M. Germano, U. Piomelli, P. Moin, and W. H. Cabot, ``A dynamic subgrid-scale eddy viscosity model,'' \emph{Physics of Fluids A} 3 (1991), 1760--1765. \href{https://doi.org/10.1063/1.857955}{doi:10.1063/1.857955}.
+  \item P. R. Spalart and S. R. Allmaras, ``A one-equation turbulence model for aerodynamic flows,'' AIAA Paper 92-0439 (1992). \href{https://doi.org/10.2514/6.1992-439}{doi:10.2514/6.1992-439}.
+  \item P. R. Spalart, W.-H. Jou, M. Strelets, and S. R. Allmaras, ``Comments on the feasibility of LES for wings, and on a hybrid RANS/LES approach,'' Advances in DNS/LES (1997).
+  \item NASA Langley Turbulence Modeling Resource: \href{https://tmbwg.github.io/turbmodels/}{tmbwg.github.io/turbmodels/} (equations, variants, and verification cases).
+  \item Adapted in part from educational material by Steven L. Brunton.
 \end{itemize}
 \end{frame}
 

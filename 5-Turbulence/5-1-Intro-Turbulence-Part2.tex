@@ -1,11 +1,28 @@
-\documentclass[aspectratio=169]{beamer}
+\documentclass[aspectratio=169,11pt]{beamer}
 
-\usetheme{Madrid}
-\usecolortheme{default}
+% Match the visual language of the SIAM Waves talk.
+\usetheme{Boadilla}
+\usecolortheme{seahorse}
+\useinnertheme{rectangles}
+\useoutertheme{infolines}
+
+\setbeamercolor{structure}{fg=blue!55!black}
+\setbeamercolor{title}{fg=white,bg=blue!55!black}
+\setbeamercolor{frametitle}{fg=blue!55!black}
+\setbeamercolor{block title}{bg=blue!12,fg=blue!55!black}
+\setbeamercolor{block body}{bg=blue!4}
 \setbeamertemplate{navigation symbols}{}
+\setbeamerfont{frametitle}{series=\bfseries,size=\large}
+\setbeamerfont{title}{series=\bfseries,size=\Large}
 
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\DeclareFontShape{T1}{cmss}{b}{n}{<->ssub*cmss/bx/n}{}
 \usepackage{amsmath, amssymb, bm}
 \usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true,urlcolor=blue!55!black}
 
 % ---------- Macros ----------
 \newcommand{\R}{\mathbb{R}}
@@ -19,15 +36,36 @@
 % \usepackage{pgfpages}
 % \setbeameroption{show notes on second screen=right}
 
-\title[Turbulence: What is it?]{What is Turbulence?\\Key Features, Examples, and Why It Matters}
-\author{
-\href{https://cassyni.com/events/HsafxyMiJvA1JVCU9eef3T/seminar}{(adapted from Steve Brunton lecture)}}
+\title[Turbulence: canonical flows]{Turbulence through canonical flows}
+\subtitle{Transition, spectra, examples, data, and computation}
+\author[Miller]{Laura A. Miller}
+\institute[UArizona]{Department of Mathematics, University of Arizona}
 \date{}
 
 \begin{document}
 % -------------------------
-\begin{frame}
-  \titlepage
+\begin{frame}[plain]
+  \begin{beamercolorbox}[sep=10pt,center]{title}
+    {\bfseries\Large Turbulence through canonical flows}\\[3pt]
+    {\normalsize Transition, spectra, examples, data, and computation}
+  \end{beamercolorbox}
+  \vspace{1.35em}
+  \begin{columns}[T,onlytextwidth]
+  \begin{column}{0.55\textwidth}
+    \textbf{\large Laura A. Miller}\\[4pt]
+    Department of Mathematics\\
+    University of Arizona\\[12pt]
+    {\small IBFE Tutorials}
+  \end{column}
+  \begin{column}{0.45\textwidth}
+    \begin{block}{Guiding idea}
+    Canonical flows isolate mechanisms that recur in more complicated systems.
+    \end{block}
+  \end{column}
+  \end{columns}
+  \vfill
+  {\scriptsize Adapted from a \href{https://cassyni.com/events/HsafxyMiJvA1JVCU9eef3T/seminar}{lecture by Steven L. Brunton}.}
+  \\[2pt]{\tiny AI tools were used to assist with formatting, organization, and clarification of the instructor's original notes.}
 \end{frame}
 
 % -------------------------
@@ -47,7 +85,7 @@
 \begin{columns}[T,onlytextwidth]
 \column{0.56\textwidth}
 \begin{itemize}
-  \item Turbulence is a \emph{multi-scale}, \emph{history-dependent} dynamics problem.
+  \item Turbulence is a \emph{multiscale}, nonlinear dynamics problem whose observed state can depend on disturbance history.
   \item Small perturbations can grow, interact, and reorganize the flow.
   \item Many flows are \emph{linearly stable} yet become turbulent through finite-amplitude disturbances.
   \item Predicting transition and statistics (drag, mixing, heat transfer, intermittency) is still challenging.
@@ -57,7 +95,9 @@
 \includegraphics[width=\textwidth]{pictures/5-1/turbulence.png}
 
 \vspace{0.35em}
-{\footnotesize A classic motivation appears in the \emph{Feynman Lectures} (Vol.\ II) discusses why predicting real flows is so difficult.}
+{\scriptsize Source: to be confirmed.}
+
+{\footnotesize The \emph{Feynman Lectures} (Vol.\ II, Ch.~41) give a classic discussion of why real viscous flows are difficult to predict.}
 \end{columns}
 \end{frame}
 
@@ -75,18 +115,20 @@ A small set of ``canonical'' configurations show up \emph{everywhere}.  Learn th
 \end{block}
 \column{0.4\textwidth}
 \includegraphics[width=0.75\textwidth]{pictures/5-1/album.png}
+
+{\scriptsize M. Van Dyke, \emph{An Album of Fluid Motion} (Parabolic Press, 1982), cover.}
 \end{columns}
 \end{frame}
 
 % -------------------------
 \begin{frame}{A minimal tool: Reynolds number}
 \begin{itemize}
-  \item Reynolds number compares inertia to viscosity:
+  \item For chosen velocity and length scales, Reynolds number compares inertia to viscosity:
   \[
     \mathrm{Re}=\frac{UL}{\nu}.
   \]
-  \item ``High'' \(\mathrm{Re}\) often means stronger instabilities, thinner boundary layers, and wider separation of scales.
-  \item But \(\mathrm{Re}\) alone does \emph{not} determine the outcome:
+  \item ``High'' \(\mathrm{Re}\) often permits thinner shear layers and wider scale separation, but does not guarantee turbulence.
+  \item Treat \(\mathrm{Re}\) as a control parameter, not a universal one-to-one label for complexity:
   geometry, forcing, roughness, and disturbance history matter.
 \end{itemize}
 \end{frame}
@@ -103,25 +145,27 @@ A small set of ``canonical'' configurations show up \emph{everywhere}.  Learn th
 \column{0.5\textwidth}
 \begin{itemize}
   \item Classic internal flow: long straight pipe, pressure-driven.
-  \item Laminar solution exists for all \(\mathrm{Re}\), but becomes \emph{fragile} to disturbances.
+  \item The Hagen--Poiseuille solution exists for every \(\mathrm{Re}\) and is linearly stable (proved for axisymmetric disturbances; computed stable to \(\mathrm{Re}=10^{7}\), Meseguer \& Trefethen 2003), yet finite-amplitude disturbances can trigger turbulence.
   \item Transition often involves localized ``puffs'' and ``slugs'' (intermittency).
   \item Active control is possible: carefully designed perturbations can suppress turbulence (drag reduction).
 \end{itemize}
 \column{0.45\textwidth}
 \includegraphics[width=\textwidth]{pictures/5-1/t_0300.jpg}
+
+{\scriptsize Source: to be confirmed.}
 \end{columns}
 \end{frame}
 
 %-------------------------------
 \begin{frame}{Pipe flow: Slugs and puffs}
 \begin{itemize}
-\item At high velocities, the flow is turbulent, and at intermediate velocities, transitional. 
-\item The transitional flow is a mix of eddying flows and laminar flows. 
-\item The eddying flows come in different varieties. 
+\item Transitional pipe flow can coexist with laminar regions and is intrinsically intermittent.
+\item Localized turbulent structures have distinct dynamics:
 \begin{itemize}
-\item "Slugs" grow aggressively as they flow downstream; 
-\item "Puffs" maintain a fixed size as they flow downstream. 
+\item \textbf{puffs} remain localized while advecting and may decay or split stochastically;
+\item at higher \(\mathrm{Re}\), \textbf{slugs} expand by turbulent invasion at their fronts.
 \end{itemize}
+\item The crossover is a range of behavior rather than a single universal threshold.
 \end{itemize}
 
 \centering
@@ -132,16 +176,25 @@ A small set of ``canonical'' configurations show up \emph{everywhere}.  Learn th
 \end{frame}
 
 %-------------------
-\begin{frame}{Puffs and slugs}
+\begin{frame}{Puffs, slugs, and spectral similarity}
+\begin{columns}[T,onlytextwidth]
+\column{0.54\textwidth}
 \begin{itemize}
-\item Schematic of energy spectra corresponding to the flow inside the marked regions. 
-\item Regardless of the flow variety, the energy spectrum is universal for small eddies.
+\item The image sketches spectra sampled from the marked pipe-flow regions.
+\item For high-$\Rey$, locally isotropic \textbf{3D} turbulence, Kolmogorov similarity hypothesizes an inertial range
+\[
+E(k)=C_K\varepsilon^{2/3}k^{-5/3}.
+\]
+\item This is asymptotic and statistical---not exact universality. Intermittency, anisotropy, walls, forcing, and finite $\Rey$ produce deviations.
+\item A 2D inverse-energy cascade may also have a $-5/3$ range, but its transfer direction and mechanism differ; enstrophy transfers downscale.
 \end{itemize}
+\column{0.43\textwidth}
 \centering
-\includegraphics[width=0.75\textwidth]{pictures/5-1/1-goingwiththe.jpg}
+\includegraphics[width=\textwidth]{pictures/5-1/1-goingwiththe.jpg}
 
-\vspace{0.35em}
-{\footnotesize Source: https://phys.org/news/2020-01-insights-mysterious-fluid-motions.html}
+\vspace{0.25em}
+{\scriptsize Source image: \href{https://phys.org/news/2020-01-insights-mysterious-fluid-motions.html}{Phys.org (2020)}.}
+\end{columns}
 
 \end{frame}
 
@@ -151,7 +204,7 @@ A small set of ``canonical'' configurations show up \emph{everywhere}.  Learn th
 \column{0.5\textwidth}
 \begin{itemize}
   \item Flow past a body leaves a \emph{wake} with a velocity deficit and strong shear.
-  \item Vortex shedding (\(\rightarrow\) K\'arm\'an vortex street) produces unsteady loading and noise.
+  \item Bluff bodies can shed a K\'arm\'an vortex street, producing unsteady loading and noise; lifting surfaces also generate trailing and tip vortices.
   \item Wakes are central to:
   \begin{itemize}
     \item aircraft wing tips and propellers,
@@ -161,6 +214,8 @@ A small set of ``canonical'' configurations show up \emph{everywhere}.  Learn th
 \end{itemize}
 \column{0.45\textwidth}
 \includegraphics[width=\textwidth]{pictures/5-1/t_0360.jpg}
+
+{\scriptsize Source: to be confirmed.}
 \end{columns}
 \end{frame}
 
@@ -181,7 +236,8 @@ A small set of ``canonical'' configurations show up \emph{everywhere}.  Learn th
 \end{itemize}
 \column{0.44\textwidth}
 \includegraphics[width=\textwidth]{pictures/5-1/turbulent-boundary.png}
-{\footnotesize Source: Dou, Hua-Shu. (2018). Singularity of Navier-Stokes Equations. 10.48550/arXiv.1805.12053.} 
+
+{\scriptsize Smoke visualization of a turbulent boundary layer; Van Dyke, \emph{An Album of Fluid Motion} (turbulent boundary layer plate; also reproduced in Dou 2018).}
 \end{columns}
 \end{frame}
 
@@ -191,7 +247,7 @@ A small set of ``canonical'' configurations show up \emph{everywhere}.  Learn th
 \includegraphics[width=0.92\textwidth]{pictures/5-1/boundary-layer.png}
 \vspace{0.35em}
 
-{\footnotesize Source: https://www.grasacoustics.com/blog/aerodynamic-measurements-components-of-the-boundary-layer}
+{\scriptsize Boundary-layer schematic after GRAS Sound \& Vibration, \emph{The boundary layer---laminar and turbulent flows} (blog; source to confirm), \url{https://www.grasacoustics.com/blog/aerodynamic-measurements-components-of-the-boundary-layer}.}
 \end{frame}
 
 % -------------------------
@@ -199,11 +255,11 @@ A small set of ``canonical'' configurations show up \emph{everywhere}.  Learn th
 \begin{columns}[T,onlytextwidth]
 \column{0.58\textwidth}
 \begin{itemize}
-  \item A shear layer forms over a cavity opening.
-  \item Feedback between shear-layer instability and acoustic/pressure waves can create resonant oscillations.
-  \item Applications:
+  \item In an \textbf{open engineering cavity}, a shear layer spans the opening; pressure/acoustic feedback can create resonant oscillations.
+  \item An intracranial aneurysm is instead a \textbf{cavity-like recirculating flow}: pulsatility, geometry, and vessel-wall conditions shape its hemodynamics.
+  \item Related applications:
   \begin{itemize}
-    \item flow over developing heart chambers, aneurysms,
+    \item aneurysm inflow jets and recirculation,
     \item gaps, steps, and surface defects,
     \item flow-induced vibration.
   \end{itemize}
@@ -220,6 +276,16 @@ A small set of ``canonical'' configurations show up \emph{everywhere}.  Learn th
 % More complex flows and resources
 % =========================
 
+% -------------------------
+\begin{frame}{Jets, mixing layers, and separated flows (overview)}
+\begin{itemize}\itemsep4pt
+  \item \textbf{Round jet:} downstream of the potential core the mean profile becomes \emph{self-similar}, the half-width grows roughly linearly with a spreading angle of order $10$--$12^\circ$, and Kelvin--Helmholtz roll-up of the annular shear layer seeds the initial vortex rings.
+  \item \textbf{Plane mixing layer:} two streams of different speed produce the Brown--Roshko coherent spanwise rollers, which pair and merge; the growth rate scales with the velocity ratio $(U_1-U_2)/(U_1+U_2)$ rather than with $\mathrm{Re}$.
+  \item \textbf{Separated flows:} a backward-facing step separates at a fixed geometric edge; at high $\mathrm{Re}$ the mean reattachment length is about $6$--$7$ step heights, and the shear layer, recirculation bubble, and reattachment zone each have their own statistics.
+  \item \textbf{Combinations:} real configurations superpose these---a jet issuing into a cavity, a wake feeding a mixing layer, a step downstream of a boundary layer.
+  \item \textbf{Multi-scale physics:} geometry sets the large scales; viscosity sets the small ones. The gap between them is what makes prediction expensive.
+\end{itemize}
+\end{frame}
 
 % -------------------------
 \begin{frame}{Open data: turbulence databases}
@@ -227,7 +293,7 @@ A small set of ``canonical'' configurations show up \emph{everywhere}.  Learn th
 \column{0.57\textwidth}
 \begin{itemize}
   \item Public datasets let you test ideas without running a massive DNS yourself.
-  \item \href{https://turbulence.idies.jhu.edu/home}{Example: Johns Hopkins Turbulence Databases (JHTDB)}  
+  \item \href{https://turbulence.pha.jhu.edu/}{Example: Johns Hopkins Turbulence Databases (JHTDB)}
   \begin{itemize}
     \item isotropic turbulence, channel flow, boundary layers, geophysical, \ldots
     \item query-able via web/API-style interfaces
@@ -236,6 +302,8 @@ A small set of ``canonical'' configurations show up \emph{everywhere}.  Learn th
 \end{itemize}
 \column{0.43\textwidth}
 \includegraphics[width=\textwidth]{pictures/5-1/JHU-dataset.png}
+
+{\scriptsize Johns Hopkins Turbulence Databases, \href{https://turbulence.pha.jhu.edu/}{turbulence.pha.jhu.edu}.}
 \end{columns}
 \end{frame}
 
@@ -245,7 +313,7 @@ A small set of ``canonical'' configurations show up \emph{everywhere}.  Learn th
 \column{0.52\textwidth}
 \begin{block}{Two common ecosystems}
 \begin{itemize}
-  \item \href{https://www.openfoam.com/}{\textbf{OpenFOAM}}: finite-volume framework with many RANS/LES solvers; strong community support.
+  \item \href{https://openfoam.org/}{\textbf{OpenFOAM}}: open-source finite-volume framework with many RANS/LES solvers.
   \item \href{https://nek5000.mcs.anl.gov/}{\textbf{Nek5000}}: high-order spectral-element code; widely used for DNS/LES in complex geometries.
 \end{itemize}
 \end{block}
@@ -254,6 +322,8 @@ A small set of ``canonical'' configurations show up \emph{everywhere}.  Learn th
 \end{itemize}
 \column{0.44\textwidth}
 \includegraphics[width=\textwidth]{pictures/5-1/nek5000-1000x500.jpg}
+
+{\scriptsize Nek5000 project banner image, Argonne National Laboratory, \href{https://nek5000.mcs.anl.gov/}{nek5000.mcs.anl.gov}.}
 \end{columns}
 \end{frame}
 
@@ -267,5 +337,17 @@ A small set of ``canonical'' configurations show up \emph{everywhere}.  Learn th
 
 \vspace{0.8em}
 
+\end{frame}
+
+\begin{frame}{Selected references and source notes}
+\scriptsize
+\begin{itemize}
+  \item R. P. Feynman, R. B. Leighton, and M. Sands, \emph{The Feynman Lectures on Physics}, Vol.~II, Ch.~41, \href{https://www.feynmanlectures.caltech.edu/II_41.html}{``The Flow of Wet Water''}.
+  \item K. Avila, D. Moxey, A. de Lozar, M. Avila, D. Barkley, and B. Hof, ``The onset of turbulence in pipe flow,'' \emph{Science} \textbf{333} (2011), 192--196. \href{https://doi.org/10.1126/science.1203223}{doi:10.1126/science.1203223}.
+  \item A. N. Kolmogorov, ``The local structure of turbulence in incompressible viscous fluid for very large Reynolds numbers,'' \emph{Proc. R. Soc. A} \textbf{434} (1991 translation), 9--13. \href{https://doi.org/10.1098/rspa.1991.0075}{doi:10.1098/rspa.1991.0075}.
+  \item R. H. Kraichnan, ``Inertial ranges in two-dimensional turbulence,'' \emph{Phys. Fluids} \textbf{10} (1967), 1417--1423. \href{https://doi.org/10.1063/1.1762301}{doi:10.1063/1.1762301}.
+  \item H. Schlichting and K. Gersten, \emph{Boundary-Layer Theory}, 9th ed., Springer (2017).
+  \item Official resources: \href{https://turbulence.pha.jhu.edu/}{JHTDB}, \href{https://openfoam.org/}{OpenFOAM Foundation}, and \href{https://nek5000.mcs.anl.gov/}{Nek5000}.
+\end{itemize}
 \end{frame}
 \end{document}
