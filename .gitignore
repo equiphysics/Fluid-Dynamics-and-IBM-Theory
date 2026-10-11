@@ -1,0 +1,19 @@
+# Operating-system and editor files
+.DS_Store
+~$*
+*~
+
+# LaTeX by-products (the compiled PDFs are kept)
+*.aux
+*.log
+*.nav
+*.out
+*.snm
+*.toc
+*.vrb
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+
+# Publishers' PDFs stay on your own computer; papers/README.md links to them
+papers/*.pdf
