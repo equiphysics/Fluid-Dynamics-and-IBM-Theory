@@ -1,5 +1,5 @@
 % =====================================================================
-% ibfe-tutorials.sty -- shared Beamer style for the IBFE Tutorials decks.
+% ib-tutorials.sty -- shared Beamer style for the Fluid Dynamics and IBM Theory decks.
 %
 % Ported from the UF Animal Sciences 2026 talk (presentation.sty), which is
 % itself a port of pmichaillat/latex-presentation: grayscale palette,
@@ -13,12 +13,12 @@
 %
 % Load from any deck with
 %   \makeatletter\def\input@path{{./}{../}}\makeatother
-%   \usepackage{ibfe-tutorials}
+%   \usepackage{ib-tutorials}
 % so the file is found both from the repository root (Overleaf) and from the
 % deck's own folder.
 % =====================================================================
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{ibfe-tutorials}[2026/10/11 IBFE Tutorials Beamer style]
+\ProvidesPackage{ib-tutorials}[2026/10/11 Fluid Dynamics and IBM Theory Beamer style]
 
 % ---- Text fonts: Helvetica stand-in for Source Sans Pro, CM math ----
 \usefonttheme{professionalfonts}
@@ -142,7 +142,7 @@
   \vfill}
 
 % AI-use disclosure shown on every tutorial title slide
-\newcommand{\aidisclosure}{AI tools were used to assist with formatting, organization, and clarification of the instructor's original notes.}
+\newcommand{\aidisclosure}{Claude (Anthropic) was used to assist with formatting, organization, and clarification of the instructor's original notes.}
 
 % \maketutorialtitle[<image path>]  -- place inside \begin{frame}[plain]...\end{frame}
 % Mirrors slide 1 of the UF talk: lowercase small-caps title and rule on the

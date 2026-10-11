@@ -1,11 +1,11 @@
 % =====================================================================
-% IBFE Tutorials: pipe flow and transition to turbulence
+% Fluid Dynamics and IBM Theory: pipe flow and transition to turbulence
 % =====================================================================
 \documentclass[aspectratio=169,11pt]{beamer}
 
-% Shared style, ported from the UF Animal Sciences 2026 talk (ibfe-tutorials.sty at the repo root).
+% Shared style, ported from the UF Animal Sciences 2026 talk (ib-tutorials.sty at the repo root).
 \makeatletter\def\input@path{{./}{../}}\makeatother
-\usepackage{ibfe-tutorials}
+\usepackage{ib-tutorials}
 
 \usepackage[utf8]{inputenc}
 \usepackage{amsmath,amssymb,bm,mathtools}
@@ -31,14 +31,14 @@
 \newcommand{\xvec}{\bm{x}}
 \newcommand{\mean}[1]{\overline{#1}}
 \newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
-% The title slide uses \maketutorialtitlepanel{...} from ibfe-tutorials.sty,
+% The title slide uses \maketutorialtitlepanel{...} from ib-tutorials.sty,
 % which places arbitrary content (here a TikZ sketch) in the right-hand column.
 
 \title[Pipe transition]{Pipe flow and transition to turbulence}
 \subtitle{A controlled baseline for thinking about aortic flow}
 \author[Miller]{Laura A. Miller}
 \institute[UArizona]{Department of Mathematics, University of Arizona}
-\date{IBFE Tutorials \textbullet\ Module 5}
+\date{Fluid Dynamics and IBM Theory \textbullet\ Module 5}
 
 \begin{document}
 
