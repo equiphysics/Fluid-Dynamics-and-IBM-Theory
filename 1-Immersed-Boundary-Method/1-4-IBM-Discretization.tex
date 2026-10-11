@@ -3,24 +3,11 @@
 % =====================================================================
 \documentclass[aspectratio=169,11pt]{beamer}
 
-% Match the visual language of the SIAM Waves talk.
-\usetheme{Boadilla}
-\usecolortheme{seahorse}
-\useinnertheme{rectangles}
-\useoutertheme{infolines}
+% Shared style, ported from the UF Animal Sciences 2026 talk (ibfe-tutorials.sty at the repo root).
+\makeatletter\def\input@path{{./}{../}}\makeatother
+\usepackage{ibfe-tutorials}
 
-\setbeamercolor{structure}{fg=blue!55!black}
-\setbeamercolor{title}{fg=white,bg=blue!55!black}
-\setbeamercolor{frametitle}{fg=blue!55!black}
-\setbeamercolor{block title}{bg=blue!12,fg=blue!55!black}
-\setbeamercolor{block body}{bg=blue!4}
-\setbeamertemplate{navigation symbols}{}
-\setbeamerfont{frametitle}{series=\bfseries,size=\large}
-\setbeamerfont{title}{series=\bfseries,size=\Large}
-
-\usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
-\DeclareFontShape{T1}{cmss}{b}{n}{<->ssub*cmss/bx/n}{}
 \usepackage{graphicx}
 \usepackage{amsmath,amssymb,bm}
 \usepackage{booktabs}
@@ -30,61 +17,34 @@
 \usepackage{hyperref}
 
 \graphicspath{{../pictures/}{../pictures/1-2/}{pictures/}{pictures/1-2/}}
-\hypersetup{colorlinks=true,urlcolor=blue!55!black}
 
-\newcommand{\hi}[1]{\textcolor{blue!55!black}{\textbf{#1}}}
-\newcommand{\warn}[1]{\textcolor{red!70!black}{\textbf{#1}}}
-\newcommand{\soft}[1]{\textcolor{gray!50!black}{#1}}
 \newcommand{\uvec}{\bm{u}}
 \newcommand{\xvec}{\bm{x}}
 \newcommand{\Xvec}{\bm{X}}
 \newcommand{\Fvec}{\bm{F}}
 \newcommand{\fvec}{\bm{f}}
 
-\newtcolorbox{punchbox}{
-  enhanced,
-  colback=blue!4,
-  colframe=blue!55!black,
-  boxrule=0.6pt,
-  arc=2pt,
-  left=4pt,right=4pt,top=3pt,bottom=3pt
-}
-
 \title[IB discretization]{Immersed boundary method discretization}
 \subtitle{A power-consistent Eulerian--Lagrangian time step}
 \author[Miller]{Laura A. Miller}
 \institute[UArizona]{Department of Mathematics, University of Arizona}
-\date{}
+\date{IBFE Tutorials \textbullet\ Module 1}
 
 \begin{document}
 
 % ----- 1. Title -----
+% Title slide via the shared \maketutorialtitlepanel macro so that the image
+% can carry its source credit underneath (same layout as \maketutorialtitle).
 \begin{frame}[plain]
-  \begin{beamercolorbox}[sep=10pt,center]{title}
-    {\bfseries\Large Immersed boundary method discretization}\\[3pt]
-    {\normalsize A power-consistent Eulerian--Lagrangian time step}
-  \end{beamercolorbox}
-  \vspace{0.9em}
-  \begin{columns}[T,onlytextwidth]
-  \begin{column}{0.50\textwidth}
-    \textbf{\large Laura A. Miller}\\[4pt]
-    Department of Mathematics\\
-    University of Arizona\\[12pt]
-    {\small IBFE Tutorials}
-  \end{column}
-  \begin{column}{0.50\textwidth}
-    \centering
-    \includegraphics[width=0.95\linewidth,height=0.43\textheight,keepaspectratio]{ImmersedBoundary_grid2.png}
-  \end{column}
-  \end{columns}
-  \vfill
-  \centering{\tiny\color{black!55}AI tools were used to assist with formatting, organization, and clarification of the instructor's original notes.}
+\maketutorialtitlepanel{%
+  \includegraphics[width=\linewidth,height=0.62\textheight,keepaspectratio]{ImmersedBoundary_grid2.png}\par\vspace{2pt}
+  {\scriptsize Schematic after the Wikimedia Commons figure \emph{ImmersedBoundary grid} (Immersed boundary method article).\par}}
 \end{frame}
 
 % ----- 2. Goals -----
 \begin{frame}{What this tutorial discretizes}
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.56\textwidth}
+\begin{column}{0.54\textwidth}
 Starting from a continuum IB model, we need discrete operators for:
 \begin{enumerate}\itemsep5pt
   \item incompressible flow on a fixed Cartesian grid;
@@ -93,7 +53,7 @@ Starting from a continuum IB model, we need discrete operators for:
   \item advancement of the coupled configuration.
 \end{enumerate}
 \end{column}
-\begin{column}{0.44\textwidth}
+\begin{column}{0.42\textwidth}
 \begin{punchbox}
 The formulas below define one \hi{first-order IMEX prototype}. They illustrate the coupling, not a unique IB time integrator.
 \end{punchbox}
@@ -106,7 +66,7 @@ The formulas below define one \hi{first-order IMEX prototype}. They illustrate t
 % ----- 3. Codimension -----
 \begin{frame}{One coupling idea spans several codimensions}
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.54\textwidth}
+\begin{column}{0.50\textwidth}
 The immersed structure may be:
 \begin{itemize}\itemsep5pt
   \item a one-dimensional fiber in a two- or three-dimensional fluid;
@@ -126,25 +86,27 @@ Fibers, surfaces, and solids differ in the dimension and interpretation of $dq$.
 \end{punchbox}
 \end{column}
 \end{columns}
+\medskip
+\soft{\small Notation: in this deck $\boldsymbol\chi(q,t)$ is the continuum current-position map, which decks 1-2 and 1-3 write as $\Xvec(q,t)$ (Peskin convention, material label $q$). Its discrete samples are $\Xvec_m^n=\boldsymbol\chi(q_m,t^n)$.}
 \end{frame}
 
 % ----- 4. Eulerian grid -----
 \begin{frame}{Eulerian variables on a staggered grid}
 For clarity, use a uniform two-dimensional MAC grid with spacing $h$:
 \[
-  p_{i,j}\approx p(ih,jh),\qquad
-  u_{i+\frac12,j}\approx u\!\left((i+\tfrac12)h,jh\right),\qquad
+  p_{i,j}\approx p(ih,jh),\quad
+  u_{i+\frac12,j}\approx u\!\left((i+\tfrac12)h,jh\right),\quad
   v_{i,j+\frac12}\approx v\!\left(ih,(j+\tfrac12)h\right).
 \]
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.51\textwidth}
+\begin{column}{0.49\textwidth}
 \begin{itemize}\itemsep4pt
   \item pressure is cell centered;
   \item each velocity component is face centered;
   \item the matching force component is stored on the same faces.
 \end{itemize}
 \end{column}
-\begin{column}{0.49\textwidth}
+\begin{column}{0.47\textwidth}
 \begin{punchbox}
 The discrete gradient $G_h$ maps cells to faces, and the divergence $D_h$ maps faces to cells. With compatible boundary treatment, $D_h=-G_h^*$.
 \end{punchbox}
@@ -210,10 +172,10 @@ Substituting the definitions gives
   \qquad J_h=S_h^*.
 \]
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.52\textwidth}
+\begin{column}{0.50\textwidth}
 This is the discrete analogue of equal power exchanged between the fluid and structure.
 \end{column}
-\begin{column}{0.48\textwidth}
+\begin{column}{0.46\textwidth}
 \begin{punchbox}
 A common kernel is not enough: \hi{grids, weights, and inner products must be compatible}.
 \end{punchbox}
@@ -224,8 +186,8 @@ A common kernel is not enough: \hi{grids, weights, and inner products must be co
 % ----- 7. Classical implementation -----
 \begin{frame}{From the general framework to a concrete scheme}
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.55\textwidth}
-The coupling operators describe a \emph{family} of immersed boundary methods. To make the algorithm concrete, it is useful to examine the classical fiber-based construction associated with Peskin's 1990s cardiac-flow work.
+\begin{column}{0.53\textwidth}
+The coupling operators describe a \emph{family} of immersed boundary methods. To make the algorithm concrete, it is useful to examine the classical fiber-based construction associated with Peskin and McQueen's cardiac-flow work of the late 1980s and 1990s.
 \medskip
 \begin{itemize}\itemsep5pt
   \item The structure is a collection of material fibers.
@@ -233,12 +195,14 @@ The coupling operators describe a \emph{family} of immersed boundary methods. To
   \item A regularized delta kernel couples the two grids.
 \end{itemize}
 \end{column}
-\begin{column}{0.45\textwidth}
+\begin{column}{0.43\textwidth}
 \begin{punchbox}
 The following choices explain the logic of one influential implementation. They are \hi{not defining requirements} of every modern IB method.
 \end{punchbox}
 \end{column}
 \end{columns}
+\vfill
+\soft{\scriptsize Adapted from: C.~S. Peskin and D.~M. McQueen, \emph{J. Comput. Phys.} 81 (1989) 372--405 (fiber-based heart model); C.~S. Peskin, \emph{Acta Numerica} 11 (2002) 479--517 (fiber forces, discretization, kernels).}
 \end{frame}
 
 \begin{frame}{Scope of the classical fiber discretization}
@@ -266,7 +230,7 @@ If $E_h(\Xvec)$ is a discrete elastic energy, define force density by virtual wo
   \Fvec_m=-\frac{1}{w_m}\frac{\partial E_h}{\partial\Xvec_m}.
 \]
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.52\textwidth}
+\begin{column}{0.50\textwidth}
 Common contributions include:
 \begin{itemize}\itemsep4pt
   \item stretching or area/volume elasticity;
@@ -275,7 +239,7 @@ Common contributions include:
   \item target-point penalties.
 \end{itemize}
 \end{column}
-\begin{column}{0.48\textwidth}
+\begin{column}{0.46\textwidth}
 For a prescribed target $\bm{Y}_m^n$,
 \[
   \Fvec_{\mathrm{targ},m}^n
@@ -303,6 +267,7 @@ For equally spaced material labels, put tension on links:
 \begin{punchbox}
 The flux-difference form makes internal link forces equal and opposite. The constitutive law $T(\lambda)$ sets the reference stretch and stiffness.
 \end{punchbox}
+\vspace{3pt}
 \soft{Endpoint forces require the physical boundary conditions for the fiber.}
 \end{frame}
 
@@ -359,10 +324,10 @@ For a straight preferred configuration, the interior bending force is
       {(\Delta q)^4}.
 \]
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.52\textwidth}
+\begin{column}{0.50\textwidth}
 The five-point stencil approximates $-k_{\rm bend}\partial_q^4\boldsymbol\chi$ at interior nodes.
 \end{column}
-\begin{column}{0.48\textwidth}
+\begin{column}{0.46\textwidth}
 \begin{punchbox}
 Closed fibers use periodic indexing. Open fibers require endpoint conditions consistent with the underlying bending energy.
 \end{punchbox}
@@ -401,7 +366,7 @@ On a uniform grid, the same prototype may be written with finite-difference oper
    +\fvec^n,\\
  \bm D^{0}\!\cdot\uvec^{n+1}&=0.
 \end{align*}
-The term $-\bm D^{0}p^{n+1}$ here and the term $-G_hp^{n+1}$ on the previous slide are the \emph{same} pressure-gradient term written on two grids: $G_h$ is the staggered (MAC) gradient, $\bm D^{0}$ its collocated centered-difference counterpart.
+The term $-\bm D^{0}p^{n+1}$ here and the term $-G_hp^{n+1}$ on the previous slide are \emph{two discretizations of the same} continuum pressure-gradient term $-\nabla p$, written on two grids: $G_h$ is the staggered (MAC) gradient, $\bm D^{0}$ its collocated centered-difference counterpart (the form used in Peskin 2002). They are not the same matrix: the collocated $\bm D^{0}$ gradient has a $2^d$-dimensional null space (constants on each even/odd ``chain'' of nodes), which is why Peskin's four-point kernel imposes the even--odd condition (deck 1-2).
 Once $\fvec^n$ and the explicit convection term are known, the unknown velocity and pressure enter linearly.
 \begin{punchbox}
 On a periodic box, this structure makes FFT-based solvers natural. With physical boundaries or local refinement, other linear solvers are used.
@@ -430,6 +395,33 @@ On a staggered grid, the stencils differ; the design goal is unchanged: a compat
 \end{punchbox}
 \end{frame}
 
+% ----- Projection view of the fluid step (added: addresses the open audit item) -----
+\begin{frame}{Solving the fluid step: a projection (fractional-step) view}
+\small
+\setlength{\abovedisplayskip}{4pt}\setlength{\belowdisplayskip}{4pt}%
+A common way to solve the IMEX system splits it into a viscous step and a projection onto discretely divergence-free fields:
+\begin{align*}
+  &\text{1. viscous predictor:} &
+  \rho\,\frac{\tilde{\uvec}-\uvec^n}{\Delta t}+\rho N_h(\uvec^n)
+  &=\mu L_h\tilde{\uvec}+S_h[\Xvec^n]\Fvec^n,\\
+  &\text{2. pressure Poisson:} &
+  D_hG_h\,\varphi&=\frac{\rho}{\Delta t}\,D_h\tilde{\uvec},\\
+  &\text{3. projection:} &
+  \uvec^{n+1}&=\tilde{\uvec}-\frac{\Delta t}{\rho}\,G_h\varphi
+  \quad\Rightarrow\quad D_h\uvec^{n+1}=0 .
+\end{align*}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.50\textwidth}
+\textbf{Periodic, uniform grid.} \(L_h\), \(G_h\), \(D_h\) commute, and substituting step 3 into step 1 reproduces the coupled IMEX system exactly with \(p^{n+1}=(I-\nu\Delta t\,L_h)\varphi\) (\(L_h\) acting as the scalar Laplacian), \(\nu=\mu/\rho\). FFTs diagonalize every step.
+\end{column}
+\begin{column}{0.46\textwidth}
+\textbf{Physical boundaries.} The operators no longer commute; the split introduces a splitting error (often limiting pressure accuracy near boundaries) and needs boundary conditions for \(\tilde{\uvec}\) and \(\varphi\). Coupled (Stokes-type) solvers avoid the split.
+\end{column}
+\end{columns}
+\vspace{2pt}
+\soft{\scriptsize After A.~J. Chorin, \emph{Math. Comp.} 22 (1968) 745--762; D.~L. Brown, R. Cortez, M.~L. Minion, \emph{J. Comput. Phys.} 168 (2001) 464--499.}
+\end{frame}
+
 % ----- 11. One time step -----
 \begin{frame}{One consistent explicit-coupling time step}
 Given $(\uvec^n,\Xvec^n)$:
@@ -454,14 +446,14 @@ At a material point $q_m$, the continuum kinematic equation is regularized as
 \]
 Its discrete counterpart is $\bm U_m=J_h[\Xvec]\uvec$.
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.52\textwidth}
+\begin{column}{0.50\textwidth}
 \begin{itemize}\itemsep4pt
   \item the fluid velocity is averaged over the kernel support;
   \item the structure advances with that interpolated velocity;
   \item the same matched kernel spreads structural force back to the fluid.
 \end{itemize}
 \end{column}
-\begin{column}{0.48\textwidth}
+\begin{column}{0.46\textwidth}
 \begin{punchbox}
 At finite $h$, this is a regularized or weak no-slip relation rather than pointwise sampling of an exact interface trace.
 \end{punchbox}
@@ -477,14 +469,14 @@ For the discrete fourth derivative,
 \]
 Thus mesh-scale bending modes become rapidly stiffer as the Lagrangian mesh is refined.
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.50\textwidth}
+\begin{column}{0.48\textwidth}
 \hi{What this does mean}
 \begin{itemize}\itemsep4pt
   \item explicit elastic coupling may impose a severe $\Delta t$ restriction;
   \item large target stiffness can have the same effect.
 \end{itemize}
 \end{column}
-\begin{column}{0.50\textwidth}
+\begin{column}{0.48\textwidth}
 \hi{What it does not mean}
 \begin{itemize}\itemsep4pt
   \item a resolved physical bending force itself grows like $(\Delta q)^{-4}$;
@@ -516,14 +508,14 @@ There is no general rule that $\Delta t$ is simply ``inversely proportional to t
 % ----- 14. Resolution -----
 \begin{frame}{Resolve the interaction, not just the geometry}
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.53\textwidth}
+\begin{column}{0.51\textwidth}
 \begin{itemize}\itemsep5pt
   \item \warn{Too coarse:} gaps between interaction stencils can cause leakage and volume error.
   \item \warn{Unnecessarily fine:} more work, redundant constraints, and possibly worse conditioning or high-frequency stiffness.
   \item \hi{IBFE:} structural interpolation and interaction quadrature can be refined independently.
 \end{itemize}
 \end{column}
-\begin{column}{0.47\textwidth}
+\begin{column}{0.45\textwidth}
 \begin{punchbox}
 Rules such as $\Delta q\approx h/2$ are method- and kernel-dependent heuristics, not universal laws. Check leakage and convergence for the chosen discretization.
 \end{punchbox}
@@ -547,10 +539,10 @@ Useful discrete identities include
   \sum_{j\in\mathbb{Z}}(r-j)\phi(r-j)=0.
 \]
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.52\textwidth}
+\begin{column}{0.50\textwidth}
 The zeroth moment preserves total force and interpolates constants; the first moment centers spreading and supports torque/linear-field reproduction.
 \end{column}
-\begin{column}{0.48\textwidth}
+\begin{column}{0.46\textwidth}
 \begin{punchbox}
 Tensor-product kernels are efficient and grid aligned; they are not exactly invariant under rotation.
 \end{punchbox}
@@ -570,23 +562,25 @@ One simple compactly supported choice is
  \delta_h(\xvec)=\frac{1}{h^d}\prod_{\alpha=1}^{d}\phi(x_\alpha/h).
 \]
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.52\textwidth}
-It is symmetric and compactly supported: in each coordinate, only grid sites within $2h$ contribute.
+\begin{column}{0.50\textwidth}
+It is symmetric and compactly supported: in each coordinate, only grid sites within $2h$ contribute.\par\smallskip
+\soft{\scriptsize It is Peskin's simple approximation to his four-point kernel (Peskin 2002, eq.~6.28), and it does satisfy the even--odd condition.}
 \end{column}
-\begin{column}{0.48\textwidth}
+\begin{column}{0.46\textwidth}
 \begin{punchbox}
 ``Four-point support'' describes the one-dimensional stencil width. In $d$ dimensions, the tensor-product support contains up to $4^d$ grid sites per Lagrangian point.
 \end{punchbox}
 \end{column}
 \end{columns}
-\medskip
-\warn{Note:} $\phi_{\cos}$ satisfies the zeroth moment and $\sum_j\phi_{\cos}(r-j)^2=3/8$ but \emph{not} the first-moment condition (max $|M_1|\approx0.021$); see deck 1-3.
+\smallskip
+\warn{Note:} $\phi_{\cos}$ satisfies the zeroth moment and $\sum_j\phi_{\cos}(r-j)^2=3/8$ but \emph{not} the first-moment condition (max $|M_1|\approx0.021$); see deck 1-3.\par
+\soft{\scriptsize Here $M_1(r)=\sum_j(r-j)\phi_{\cos}(r-j)=r-\tfrac12+\tfrac12\bigl(\cos\tfrac{\pi r}{2}-\sin\tfrac{\pi r}{2}\bigr)$ for $0\le r<1$, in units of $h$; the maximum occurs at $r\approx0.21$ and $0.79$.}
 \end{frame}
 
 % ----- 16. Verification -----
 \begin{frame}{Verification checks for an implementation}
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.51\textwidth}
+\begin{column}{0.49\textwidth}
 \hi{Operator checks}
 \begin{itemize}\itemsep4pt
   \item $D_h=-G_h^*$ under the chosen boundary treatment;
@@ -595,7 +589,7 @@ It is symmetric and compactly supported: in each coordinate, only grid sites wit
   \item total force and torque after spreading.
 \end{itemize}
 \end{column}
-\begin{column}{0.49\textwidth}
+\begin{column}{0.47\textwidth}
 \hi{Solution checks}
 \begin{itemize}\itemsep4pt
   \item incompressibility and solver residuals;
@@ -640,7 +634,7 @@ Uniform grids, periodic boxes, FFT solvers, and explicit coupling are choices of
 
 \begin{frame}{Classical choices and modern extensions}
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.48\textwidth}
+\begin{column}{0.46\textwidth}
 \begin{punchbox}
 \centering\hi{Classical fiber prototype}
 \begin{itemize}\itemsep4pt
@@ -652,7 +646,7 @@ Uniform grids, periodic boxes, FFT solvers, and explicit coupling are choices of
 \end{itemize}
 \end{punchbox}
 \end{column}
-\begin{column}{0.52\textwidth}
+\begin{column}{0.50\textwidth}
 \begin{punchbox}
 \centering\hi{Modern IB/IBFE examples}
 \begin{itemize}\itemsep4pt
@@ -673,7 +667,7 @@ The enduring idea is the Eulerian--Lagrangian interaction pair. The structure mo
 
 \begin{frame}{Roadmap from the classical method}
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.49\textwidth}
+\begin{column}{0.47\textwidth}
 \hi{What the prototype teaches}
 \begin{itemize}\itemsep4pt
   \item moving geometry without remeshing;
@@ -681,7 +675,7 @@ The enduring idea is the Eulerian--Lagrangian interaction pair. The structure mo
   \item a transparent sequence for one coupled time step.
 \end{itemize}
 \end{column}
-\begin{column}{0.51\textwidth}
+\begin{column}{0.49\textwidth}
 \hi{What motivates later methods}
 \begin{itemize}\itemsep4pt
   \item stiffness under explicit elastic coupling;
@@ -708,8 +702,7 @@ These limitations lead naturally to implicit IB schemes, immersed interface vari
 
 % ----- 20. References -----
 \begin{frame}{References and further study}
-\small
-\begin{itemize}\itemsep5pt
+\begin{itemize}\itemsep6pt
   \item C. S. Peskin, ``The immersed boundary method,'' \emph{Acta Numerica} 11 (2002),
   \href{https://doi.org/10.1017/S0962492902000077}{doi:10.1017/S0962492902000077}.
   \item B. E. Griffith and X. Y. Luo, ``Hybrid finite difference/finite element immersed boundary method,'' \emph{Int. J. Numer. Meth. Biomed. Engng.} 33 (2017), e2888,
@@ -718,6 +711,21 @@ These limitations lead naturally to implicit IB schemes, immersed interface vari
   \href{https://doi.org/10.1146/annurev-fluid-010719-060228}{doi:10.1146/annurev-fluid-010719-060228}.
   \item A. M. Roma, C. S. Peskin, and M. J. Berger, ``An adaptive version of the immersed boundary method,'' \emph{J. Comput. Phys.} 153 (1999), 509--534.
   \item \href{https://ibamr.github.io/}{IBAMR documentation and examples}.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{References and further study (continued)}
+\footnotesize
+\begin{itemize}\itemsep3pt
+  \item C.~S. Peskin, ``Numerical analysis of blood flow in the heart,'' \emph{J. Comput. Phys.} 25 (1977), 220--252,
+  \href{https://doi.org/10.1016/0021-9991(77)90100-0}{doi:10.1016/0021-9991(77)90100-0}.
+  \item C.~S. Peskin and D.~M. McQueen, ``A three-dimensional computational method for blood flow in the heart. I. Immersed elastic fibers in a viscous incompressible fluid,'' \emph{J. Comput. Phys.} 81 (1989), 372--405.
+  \item F.~H. Harlow and J.~E. Welch, ``Numerical calculation of time-dependent viscous incompressible flow of fluid with free surface,'' \emph{Phys. Fluids} 8 (1965), 2182--2189 (MAC grid),
+  \href{https://doi.org/10.1063/1.1761178}{doi:10.1063/1.1761178}.
+  \item B.~E. Griffith, R.~D. Hornung, D.~M. McQueen, and C.~S. Peskin, ``An adaptive, formally second order accurate version of the immersed boundary method,'' \emph{J. Comput. Phys.} 223 (2007), 10--49.
+  \item A.~J. Chorin, ``Numerical solution of the Navier--Stokes equations,'' \emph{Math. Comp.} 22 (1968), 745--762 (projection method).
+  \item D.~L. Brown, R. Cortez, and M.~L. Minion, ``Accurate projection methods for the incompressible Navier--Stokes equations,'' \emph{J. Comput. Phys.} 168 (2001), 464--499.
+  \item Title figure: schematic after the Wikimedia Commons figure \emph{ImmersedBoundary grid} (Immersed boundary method article).
 \end{itemize}
 \end{frame}
 

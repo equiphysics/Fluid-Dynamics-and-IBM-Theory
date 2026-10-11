@@ -298,9 +298,10 @@ torque of spread point forces on an unbounded or suitably treated grid.
 \textit{Sample answer:}  
 Kernel symmetry avoids a preferred direction and supports centered moment
 conditions. Exact continuous translational invariance is impossible for a
-compact stencil on a fixed grid; discrete moment, even--odd, and sum-of-squares
+compact stencil on a fixed grid; discrete moment and sum-of-squares
 conditions are used to reduce variation as a marker moves relative to grid
-lines. The \emph{even--odd condition} is the requirement that, for every real
+lines, while the even--odd condition (also one of Peskin's postulates) addresses
+a different issue, explained next. The \emph{even--odd condition} is the requirement that, for every real
 shift $r$,
 \[
 \sum_{j\ \mathrm{even}}\phi(r-j)
@@ -310,10 +311,21 @@ its purpose is to keep the even- and odd-indexed grid points from decoupling in
 the spread and interpolate operators, which would otherwise admit checkerboard
 (sawtooth) modes invisible to the interaction. It is distinct from the
 sum-of-squares condition $\sum_j\phi(r-j)^2=C$, which instead controls the
-approximate translation invariance of the interaction strength. Peskin's
+approximate translation invariance of the interaction strength. Neither
+condition implies the other. The decoupling in question comes from Peskin's
+collocated fluid solver: the centered-difference gradient $D^0$ skips the
+centre point, so its null space contains every function that is constant on
+each of the $2^d$ even/odd ``chains'' of grid points (8 in three dimensions).
+The even--odd condition gives every chain the same share of each marker's force
+and the same weight in its interpolated velocity (Peskin 2002, Sec.~6). Peskin's
 four-point kernel satisfies the even--odd condition; the three-point
-Roma--Peskin--Berger kernel does not need it, because a three-cell stencil
-always couples adjacent grid points. State which invariance property is meant
+Roma--Peskin--Berger kernel does not (at $r=0$ its even sum is
+$\phi_3(0)=2/3$). It is obtained by \emph{dropping} the even--odd condition and
+keeping only $\sum_j\phi(r-j)=1$, which narrows the support from four to three
+meshwidths, and it is recommended only with a fluid scheme that lacks the $D^0$
+null-space problem, such as the staggered MAC scheme used by Roma, Peskin, and
+Berger (1999). (A narrow stencil does not satisfy the condition automatically;
+the condition is simply unnecessary on a staggered grid.) State which invariance property is meant
 rather than claiming exact grid independence.
 
 \item \textbf{What is the tradeoff between smoothness and cost?}
@@ -351,5 +363,28 @@ regularized interface. Kernel convergence alone is not a convergence proof for
 the coupled algorithm.
 
 \end{enumerate}
+
+\section*{References}
+\sloppy
+
+The model answers are adapted from the Module~1 decks (1-3 in particular),
+which follow these sources.
+\begin{itemize}
+\item C.~S. Peskin, ``The immersed boundary method,'' \emph{Acta Numerica} 11
+  (2002), 479--517, doi:10.1017/S0962492902000077. Sections~5--6: interaction
+  identities, the kernel postulates (zeroth and first moments, even--odd,
+  sum of squares), the four-point and cosine kernels, and the three-point
+  variant.
+\item A.~M. Roma, C.~S. Peskin, and M.~J. Berger, ``An adaptive version of the
+  immersed boundary method,'' \emph{J. Comput. Phys.} 153 (1999), 509--534,
+  doi:10.1006/jcph.1999.6293. Three-point kernel on a staggered grid.
+\item B.~E. Griffith and X.~Y. Luo, ``Hybrid finite difference/finite element
+  immersed boundary method,'' \emph{Int. J. Numer. Meth. Biomed. Eng.} 33
+  (2017), e2888, doi:10.1002/cnm.2888. Reference-configuration force densities,
+  first Piola--Kirchhoff stress, and the weak elastic force.
+\item B.~E. Griffith and N.~A. Patankar, ``Immersed methods for
+  fluid--structure interaction,'' \emph{Annu. Rev. Fluid Mech.} 52 (2020),
+  421--448, doi:10.1146/annurev-fluid-010719-060228.
+\end{itemize}
 
 \end{document}

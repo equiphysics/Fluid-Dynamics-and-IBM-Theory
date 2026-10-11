@@ -1,23 +1,14 @@
 \documentclass[aspectratio=169,11pt]{beamer}
 
-\usetheme{Boadilla}
-\usecolortheme{seahorse}
-\useinnertheme{rectangles}
-\useoutertheme{infolines}
-\setbeamercolor{structure}{fg=blue!55!black}
-\setbeamercolor{title}{fg=white,bg=blue!55!black}
-\setbeamercolor{frametitle}{fg=blue!55!black}
-\setbeamercolor{block title}{bg=blue!12,fg=blue!55!black}
-\setbeamercolor{block body}{bg=blue!4}
-\setbeamertemplate{navigation symbols}{}
-\setbeamerfont{frametitle}{series=\bfseries,size=\large}
-\setbeamerfont{title}{series=\bfseries,size=\Large}
+% Shared style, ported from the UF Animal Sciences 2026 talk (ibfe-tutorials.sty at the repo root).
+\makeatletter\def\input@path{{./}{../}}\makeatother
+\usepackage{ibfe-tutorials}
 
-\usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
-\DeclareFontShape{T1}{cmss}{b}{n}{<->ssub*cmss/bx/n}{}
 \usepackage{amsmath,amssymb,bm}
 \usepackage{graphicx}
+% These prefixes allow compilation from either the repository root or this folder.
+\graphicspath{{./}{../}{}}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,positioning}
 
@@ -27,13 +18,14 @@
 \newcommand{\pp}{p}
 \newcommand{\Rey}{\mathrm{Re}}
 \newcommand{\avg}[1]{\overline{#1}}
-\newcommand{\up}{\uu'}
+\renewcommand{\up}{\uu'} % the style file's \up is an arrow pictogram; this deck's \up is the fluctuation
 \newcommand{\ubar}{\avg{\uu}}
 
 \title[RANS I: Continuity]{RANS Part 1: Reynolds Decomposition \& the Mass Continuity Equation}
 \author[Miller]{Laura A. Miller}
 \institute[UArizona]{Department of Mathematics, University of Arizona}
-\date{}
+\date{IBFE Tutorials \textbullet\ Module 5\\[3pt]
+  Adapted from a \href{https://www.youtube.com/watch?v=mDt-HJEXK6g}{lecture by Steven L. Brunton}.}
 
 % Uncomment if you want speaker notes:
 % \usepackage{pgfpages}
@@ -42,11 +34,8 @@
 \begin{document}
 
 % ---------------- Title ----------------
-\begin{frame}
-  \titlepage
-  \vspace{-1.4em}
-  \centering{\scriptsize Adapted from a \href{https://www.youtube.com/watch?v=mDt-HJEXK6g}{lecture by Steven L. Brunton}.}
-  \\[2pt]{\tiny\color{black!55}AI tools were used to assist with formatting, organization, and clarification of the instructor's original notes.}
+\begin{frame}[plain]
+\maketutorialtitle
   \note{
   Goal today: set up time averaging + Reynolds decomposition, then apply it to incompressibility.
   End result: both mean flow and fluctuations are divergence-free.
@@ -162,18 +151,21 @@ Stationarity means statistics don’t change in time (after transients).
 \begin{tikzpicture}[x=0.95cm,y=0.72cm,>=Latex]
   \draw[->,gray!70] (0,0) -- (10.3,0) node[right] {$t$};
   \draw[->,gray!70] (0,-1.45) -- (0,2.35) node[above] {$u(\x,t)$};
-  \draw[blue!65!black,very thick,smooth]
+  \draw[NavyBlue!70,very thick,smooth]
     plot coordinates {(0,0.45) (0.6,1.25) (1.2,0.75) (1.8,1.70) (2.4,0.25)
     (3.0,0.95) (3.6,-0.20) (4.2,1.10) (4.8,0.55) (5.4,1.55)
     (6.0,0.15) (6.6,1.35) (7.2,0.35) (7.8,1.05) (8.4,-0.05)
     (9.0,0.80) (9.6,0.40) (10.0,1.20)};
-  \draw[orange!85!black,dashed,very thick] (0,0.70) -- (10,0.70)
+  \draw[orange!80!black,dashed,very thick] (0,0.70) -- (10,0.70)
     node[pos=0.88,above=2pt,fill=white,inner sep=1pt] {$\bar u(\x)$};
-  \draw[<->,teal!70!black,thick] (5.4,0.70) -- (5.4,1.55)
-    node[midway,right=3pt] {$u'(\x,t)$};
-  \node[blue!65!black,anchor=west] at (0.35,2.05) {instantaneous signal};
+  \draw[<->,RubineRed,thick] (5.4,0.70) -- (5.4,1.55)
+    node[midway,right=3pt,fill=white,fill opacity=0.85,text opacity=1,inner sep=1pt] {$u'(\x,t)$};
+  \node[NavyBlue!70,anchor=west] at (0.35,2.05) {instantaneous signal};
 \end{tikzpicture}
 
+{\scriptsize\color{DarkGray} Schematic: instructor's course notes.\par}
+
+\vspace{0.6em}
 \begin{block}{Pointwise identity}
 At every sampled time, $u(\x,t)=\bar u(\x)+u'(\x,t)$, while $\overline{u'}=0$ by construction.
 \end{block}
@@ -184,6 +176,8 @@ At every sampled time, $u(\x,t)=\bar u(\x)+u'(\x,t)$, while $\overline{u'}=0$ by
 \includegraphics[width=0.55\textwidth]{pictures/5-2/Reynolds-decomposition.png}
 \vfill
   \hfill {\footnotesize Source: McDonough, James (2009). Lectures in elementary fluid dynamics: physics, mathematics and applications.}
+
+  \hfill {\scriptsize\color{DarkGray} J. M. McDonough, lecture notes, University of Kentucky (2009); figure number to be confirmed.}
 \end{frame}
 
 \begin{frame}{Turbulent pipe flow}
@@ -191,6 +185,8 @@ At every sampled time, $u(\x,t)=\bar u(\x)+u'(\x,t)$, while $\overline{u'}=0$ by
 \includegraphics[width=0.7\textwidth]{pictures/5-2/pipe-flow-turbulent.jpg}
 \vfill
   \hfill {\footnotesize Source: https://www.tec-science.com/mechanics/gases-and-liquids/pressure-loss-in-pipe-systems/}
+
+  \hfill {\scriptsize\color{DarkGray} tec-science.com, ``Pressure loss in pipe systems'' (educational website). Top: laminar parabolic profile. Bottom: the \emph{time-averaged} turbulent profile is much flatter, with steep gradients near the wall; the instantaneous velocity fluctuates about it.}
   \end{frame}
 % ---------------- Why do this? ----------------
 \begin{frame}{Why average? (model reduction viewpoint)}
@@ -222,6 +218,7 @@ Let $\avg{\cdot}$ denote time averaging.
   \item \textbf{Commutes with differentiation:}
   $\displaystyle\avg{\frac{\partial a}{\partial t}}=\frac{\partial \avg{a}}{\partial t}$
   (and likewise for spatial derivatives).
+  For the long-time average of a bounded, stationary signal both sides vanish: $\avg{\partial_t a}=\lim_{T\to\infty}\big(a(T)-a(0)\big)/T=0$ and $\avg{a}$ does not depend on $t$. For ensemble or finite-window averages the rule is nontrivial and needs enough regularity to interchange the derivative with the integral or limit.
   \item \textbf{Mean of mean times quantity:} 
   $\avg{\avg{u}\cdot v}=\avg{u}\cdot \avg{v}$.
   \item \textbf{Mean times mean:} if $u=\avg{u}$ and $v=\avg{v}$ then $\avg{u\cdot v} = u \cdot v$.
@@ -267,6 +264,7 @@ provided we can interchange differentiation and integration (regularity assumpti
   \item The time average of the fluctuation is zero, $\avg{\up}=0$.
   \item Its variance and higher-order moments generally are not zero.
   \item These higher moments are important in the dynamics of the fluid, and we will need to keep track of them.
+  \item Index notation: write $(u_1,u_2,u_3)=(u,v,w)$ and $(x_1,x_2,x_3)=(x,y,z)$, so $u'_i$ is the $i$-th fluctuation component and, e.g., $R_{12}=\avg{u'v'}$.
   \item $R_{ij}=\avg{u'_i u'_j}$ has units of velocity squared. The dimensional turbulent-stress contribution is conventionally $-\rho R_{ij}$.
 \end{itemize}
     
@@ -316,7 +314,7 @@ We can learn a lot by time averaging this equation, so take the time average of
 \nabla\cdot\ubar + \nabla\cdot\up = 0.
 \]
 
-Using commutation with spatial derivatives and $\avg{\up}=0$:
+Using linearity, commutation with spatial derivatives, idempotence ($\avg{\ubar}=\ubar$, so $\avg{\nabla\cdot\ubar}=\nabla\cdot\ubar$), and $\avg{\up}=0$:
 \[
 \avg{\nabla\cdot\ubar} + \avg{\nabla\cdot\up} = 0
 \quad\Rightarrow\quad
@@ -412,9 +410,11 @@ and time-average.
 \small
 \begin{itemize}
   \item O. Reynolds, ``On the dynamical theory of incompressible viscous fluids and the determination of the criterion,'' \emph{Philosophical Transactions of the Royal Society A}, 186 (1895).
+  Pages 123--164; \href{https://doi.org/10.1098/rsta.1895.0004}{doi:10.1098/rsta.1895.0004}.
   \item S. B. Pope, \emph{Turbulent Flows}, Cambridge University Press (2000), Chapters 3--4.
-  \item S. L. Brunton, lecture on Reynolds-averaged Navier--Stokes equations (linked on the title slide).
+  \item S. L. Brunton, lecture on Reynolds-averaged Navier--Stokes equations (linked on the title slide), \href{https://www.youtube.com/watch?v=mDt-HJEXK6g}{YouTube}; the slide sequence of this deck is adapted from it.
   \item J. M. McDonough, \emph{Lectures in Elementary Fluid Dynamics} (2009), source for the decomposition graphic.
+  \item tec-science.com, ``Pressure loss in pipe systems,'' source for the laminar/turbulent pipe-profile graphic.
 \end{itemize}
 
 \begin{block}{Scope of this derivation}

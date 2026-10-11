@@ -3,24 +3,11 @@
 % =====================================================================
 \documentclass[aspectratio=169,11pt]{beamer}
 
-% Match the visual language of the SIAM Waves talk.
-\usetheme{Boadilla}
-\usecolortheme{seahorse}
-\useinnertheme{rectangles}
-\useoutertheme{infolines}
+% Shared style, ported from the UF Animal Sciences 2026 talk (ibfe-tutorials.sty at the repo root).
+\makeatletter\def\input@path{{./}{../}}\makeatother
+\usepackage{ibfe-tutorials}
 
-\setbeamercolor{structure}{fg=blue!55!black}
-\setbeamercolor{title}{fg=white,bg=blue!55!black}
-\setbeamercolor{frametitle}{fg=blue!55!black}
-\setbeamercolor{block title}{bg=blue!12,fg=blue!55!black}
-\setbeamercolor{block body}{bg=blue!4}
-\setbeamertemplate{navigation symbols}{}
-\setbeamerfont{frametitle}{series=\bfseries,size=\large}
-\setbeamerfont{title}{series=\bfseries,size=\Large}
-
-\usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
-\DeclareFontShape{T1}{cmss}{b}{n}{<->ssub*cmss/bx/n}{}
 \usepackage{amsmath,amssymb,bm,mathtools}
 \usepackage{booktabs}
 \usepackage{array}
@@ -31,68 +18,43 @@
 \tcbuselibrary{skins}
 \usepackage{hyperref}
 
-\hypersetup{colorlinks=true,urlcolor=blue!55!black}
+% Figure hues, mapped onto the muted talk palette.
+\colorlet{modelblue}{NavyBlue!70}
+\colorlet{modelorange}{orange!80!black}
+\colorlet{modelgreen}{OliveGreen}
+\colorlet{modelgray}{DarkGray}
 
-\definecolor{modelblue}{RGB}{38,86,145}
-\definecolor{modelorange}{RGB}{208,112,44}
-\definecolor{modelgreen}{RGB}{53,128,95}
-\definecolor{modelgray}{RGB}{92,101,112}
-
-\newcommand{\hi}[1]{\textcolor{blue!55!black}{\textbf{#1}}}
-\newcommand{\warn}[1]{\textcolor{red!70!black}{\textbf{#1}}}
-\newcommand{\soft}[1]{\textcolor{gray!55!black}{#1}}
 \newcommand{\mean}[1]{\overline{#1}}
 \newcommand{\Rey}{\mathrm{Re}}
 \newcommand{\uu}{\bm{u}}
 \newcommand{\xvec}{\bm{x}}
 \newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
-
-\newtcolorbox{punchbox}{
-  enhanced,
-  colback=blue!4,
-  colframe=blue!55!black,
-  boxrule=0.6pt,
-  arc=2pt,
-  left=4pt,right=4pt,top=3pt,bottom=3pt
-}
+% The title slide uses \maketutorialtitlepanel{...} from ibfe-tutorials.sty,
+% which places arbitrary content (here a TikZ sketch) in the right-hand column.
 
 \title[Turbulence closure]{Turbulence closure: RANS, LES, and hybrid ideas}
 \subtitle{What is averaged, what is filtered, and what must be modeled?}
 \author[Miller]{Laura A. Miller}
 \institute[UArizona]{Department of Mathematics, University of Arizona}
-\date{}
+\date{IBFE Tutorials \textbullet\ Module 5\\[3pt]
+  Adapted in part from lectures by Steven L. Brunton; equations follow Pope (2000) and Wilcox (2006).}
 
 \begin{document}
 
 % ----- 1. Title -----
 \begin{frame}[plain]
-  \begin{beamercolorbox}[sep=10pt,center]{title}
-    {\bfseries\Large Turbulence closure: RANS, LES, and hybrid ideas}\\[3pt]
-    {\normalsize What is averaged, what is filtered, and what must be modeled?}
-  \end{beamercolorbox}
-  \vspace{1.0em}
-  \begin{columns}[T,onlytextwidth]
-  \begin{column}{0.55\textwidth}
-    \textbf{\large Laura A. Miller}\\[4pt]
-    Department of Mathematics\\
-    University of Arizona\\[12pt]
-    {\small IBFE Tutorials}\\[10pt]
-    {\tiny AI tools were used to assist with formatting, organization, and clarification of the instructor's original notes.}
-  \end{column}
-  \begin{column}{0.45\textwidth}
+\maketutorialtitlepanel{%
     \begin{punchbox}
     \centering
     \begin{tikzpicture}[x=0.78cm,y=0.62cm]
-      \draw[->,thick] (0,0)--(5.1,0) node[right]{\scriptsize wavenumber};
+      \draw[->,thick] (0,0)--(5.1,0) node[below left=1pt and 0pt]{\scriptsize wavenumber};
       \draw[->,thick] (0,0)--(0,3.2) node[above]{\scriptsize energy};
       \draw[very thick,modelblue] plot[smooth] coordinates{(0.2,0.4)(0.8,2.7)(1.5,2.3)(2.4,1.7)(3.4,1.15)(4.7,0.25)};
       \draw[dashed,modelorange,thick] (3.05,0)--(3.05,2.0);
-      \node[modelblue] at (1.35,2.85){\scriptsize resolved};
+      \node[modelblue,anchor=west] at (1.75,2.6){\scriptsize resolved};
       \node[modelorange,align=center] at (4.05,2.0){\scriptsize modeled\\[-2pt]\scriptsize scales};
     \end{tikzpicture}
-    \end{punchbox}
-  \end{column}
-  \end{columns}
+    \end{punchbox}}
 \end{frame}
 
 % ----- 2. Why model? -----
@@ -226,8 +188,9 @@ With pressure normalized by density, the incompressible RANS/URANS equations are
 The physical turbulent stress is $-\rho R_{ij}$; the equation contains $-\partial_jR_{ij}$.
 The sign convention must remain paired with the closure.
 \end{punchbox}
+\vspace{0.8em}
 
-\begin{columns}[T,onlytextwidth]
+\begin{columns}[t,onlytextwidth]
 \begin{column}{0.48\textwidth}
 $R_{ij}$ is symmetric and positive semidefinite.
 \end{column}
@@ -303,8 +266,8 @@ For incompressible, constant-property flow,
 \centering
 \begin{tikzpicture}[node distance=0.45cm,>=Latex]
   \node[draw,rounded corners,fill=modelblue!12,minimum width=2.5cm,minimum height=0.72cm] (mean) {mean kinetic energy};
-  \node[draw,rounded corners,fill=modelgreen!12,right=1.25cm of mean,minimum width=2.5cm,minimum height=0.72cm] (tke) {TKE $k$};
-  \node[draw,rounded corners,fill=modelorange!14,right=1.25cm of tke,minimum width=2.5cm,minimum height=0.72cm] (heat) {internal energy};
+  \node[draw,rounded corners,fill=modelgreen!12,right=1.9cm of mean,minimum width=2.5cm,minimum height=0.72cm] (tke) {TKE $k$};
+  \node[draw,rounded corners,fill=modelorange!14,right=1.9cm of tke,minimum width=2.5cm,minimum height=0.72cm] (heat) {internal energy};
   \draw[->,very thick,modelblue] (mean)--(tke) node[midway,above]{\scriptsize production $\mathcal P$};
   \draw[->,very thick,modelorange] (tke)--(heat) node[midway,above]{\scriptsize dissipation $\varepsilon$};
   \draw[<->,thick,modelgray] ([yshift=-0.48cm]tke.south west)--([yshift=-0.48cm]tke.south east)
@@ -362,7 +325,7 @@ Specify the scalar field $\nu_t\ge 0$ from algebra, auxiliary transport equation
 \begin{column}{0.40\textwidth}
 \centering
 \begin{tikzpicture}[x=0.82cm,y=0.82cm]
-  \fill[blue!5] (0,0) rectangle (4.5,3.5);
+  \fill[LightGray!40] (0,0) rectangle (4.5,3.5);
   \draw[very thick] (0,0)--(4.5,0);
   \draw[->,modelblue,very thick] (0.5,0.45)--(1.0,0.45);
   \draw[->,modelblue,very thick] (0.5,1.05)--(1.75,1.05);
@@ -454,27 +417,50 @@ Wall units are built from the friction velocity:
 \begin{itemize}\itemsep3pt
   \item \hi{Viscous sublayer:} $U^+=y^+$ for $y^+\lesssim5$.
   \item \hi{Log layer:} $U^+=\dfrac1\kappa\ln y^++B$ with $\kappa\approx0.41$ and $B\approx5.0$--$5.2$, for $30\lesssim y^+\lesssim0.1$--$0.2\,\delta^+$.
+  \item \hi{Buffer layer} ($5\lesssim y^+\lesssim30$): neither law holds; turbulence production peaks near $y^+\approx12$.
 \end{itemize}
+{\scriptsize Here $\delta^+=\delta u_\tau/\nu$ is the friction Reynolds number; Pope (2000, Table~7.1) quotes the log law for $y^+>30$, $y/\delta<0.3$, and recent high-$\Rey$ data place its upper end nearer $0.15\,\delta$.\par}
 \end{column}
 \begin{column}{0.43\textwidth}
 \centering
-\begin{tikzpicture}[x=0.95cm,y=0.62cm]
-  \draw[->,thick] (0,0)--(4.9,0) node[right]{\scriptsize $\ln y^+$};
-  \draw[->,thick] (0,0)--(0,4.3) node[above]{\scriptsize $U^+$};
-  \draw[modelgreen,very thick] (0.2,0.25)--(1.35,2.05);
-  \draw[modelblue,very thick] (2.05,2.55)--(4.35,3.85);
-  \draw[modelgray,thick,dashed] (1.35,2.05) .. controls (1.7,2.35) .. (2.05,2.55);
-  \node[modelgreen,anchor=west] at (0.15,2.75){\scriptsize $U^+=y^+$};
-  \node[modelblue,anchor=east] at (4.6,2.35){\scriptsize log layer};
-  \node[modelgray] at (1.75,1.15){\scriptsize buffer};
+% Axes: s = ln y+ (x unit) and U+ (y unit), drawn to scale with kappa = 0.41, B = 5.2.
+% On this semi-log axis the sublayer law U+ = y+ = e^s is a curve, the log law a line.
+\begin{tikzpicture}[x=0.62cm,y=0.165cm]
+  \fill[LightGray!50] ({ln(5)},0) rectangle ({ln(30)},24);
+  \draw[->,thick] (0,0)--(7.3,0);
+  \node[anchor=north] at (3.6,-2.6){\scriptsize $y^+$ (log scale)};
+  \draw[->,thick] (0,0)--(0,25) node[above]{\scriptsize $U^+$};
+  \foreach \yp/\lab in {1/1,5/5,30/30,300/300}{%
+    \draw ({ln(\yp)},0)--({ln(\yp)},-0.7) node[below]{\tiny \lab};}
+  \foreach \u in {10,20}{\draw (0,\u)--(-0.12,\u) node[left]{\tiny \u};}
+  % viscous sublayer U+ = y+ (solid where valid, dashed beyond)
+  \draw[modelgreen,very thick,domain=0:{ln(5)},samples=40] plot (\x,{exp(\x)});
+  \draw[modelgreen,thick,dashed,domain={ln(5)}:{ln(15)},samples=30] plot (\x,{exp(\x)});
+  % log law U+ = (1/0.41) ln y+ + 5.2 (solid where valid, dashed below y+ = 30)
+  \draw[modelblue,very thick,domain={ln(30)}:7,samples=2] plot (\x,{\x/0.41+5.2});
+  \draw[modelblue,thick,dashed,domain={ln(8)}:{ln(30)},samples=2] plot (\x,{\x/0.41+5.2});
+  \node[modelgreen,anchor=west] at (0.1,14){\scriptsize $U^+=y^+$};
+  \node[modelblue,anchor=east] at (5.2,22){\scriptsize log layer};
+  \node[modelgray,anchor=south] at ({0.5*ln(150)},0.8){\scriptsize buffer};
 \end{tikzpicture}
+
+{\tiny\color{DarkGray} Drawn to scale ($\kappa=0.41$, $B=5.2$). Schematic: instructor's course notes, after Pope (2000), Ch.~7.\par}
 \end{column}
 \end{columns}
+\end{frame}
 
-\vspace{0.4em}
+% ----- 13c. Wall scaling in practice (split from the previous frame) -----
+\begin{frame}{Wall scaling in practice: wall functions or wall resolution}
 \begin{punchbox}
 A \hi{wall function} imposes this profile at the first cell instead of resolving the sublayer, and needs the first cell centre near $30<y^+<300$. A \hi{low-$\Rey$} model instead resolves to $y^+\approx1$.
 \end{punchbox}
+
+\begin{itemize}\itemsep4pt
+  \item $u_\tau$ is part of the solution, so a wall function solves the log law at the first cell for $u_\tau$ (and hence $\tau_w$) iteratively.
+  \item Mesh design runs the other way: estimate $u_\tau$ from a skin-friction correlation, then place the first cell at $y=y^+\nu/u_\tau$.
+  \item \hi{Worked example} (water, $\nu=10^{-6}\,\mathrm{m^2/s}$, $u_\tau=0.05$ m/s): $\nu/u_\tau=20\,\mu$m, so $y^+=1$ is $y=20\,\mu$m and $y^+=30$ is $y=0.6$ mm.
+  \item A first cell in the buffer layer ($5\lesssim y^+\lesssim30$) satisfies neither approach; many codes then blend the two laws.
+\end{itemize}
 \end{frame}
 
 % ----- 14. Two equation models -----
@@ -504,7 +490,7 @@ Extra PDEs introduce memory, transport, and length/time scales---but they do not
 \begin{frame}{The $k$--$\varepsilon$ and $k$--$\omega$ transport equations}
 \footnotesize
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.485\textwidth}
+\begin{column}{0.507\textwidth}
 \hi{Standard $k$--$\varepsilon$} \soft{(Launder \& Spalding 1974)}
 \begin{align*}
   \partial_t k + U_j\partial_j k &= P_k-\varepsilon
@@ -519,14 +505,14 @@ Extra PDEs introduce memory, transport, and length/time scales---but they do not
 \]
 \vspace{-1.0em}
 \[
-  P_k=-\langle u_i'u_j'\rangle\,\partial_j U_i=2\nu_t S_{ij}S_{ij}.
+  P_k=-\mean{u_i'u_j'}\,\partial_j U_i=2\nu_t S_{ij}S_{ij}.
 \]
 \vspace{-0.6em}
 
 Constants: $C_\mu=0.09$, $C_{\varepsilon1}=1.44$, $C_{\varepsilon2}=1.92$, $\sigma_k=1.0$, $\sigma_\varepsilon=1.3$.
 \end{column}
-\begin{column}{0.485\textwidth}
-\hi{Wilcox $k$--$\omega$} \soft{(1988 form; the 2006 revision adds a cross-diffusion limiter and restresses $\sigma$'s)}
+\begin{column}{0.48\textwidth}
+\hi{Wilcox $k$--$\omega$} \soft{(1988 form; the 2006 revision adds a cross-diffusion term and a stress limiter on $\nu_t$, and recalibrates the constants)}
 \begin{align*}
   \partial_t k + U_j\partial_j k &= P_k-\beta^{*}k\omega
     +\partial_j\!\left[\left(\nu+\sigma_k\nu_t\right)\partial_j k\right],\\
@@ -542,15 +528,23 @@ Constants: $C_\mu=0.09$, $C_{\varepsilon1}=1.44$, $C_{\varepsilon2}=1.92$, $\sig
 1988 constants: $\alpha=5/9$, $\beta=3/40$, $\beta^{*}=0.09$, $\sigma_k=\sigma_\omega=0.5$.
 
 \soft{Note $\varepsilon\approx\beta^{*}k\omega$, so $\omega$ is a specific dissipation rate.}
+\soft{(Wilcox defines $\omega=\varepsilon/(\beta^*k)$, so this holds by definition; diffusion coefficients multiply $\nu_t$ here but divide it in $k$--$\varepsilon$.)}
 \end{column}
 \end{columns}
+\end{frame}
 
-\vspace{0.3em}
+% ----- 14c. Near-wall behaviour (split from the previous frame) -----
+\begin{frame}{Near-wall behaviour: why SST blends the two models}
 \begin{punchbox}
-\footnotesize
-$k$--$\varepsilon$ needs wall functions or damping terms near walls, because $\varepsilon$ does not behave well as $y\to0$.\\
+$k$--$\varepsilon$ needs wall functions or damping terms near walls, because $\varepsilon$ does not behave well as $y\to0$ (at the wall $k\to0$ like $y^2$ while $\varepsilon$ stays finite, so the destruction term $C_{\varepsilon2}\varepsilon^2/k$ is singular and the model's near-wall $\nu_t$ is wrong without damping functions).\\[3pt]
 $k$--$\omega$ integrates cleanly to the wall but is sensitive to the free-stream value of $\omega$---which is exactly why Menter's SST blends $k$--$\omega$ near the wall with $k$--$\varepsilon$ in the outer flow.
 \end{punchbox}
+
+\begin{itemize}\itemsep4pt
+  \item Menter (1994) rewrites $k$--$\varepsilon$ in terms of $\omega$; the result is the $k$--$\omega$ equations plus a cross-diffusion term $2(1-F_1)\sigma_{\omega2}\,\omega^{-1}\partial_jk\,\partial_j\omega$.
+  \item The blending function $F_1$ is $\approx1$ near the wall ($k$--$\omega$) and $\approx0$ in the outer layer and free stream ($k$--$\varepsilon$ behavior).
+  \item The SST limiter $\nu_t=a_1k/\max(a_1\omega,\,\Omega F_2)$, $a_1=0.31$ ($\Omega$: vorticity magnitude; later versions use the strain rate $S$), caps the shear stress at $\approx a_1k$ (Bradshaw's assumption), improving adverse-pressure-gradient predictions.
+\end{itemize}
 \end{frame}
 
 % ----- 15. SA -----
@@ -572,17 +566,17 @@ Its transport equation balances production, diffusion, and near-wall destruction
 \begin{column}{0.39\textwidth}
 \centering
 \begin{tikzpicture}[x=0.82cm,y=0.82cm]
-  \fill[blue!5] (0,0) rectangle (4.5,3.4);
+  \fill[LightGray!40] (0,0) rectangle (4.5,3.6);
   \draw[very thick] (0,0)--(4.5,0);
   \draw[modelblue,very thick] plot[smooth] coordinates{(0.15,0.05)(0.65,0.55)(1.45,1.05)(2.55,1.5)(3.9,1.75)};
   \fill[modelorange] (1.7,1.17) circle (0.09);
   \draw[<->,modelorange,thick] (1.7,0.03)--(1.7,1.12) node[midway,right]{$d$};
-  \node[modelblue] at (3.35,2.05){\scriptsize boundary-layer profile};
-  \node[draw,rounded corners,fill=modelgreen!12,align=center] at (2.4,2.75){\scriptsize transport $\tilde\nu$\\\scriptsize then compute $\nu_t$};
+  \node[modelblue] at (3.15,2.1){\scriptsize boundary-layer profile};
+  \node[draw,rounded corners,fill=modelgreen!12,align=center] at (2.3,3.0){\scriptsize transport $\tilde\nu$\\\scriptsize then compute $\nu_t$};
 \end{tikzpicture}
 
 \vspace{0.35em}
-{\scriptsize Model definition and variants: \href{https://tmbwg.github.io/turbmodels/spalart.html}{NASA Turbulence Modeling Resource}.}
+{\scriptsize Model definition and variants: \href{https://tmbwg.github.io/turbmodels/spalart.html}{NASA Turbulence Modeling Resource}.\par}
 \end{column}
 \end{columns}
 \end{frame}
@@ -604,7 +598,7 @@ Linear eddy-viscosity models constrain stress anisotropy to align with the mean 
 \end{column}
 \begin{column}{0.47\textwidth}
 \centering
-\begin{tikzpicture}[x=0.78cm,y=0.78cm,>=Latex]
+\begin{tikzpicture}[x=0.9cm,y=0.9cm,>=Latex]
   \draw[very thick] (0,0)--(5.7,0);
   \foreach \y in {0.5,1.0,1.5,2.0}{
     \draw[->,modelblue,thick] (0.1,\y)--(1.3+0.28*\y,\y);
@@ -612,7 +606,7 @@ Linear eddy-viscosity models constrain stress anisotropy to align with the mean 
   \draw[modelorange,very thick,->] (1.6,0.12) .. controls (2.3,1.5) and (4.35,1.45) .. (5.25,0.16);
   \draw[modelorange,very thick,->] (4.8,0.38) .. controls (4.0,0.95) and (2.75,0.85) .. (2.15,0.3);
   \node[modelorange] at (3.5,1.65){\scriptsize separated shear layer};
-  \node[align=center] at (3.55,0.48){\scriptsize recirculation\\[-2pt]\scriptsize $U<0$ near wall};
+  \node[align=center,fill=white,fill opacity=0.8,text opacity=1,inner sep=1pt] at (3.55,0.48){\scriptsize recirculation\\[-2pt]\scriptsize $U<0$ near wall};
   \draw[->,modelgray] (4.9,2.6)--(5.7,2.6) node[right]{\scriptsize increasing $x$};
   \node at (2.4,2.7){\scriptsize adverse $\mathrm dp/\mathrm dx>0$};
 \end{tikzpicture}
@@ -679,7 +673,7 @@ Define a spatially filtered field by convolution,
 \end{column}
 \begin{column}{0.44\textwidth}
 \centering
-\begin{tikzpicture}[x=0.72cm,y=0.72cm]
+\begin{tikzpicture}[x=0.9cm,y=0.9cm]
   \draw[modelgray,thin] plot[smooth] coordinates{(0,1.4)(0.35,2.25)(0.7,0.45)(1.0,2.65)(1.35,0.75)(1.7,2.0)(2.05,0.9)(2.4,2.45)(2.75,0.55)(3.1,1.75)(3.45,1.0)(3.8,2.1)(4.15,0.8)(4.5,1.6)};
   \draw[modelblue,very thick] plot[smooth] coordinates{(0,1.5)(0.7,1.45)(1.4,1.55)(2.1,1.62)(2.8,1.35)(3.5,1.42)(4.5,1.38)};
   \draw[<->,modelorange,thick] (1.3,0.15)--(2.7,0.15) node[midway,below]{$\Delta$};
@@ -754,6 +748,7 @@ The classical Smagorinsky model sets
   |\widetilde S|=\sqrt{2\widetilde S_{ij}\widetilde S_{ij}}.
 \]
 {\small $C_s\approx0.17$ for isotropic turbulence (Lilly), reduced to $\approx0.1$ in shear flows.}
+{\scriptsize\soft{(Lilly 1967 obtained $C_s\approx0.17$ by matching the mean SGS dissipation to a Kolmogorov inertial range with $C_K\approx1.5$; Deardorff 1970 found $\approx0.1$ necessary in channel flow, where mean shear adds to $|\widetilde S|$.)}\par}
 
 \begin{columns}[T,onlytextwidth]
 \begin{column}{0.52\textwidth}
@@ -762,6 +757,7 @@ For $\nu_{\mathrm{sgs}}\ge0$, the modeled transfer is
   \Pi=-\tau_{ij}\widetilde S_{ij}
   =2\nu_{\mathrm{sgs}}\widetilde S_{ij}\widetilde S_{ij}\ge0.
 \]
+{\scriptsize The isotropic part of $\tau_{ij}$ drops out because $\widetilde S_{ii}=0$.\par}
 \end{column}
 \begin{column}{0.44\textwidth}
 \begin{alertblock}{Consequence}
@@ -781,9 +777,10 @@ Apply a second, wider \emph{test filter} $\widehat{(\cdot)}$ and use the identit
   =\widehat{\widetilde u_i\widetilde u_j}
    -\widehat{\widetilde u}_i\widehat{\widetilde u}_j.
 \]
+{\small Here $T_{ij}:=\widehat{\widetilde{u_iu_j}}-\widehat{\widetilde u}_i\widehat{\widetilde u}_j$ is the stress at the combined (grid then test) filter level. $L_{ij}$ is computable from the resolved field alone.\par}
 A modeled form on both filter levels gives an equation for a local or averaged coefficient.
 
-\begin{itemize}\itemsep3pt
+\begin{itemize}\itemsep0pt
   \item adapts to flow and resolution;
   \item clipping/averaging is often used for robustness;
   \item local backscatter can occur when the inferred coefficient is negative.
@@ -829,7 +826,7 @@ In three-dimensional turbulence, kinetic energy transfers toward smaller scales 
   \draw[->,modelgreen,very thick] (1.15,3.65)--(3.15,2.35) node[midway,above right]{\scriptsize mean flux};
   \node[modelblue] at (1.25,1.2){\scriptsize resolved};
   \node[modelorange] at (4.35,1.8){\scriptsize SGS};
-  \node[rotate=-29,modelgray] at (2.4,2.95){\scriptsize $k^{-5/3}$};
+  \node[rotate=-29,modelgray] at (2.6,2.0){\scriptsize $k^{-5/3}$};
 \end{tikzpicture}
 \end{column}
 \end{columns}
@@ -872,8 +869,8 @@ Wind-farm calculations illustrate why resolved unsteadiness matters:
 \end{column}
 \begin{column}{0.49\textwidth}
 \centering
-\begin{tikzpicture}[x=0.72cm,y=0.72cm]
-  \fill[blue!4] (0,0) rectangle (7.0,4.1);
+\begin{tikzpicture}[x=0.86cm,y=0.86cm]
+  \fill[LightGray!40] (0,0) rectangle (7.0,4.1);
   \foreach \x/\y in {1.0/2.8,2.6/1.4,4.0/3.0,5.6/1.65}{
     \draw[modelgray,thick] (\x,\y-0.7)--(\x,\y);
     \draw[modelgray,thick] (\x,\y) circle (0.45);
@@ -885,8 +882,8 @@ Wind-farm calculations illustrate why resolved unsteadiness matters:
   \foreach \a/\b/\c/\d in {0.2/0.6/1.0/0.7,1.2/3.7/2.0/3.5,3.0/0.5/4.2/0.8,4.4/3.8/5.4/3.55,5.8/0.6/6.7/0.9}{
     \draw[decorate,decoration={snake,amplitude=1.2pt,segment length=5pt},modelorange,->] (\a,\b)--(\c,\d);
   }
-  \node[modelblue] at (5.55,3.95){\scriptsize velocity-deficit wakes};
-  \node[modelorange] at (1.7,0.25){\scriptsize resolved atmospheric eddies};
+  \node[modelblue,anchor=south east] at (7.0,4.15){\scriptsize velocity-deficit wakes};
+  \node[modelorange,anchor=north west] at (0,-0.05){\scriptsize resolved atmospheric eddies};
 \end{tikzpicture}
 \end{column}
 \end{columns}
@@ -913,10 +910,10 @@ It is not a sharp switch based only on ``steady'' versus ``unsteady'' flow. Grid
   \draw[modelgreen,very thick] (0.2,0.2) .. controls (1.7,0.7) and (2.35,1.6) .. (2.7,2.2)
     .. controls (3.25,3.0) and (4.5,3.15) .. (5.6,2.55);
   \draw[modelgreen,very thick,->] (4.95,2.05) .. controls (4.1,1.35) and (3.25,1.5) .. (2.9,2.25);
-  \node[modelorange] at (1.25,0.43){\scriptsize RANS shield};
+  \node[modelorange] at (4.3,0.43){\scriptsize RANS shield};
   \node[modelblue] at (4.35,3.45){\scriptsize resolved wake eddies};
   \draw[dashed,modelgray] (2.35,0)--(2.35,3.4);
-  \node[rotate=90,modelgray] at (2.17,2.7){\scriptsize separation};
+  \node[rotate=90,modelgray,anchor=south] at (2.33,2.7){\scriptsize separation};
 \end{tikzpicture}
 \end{column}
 \end{columns}
@@ -949,13 +946,13 @@ Useful training accuracy is not sufficient. A closure should respect relevant
 % ----- 29. Summary -----
 \begin{frame}{A closure decision tree}
 \centering
-\begin{tikzpicture}[scale=0.90,transform shape,node distance=0.55cm and 0.65cm,>=Latex]
+\begin{tikzpicture}[scale=0.92,transform shape,node distance=0.55cm and 0.65cm,>=Latex]
   \node[draw,rounded corners,fill=modelblue!12,minimum width=3.4cm] (qoi) {What quantity and accuracy?};
-  \node[draw,rounded corners,fill=modelgreen!12,below left=0.8cm and 1.0cm of qoi,minimum width=3.2cm] (mean) {mean loads / design sweep};
-  \node[draw,rounded corners,fill=modelorange!14,below right=0.8cm and 1.0cm of qoi,minimum width=3.2cm] (unsteady) {unsteady wakes / mixing};
+  \node[draw,rounded corners,fill=modelgreen!12,below left=0.8cm and 0.2cm of qoi,minimum width=3.2cm] (mean) {mean loads / design sweep};
+  \node[draw,rounded corners,fill=modelorange!14,below right=0.8cm and 0.2cm of qoi,minimum width=3.2cm] (unsteady) {unsteady wakes / mixing};
   \node[draw,rounded corners,fill=modelgreen!8,below=of mean,minimum width=3.2cm] (rans) {RANS + validated closure};
   \node[draw,rounded corners,fill=modelorange!10,below=of unsteady,minimum width=3.2cm] (les) {LES or hybrid + resolution study};
-  \node[draw,rounded corners,fill=modelgray!10,below=0.75cm of $(rans)!0.5!(les)$,minimum width=5.4cm] (verify) {verify numerics; validate the target output};
+  \node[draw,rounded corners,fill=modelgray!10,below=1.1cm of $(rans)!0.5!(les)$,minimum width=5.4cm] (verify) {verify numerics; validate the target output};
   \draw[->,very thick,modelgray] (qoi)--(mean);
   \draw[->,very thick,modelgray] (qoi)--(unsteady);
   \draw[->,very thick,modelgray] (mean)--(rans);
@@ -981,6 +978,22 @@ RANS averages; LES filters. Both create exact unresolved stresses, and every pra
   \item P. R. Spalart, W.-H. Jou, M. Strelets, and S. R. Allmaras, ``Comments on the feasibility of LES for wings, and on a hybrid RANS/LES approach,'' Advances in DNS/LES (1997).
   \item NASA Langley Turbulence Modeling Resource: \href{https://tmbwg.github.io/turbmodels/}{tmbwg.github.io/turbmodels/} (equations, variants, and verification cases).
   \item Adapted in part from educational material by Steven L. Brunton.
+\end{itemize}
+\end{frame}
+
+% ----- 30b. References, continued -----
+\begin{frame}{Primary sources and durable resources (continued)}
+\scriptsize
+\begin{itemize}\itemsep3pt
+  \item S. B. Pope, \emph{Turbulent Flows}, Cambridge University Press (2000): Ch.~4--5 (RANS, TKE budget, pseudo-dissipation), Ch.~7 (wall units, log law), Ch.~10 (eddy-viscosity and two-equation models), Ch.~13 (LES, Smagorinsky, dynamic model).
+  \item D. C. Wilcox, \emph{Turbulence Modeling for CFD}, 3rd ed., DCW Industries (2006).
+  \item D. C. Wilcox, ``Reassessment of the scale-determining equation for advanced turbulence models,'' \emph{AIAA J.} 26 (1988), 1299--1310. \href{https://doi.org/10.2514/3.10041}{doi:10.2514/3.10041}.
+  \item B. E. Launder and D. B. Spalding, ``The numerical computation of turbulent flows,'' \emph{Comput. Methods Appl. Mech. Eng.} 3 (1974), 269--289. \href{https://doi.org/10.1016/0045-7825(74)90029-2}{doi:10.1016/0045-7825(74)90029-2}.
+  \item F. R. Menter, ``Two-equation eddy-viscosity turbulence models for engineering applications,'' \emph{AIAA J.} 32 (1994), 1598--1605. \href{https://doi.org/10.2514/3.12149}{doi:10.2514/3.12149}.
+  \item D. K. Lilly, ``The representation of small-scale turbulence in numerical simulation experiments,'' \emph{Proc. IBM Scientific Computing Symposium on Environmental Sciences} (1967), 195--210.
+  \item J. W. Deardorff, ``A numerical study of three-dimensional turbulent channel flow at large Reynolds numbers,'' \emph{J. Fluid Mech.} 41 (1970), 453--480. \href{https://doi.org/10.1017/S0022112070000691}{doi:10.1017/S0022112070000691}.
+  \item P. R. Spalart, S. Deck, M. L. Shur, K. D. Squires, M. Kh. Strelets, and A. Travin, ``A new version of detached-eddy simulation, resistant to ambiguous grid densities,'' \emph{Theor. Comput. Fluid Dyn.} 20 (2006), 181--195. \href{https://doi.org/10.1007/s00162-006-0015-0}{doi:10.1007/s00162-006-0015-0}.
+  \item All schematics in this deck: instructor's course notes.
 \end{itemize}
 \end{frame}
 

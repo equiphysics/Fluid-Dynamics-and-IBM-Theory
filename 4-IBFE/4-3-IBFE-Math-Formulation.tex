@@ -3,39 +3,21 @@
 % =====================================================================
 \documentclass[aspectratio=169,11pt]{beamer}
 
-% Match the visual language of the SIAM Waves talk.
-\usetheme{Boadilla}
-\usecolortheme{seahorse}
-\useinnertheme{rectangles}
-\useoutertheme{infolines}
+% Shared style, ported from the UF Animal Sciences 2026 talk (ibfe-tutorials.sty at the repo root).
+\makeatletter\def\input@path{{./}{../}}\makeatother
+\usepackage{ibfe-tutorials}
 
-\setbeamercolor{structure}{fg=blue!55!black}
-\setbeamercolor{title}{fg=white,bg=blue!55!black}
-\setbeamercolor{frametitle}{fg=blue!55!black}
-\setbeamercolor{block title}{bg=blue!12,fg=blue!55!black}
-\setbeamercolor{block body}{bg=blue!4}
-\setbeamertemplate{navigation symbols}{}
-\setbeamerfont{frametitle}{series=\bfseries,size=\large}
-\setbeamerfont{title}{series=\bfseries,size=\Large}
-
-\usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
-\DeclareFontShape{T1}{cmss}{b}{n}{<->ssub*cmss/bx/n}{}
 \usepackage{graphicx}
 % These prefixes allow compilation from either the repository root or this folder.
 \graphicspath{{./}{../}}
 \usepackage{amsmath,amssymb,bm,mathtools}
 \usepackage{booktabs}
 \usepackage{xcolor}
+\usepackage{tikz}
 \usepackage{tcolorbox}
 \tcbuselibrary{skins}
 \usepackage{hyperref}
-
-\hypersetup{colorlinks=true,urlcolor=blue!55!black}
-
-\newcommand{\hi}[1]{\textcolor{blue!55!black}{\textbf{#1}}}
-\newcommand{\warn}[1]{\textcolor{red!70!black}{\textbf{#1}}}
-\newcommand{\soft}[1]{\textcolor{gray!50!black}{#1}}
 
 \newcommand{\xvec}{\bm{x}}
 \newcommand{\Xvec}{\bm{X}}
@@ -62,38 +44,18 @@
 \newcommand{\gradx}{\nabla_{\!x}}
 \newcommand{\divx}{\nabla_{\!x}\!\cdot}
 
-\newtcolorbox{punchbox}{
-  enhanced,
-  colback=blue!4,
-  colframe=blue!55!black,
-  boxrule=0.6pt,
-  arc=2pt,
-  left=4pt,right=4pt,top=3pt,bottom=3pt
-}
-
 \title[IBFE formulation]{IBFE mathematical formulation}
 \subtitle{Strong form, weak form, and discrete coupling}
 \author[Miller]{Laura A. Miller}
 \institute[UArizona]{Department of Mathematics, University of Arizona}
-\date{}
+\date{IBFE Tutorials \textbullet\ Module 4}
 
 \begin{document}
 
 % ----- 1. Title -----
 \begin{frame}[plain]
-  \begin{beamercolorbox}[sep=10pt,center]{title}
-    {\bfseries\Large IBFE mathematical formulation}\\[3pt]
-    {\normalsize Strong form, weak form, and discrete coupling}
-  \end{beamercolorbox}
-  \vspace{1.4em}
-  \begin{columns}[T,onlytextwidth]
-  \begin{column}{0.56\textwidth}
-    \textbf{\large Laura A. Miller}\\[4pt]
-    Department of Mathematics\\
-    University of Arizona\\[14pt]
-    {\small IBFE Tutorials}
-  \end{column}
-  \begin{column}{0.44\textwidth}
+% Title-slide summary box in the image slot of the talk layout.
+\maketutorialtitlepanel{%
     \begin{punchbox}
     \centering
     \[
@@ -106,11 +68,7 @@
       \fvec_h
     \]
     \small Solid mechanics in reference coordinates, fluid dynamics on a Cartesian grid.
-    \end{punchbox}
-  \end{column}
-  \end{columns}
-  \vfill
-  \centering{\tiny\color{black!55}AI tools were used to assist with formatting, organization, and clarification of the instructor's original notes.}
+    \end{punchbox}}
 \end{frame}
 
 \section{Overview and notation}
@@ -123,16 +81,20 @@
   \item Spread that force to the Eulerian fluid grid with a regularized delta kernel.
   \item Restrict fluid velocity back to the finite-element structure with an adjoint operator.
 \end{enumerate}
+\medskip
 \begin{punchbox}
 \centering
 \small The finite-element mesh represents geometry and mechanics. Quadrature points mediate the fluid--structure interaction.
 \end{punchbox}
+
+\vfill
+{\scriptsize\color{DarkGray}The formulation in this deck (strong form, unified and partitioned weak forms, quadrature coupling, adjoint restriction) is adapted from Griffith \& Luo (2017), which builds on Boffi, Gastaldi, Heltai \& Peskin (2008); the stabilization remarks follow Griffith \& Patankar (2020) and the jellyfish example Hoover, Griffith \& Miller (2017). Equation numbers on individual slides refer to Griffith \& Luo. Full references are on the final slide.\par}
 \end{frame}
 
 % ----- 3. Notation bridge -----
 \begin{frame}{Notation bridge from the solid-mechanics module}
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.52\textwidth}
+\begin{column}{0.50\textwidth}
 \textbf{Kinematics and stress}
 \[
   \Ften=\Grad\chi,
@@ -147,7 +109,7 @@
   \item \(W\): energy per reference volume.
 \end{itemize}
 \end{column}
-\begin{column}{0.48\textwidth}
+\begin{column}{0.46\textwidth}
 \textbf{Force and velocity coupling}
 \begin{itemize}\itemsep7pt
   \item \(\Fvec(\Xvec,t)\): Lagrangian force per reference volume;
@@ -156,6 +118,7 @@
 \end{itemize}
 \end{column}
 \end{columns}
+\medskip
 \begin{punchbox}
 \small Here we write the reference and current solid regions as \(B_0\) and \(B_t\), reserving \(\Omega\) for the Eulerian computational domain.
 \end{punchbox}
@@ -166,7 +129,7 @@
 % ----- 4. Geometry -----
 \begin{frame}{Reference and current configurations}
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.49\textwidth}
+\begin{column}{0.47\textwidth}
 \[
   \chi(\cdot,t):B_0\longrightarrow B_t\subset\Omega,
   \qquad
@@ -184,11 +147,13 @@
   \item \(B_t=\chi(B_0,t)\): region occupied by the immersed solid.
 \end{itemize}
 \end{column}
-\begin{column}{0.51\textwidth}
+\begin{column}{0.49\textwidth}
 \centering
-\includegraphics[width=\linewidth]{pictures/4-3/IBFE-sketch.png}
+\includegraphics[width=\linewidth]{pictures/4-3/IBFE-sketch.png}\\
+\soft{\tiny Schematic: instructor's course notes.}
 \end{column}
 \end{columns}
+\medskip
 \begin{punchbox}
 \small IBFE keeps the structural description Lagrangian while momentum, viscosity, and incompressibility remain Eulerian.
 \end{punchbox}
@@ -197,7 +162,7 @@
 % ----- 5. Stress -----
 \begin{frame}{Fluid and structural stress measures}
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.55\textwidth}
+\begin{column}{0.53\textwidth}
 \textbf{Newtonian fluid stress}
 \[
   \sigten^f=-p\Identity
@@ -214,7 +179,7 @@
   \Pten^p=\frac{\partial W}{\partial\Ften}.
 \]
 \end{column}
-\begin{column}{0.45\textwidth}
+\begin{column}{0.43\textwidth}
 \textbf{Inside and outside the solid}
 \[
 \sigten(\xvec,t)=
@@ -226,6 +191,7 @@
 \small The superscript \(s\) denotes the total structural stress. In a passive calculation, \(\Pten^a=\bm{0}\).
 \end{column}
 \end{columns}
+\medskip
 \begin{punchbox}
 \small The Piola transform \(\Pten^s=J\sigten^s\Ften^{-\mathsf T}\) converts between current-area and reference-area stress measures.
 \end{punchbox}
@@ -234,7 +200,7 @@
 % ----- 6. Assumptions -----
 \begin{frame}{Classical neutrally buoyant IBFE assumptions}
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.49\textwidth}
+\begin{column}{0.47\textwidth}
 \textbf{Fluid and solid properties}
 \begin{itemize}\itemsep7pt
   \item viscous incompressible fluid;
@@ -243,7 +209,7 @@
   \item one fluid-like viscous stress \(\sigten^f\).
 \end{itemize}
 \end{column}
-\begin{column}{0.51\textwidth}
+\begin{column}{0.49\textwidth}
 \textbf{Coupling assumptions}
 \begin{itemize}\itemsep7pt
   \item no slip and no penetration;
@@ -253,6 +219,7 @@
 \end{itemize}
 \end{column}
 \end{columns}
+\medskip
 \begin{punchbox}
 \small Extensions can treat density or viscosity contrasts, but they require additional terms beyond the classical formulation used here.
 \end{punchbox}
@@ -321,6 +288,7 @@ Contribution & Reference support & Character in the fluid \\
 \bottomrule
 \end{tabular}
 \end{center}
+\medskip
 \begin{punchbox}
 \small A nonzero transmission force can generate jumps in pressure or viscous stress. Omitting it from the strong form changes the model unless its effect is retained weakly.
 \end{punchbox}
@@ -329,7 +297,7 @@ Contribution & Reference support & Character in the fluid \\
 % ----- 7. PK1 -----
 \begin{frame}{First Piola--Kirchhoff traction}
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.52\textwidth}
+\begin{column}{0.50\textwidth}
 For a reference surface with unit normal \(\Nvec\),
 \[
   \bm{t}_0=\Pten\Nvec,
@@ -342,7 +310,7 @@ For a reference surface with unit normal \(\Nvec\),
   \item \(\Pten\) is generally nonsymmetric.
 \end{itemize}
 \end{column}
-\begin{column}{0.48\textwidth}
+\begin{column}{0.46\textwidth}
 \[
   \Pten=J\sigten^s\Ften^{-\mathsf T},
   \qquad
@@ -353,10 +321,39 @@ For a reference surface with unit normal \(\Nvec\),
   =\mathrm{force/reference\ area}.
 \]
 \begin{punchbox}
-\small \(\Pten\Nvec\) is the traction on the solid. The transmission force \(-\Pten\Nvec\) is not a third-law reaction: it is the singular surface layer that appears because \(\sigten^{e}\) is truncated at \(\partial B_t\) (distributionally, \(\gradx\!\cdot(\sigten^{e}\chi_{B_t})=(\gradx\!\cdot\sigten^{e})\chi_{B_t}-(\sigten^{e}\nvec)\,\delta_{\partial B_t}\), with \(\chi_{B_t}\) the indicator function of \(B_t\)).
+\small \(\Pten\Nvec\) is the traction on the solid. The transmission force \(-\Pten\Nvec\) is not a third-law reaction: it is the singular surface layer that appears because \(\sigten^{s}\) is truncated at \(\partial B_t\) (distributionally, \(\gradx\!\cdot(\sigten^{s}\chi_{B_t})=(\gradx\!\cdot\sigten^{s})\chi_{B_t}-(\sigten^{s}\nvec)\,\delta_{\partial B_t}\), with \(\chi_{B_t}\) the indicator function of \(B_t\)).
 \end{punchbox}
 \end{column}
 \end{columns}
+\end{frame}
+
+% ----- 7b. Where the transmission force comes from (added for clarity) -----
+\begin{frame}{Where the transmission force comes from}
+\small
+Let \(\chi_{B_t}\) be the indicator of the solid region (1 in \(B_t\), 0 outside; not to be confused with the motion \(\chi\)) and \(\nvec\) the \emph{outward} unit normal on \(\partial B_t\). As distributions,
+\[
+  \gradx\chi_{B_t}=-\nvec\,\delta_{\partial B_t},
+  \qquad
+  \partial_j\big(\sigma^s_{ij}\chi_{B_t}\big)
+  =(\partial_j\sigma^s_{ij})\,\chi_{B_t}+\sigma^s_{ij}\,\partial_j\chi_{B_t}
+  =(\partial_j\sigma^s_{ij})\,\chi_{B_t}-\sigma^s_{ij}n_j\,\delta_{\partial B_t}.
+\]
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.49\textwidth}
+\textbf{Eulerian reading}
+
+The structural stress contributes \(\fvec=\gradx\!\cdot(\sigten^{s}\chi_{B_t})\) to the momentum equation: a regular body force inside \(B_t\) plus a surface layer \(-\sigten^s\nvec\) on \(\partial B_t\).
+\end{column}
+\begin{column}{0.47\textwidth}
+\textbf{Lagrangian reading}
+
+Pulling back with \(dv=J\,dV\), \(\nvec\,da=J\Ften^{-\mathsf T}\Nvec\,dA\), and \(\Pten=J\sigten^s\Ften^{-\mathsf T}\) turns the two pieces into \(\Div\Pten\) on \(B_0\) and \(-\Pten\Nvec\) on \(\partial B_0\): exactly the two integrals of the strong form.
+\end{column}
+\end{columns}
+\medskip
+\begin{punchbox}
+\small Sign check: the gradient of an indicator points \emph{into} the region, hence the minus sign. The identity is the distributional form of the divergence theorem, \(\int_{B_t}\gradx\!\cdot\sigten^s\,dv=\int_{\partial B_t}\sigten^s\nvec\,da\), which makes the total transmitted force \(\int\fvec\,d\xvec=\bm{0}\) when no body force acts.
+\end{punchbox}
 \end{frame}
 
 % ----- 10. Material force balance -----
@@ -391,19 +388,20 @@ For a stand-alone solid, localization of material momentum balance gives
   \qquad\text{in }B_0.
 \]
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.49\textwidth}
+\begin{column}{0.47\textwidth}
 \textbf{Stand-alone solid}
 
 The Lagrangian equation carries solid inertia through \(\rho_0\chi_{tt}\).
 \end{column}
-\begin{column}{0.51\textwidth}
+\begin{column}{0.49\textwidth}
 \textbf{Neutrally buoyant IBFE}
 
 The common Eulerian momentum equation carries fluid and solid inertia. The structural model supplies force, not a second inertia equation.
 \end{column}
 \end{columns}
+\medskip
 \begin{punchbox}
-\small IBFE spreads \(\Div\Pten+\Gvec\) and the boundary reaction \(-\Pten\Nvec\) to the Eulerian grid.
+\small IBFE spreads \(\Div\Pten+\Gvec\) and the boundary transmission force \(-\Pten\Nvec\) to the Eulerian grid. (It is the surface layer of the truncated structural stress, not a Newton's-third-law reaction; see ``Where the transmission force comes from''.)
 \end{punchbox}
 \end{frame}
 
@@ -417,6 +415,7 @@ The common Eulerian momentum equation carries fluid and solid inertia. The struc
   \item The boundary transmission force remains part of the formulation.
   \item The result is a Lagrangian force field ready for Eulerian spreading.
 \end{itemize}
+\medskip
 \begin{punchbox}
 \small The weak form is the structural-force definition used by the numerical method, not merely an alternative notation for a smooth strong solution.
 \end{punchbox}
@@ -457,7 +456,7 @@ After integration over \(B_0\),
   +\int_{\partial B_0}(\Pten\Nvec)\cdot\Vvec\,dA .
 \]
 \begin{punchbox}
-\small No traction-free assumption is made. The next two formulations account for the reaction \(-\Pten\Nvec\) either implicitly in one weak density or explicitly as a surface density.
+\small No traction-free assumption is made. The next two formulations account for the transmission force \(-\Pten\Nvec\) either implicitly in one weak density or explicitly as a surface density.
 \end{punchbox}
 \end{frame}
 
@@ -515,7 +514,7 @@ and spread the two fields independently:
 % ----- 10. Compare -----
 \begin{frame}{Unified and partitioned formulations}
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.49\textwidth}
+\begin{column}{0.47\textwidth}
 \textbf{Unified}
 \begin{itemize}\itemsep6pt
   \item one total Lagrangian density \(\Fvec\);
@@ -523,7 +522,7 @@ and spread the two fields independently:
   \item compact assembly and one spreading operator.
 \end{itemize}
 \end{column}
-\begin{column}{0.51\textwidth}
+\begin{column}{0.49\textwidth}
 \textbf{Partitioned}
 \begin{itemize}\itemsep6pt
   \item volume density \(\Fvec_{\mathrm{vol}}\) plus surface density \(\Tvec\);
@@ -536,6 +535,7 @@ and spread the two fields independently:
 \begin{punchbox}
 \small The formulations are equivalent in the continuum. Their finite-dimensional approximations differ, so neither discrete form is universally superior.
 \end{punchbox}
+\soft{\scriptsize Griffith and Luo (2017), \S6 and \S7: with relatively coarse Lagrangian meshes the partitioned form gave more accurate pressures and better volume conservation, whereas only the unified form satisfies the discrete power identity (which may be needed for unconditionally stable implicit time stepping). When \(\Pten\Nvec\equiv\bm{0}\) (e.g.\ their anisotropic shell, \S6.1.1) the two forms coincide.}
 \end{frame}
 
 \section{Discretization and coupling operators}
@@ -557,6 +557,7 @@ and spread the two fields independently:
   \]
   \item Move the structure with \(\chi_t=\uvec\circ\chi\).
 \end{enumerate}
+\medskip
 \begin{punchbox}
 \small Spatial discretization replaces \(\delta\) with \(\delta_h\) and evaluates the interaction integrals by quadrature.
 \end{punchbox}
@@ -581,6 +582,7 @@ With basis functions \(\{\phi_\ell\}_{\ell=1}^{M}\), approximate the motion and 
   \item \(\Ften^{\,h}\) and \(\Pten_h\) are generally discontinuous across element boundaries.
   \item The weak formulation requires elementwise first derivatives, not a pointwise \(\Div\Pten_h\).
 \end{itemize}
+\medskip
 \begin{punchbox}
 \small The coefficients \(\chi_\ell\) carry geometry. The coefficients \(\Fvec_\ell\) represent the projected unified Lagrangian force.
 \end{punchbox}
@@ -612,6 +614,7 @@ In block-vector form,
 \begin{punchbox}
 \small This \(L^2\) projection converts virtual work into the nodal coefficient vector used by the coupling operators.
 \end{punchbox}
+\soft{\scriptsize Griffith and Luo (2017), Eqs.\ (25)--(29). The \(i\)-th component of \(\bm{B}_m\) is \(-\int_{B_0}P_{iI}\,\partial\phi_m/\partial X_I\,d\Xvec+\int_{B_0}G_i\phi_m\,d\Xvec\); a lumped mass matrix gives a different (but still consistent) discrete inner product.}
 \end{frame}
 
 % ----- 12. Quadrature coupling -----
@@ -632,6 +635,7 @@ Let \(\Xvec_Q^e\) and \(w_Q^e\) be quadrature points and weights in element \(e\
   \item Interaction values are evaluated at quadrature points inside each element.
   \item Adaptive quadrature can keep the interaction net dense as the solid deforms.
 \end{itemize}
+\medskip
 \begin{punchbox}
 \small The FE mesh can therefore be coarser than the Eulerian grid without leaving gaps in the coupling stencil, provided the quadrature-point net is sufficiently dense.
 \end{punchbox}
@@ -659,7 +663,7 @@ Let \(\Fcoef\) denote the block vector of Lagrangian force coefficients. Then th
 \begin{punchbox}
 \small Force spreading and velocity restriction are adjoint under their discrete inner products. This prevents the coupling step from creating or destroying energy by itself.
 \end{punchbox}
-\soft{\scriptsize Griffith and Luo (2017), Eqs.\ (35)--(40); Peskin (2002).}
+\soft{\scriptsize Griffith and Luo (2017), Eqs.\ (35)--(40); Peskin (2002). On a uniform 2D grid \(H=h^2I\), which recovers their \([\mathcal{R}]=[M]^{-1}[\mathcal{S}]^{\mathsf T}h^2\).}
 \end{frame}
 
 % ----- 14. Incompressibility -----
@@ -681,13 +685,14 @@ Therefore
   J\equiv1\ \text{only when }J(\Xvec,0)=1.
 \]
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.53\textwidth}
+\begin{column}{0.51\textwidth}
 At the continuum level, no slip and an incompressible Eulerian velocity preserve solid volume.
 \end{column}
-\begin{column}{0.47\textwidth}
+\begin{column}{0.45\textwidth}
 At the discrete level, monitor \(J_h\) and use an appropriate volumetric stabilization when needed.
 \end{column}
 \end{columns}
+\medskip
 \begin{punchbox}
 \small In \(d\) dimensions, a common stabilized construction uses \(\overline{\Ften}=J^{-1/d}\Ften\) for the isochoric response plus a separate penalty \(U(J)\).
 \end{punchbox}
@@ -706,17 +711,18 @@ Biological solids may generate active stress in addition to passive elastic resi
 \]
 The active term \(\Pten^a\) may depend on fiber direction, an activation variable, and time. It need not derive from a stored-energy density.
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.49\textwidth}
+\begin{column}{0.47\textwidth}
 \textbf{Passive response}
 
 Stores and releases elastic energy through \(W(\Ften)\).
 \end{column}
-\begin{column}{0.51\textwidth}
+\begin{column}{0.49\textwidth}
 \textbf{Active response}
 
 Supplies mechanical power through prescribed or regulated contraction.
 \end{column}
 \end{columns}
+\medskip
 \begin{punchbox}
 \small Hereafter \(\Pten\) denotes the total structural PK1 stress. Setting \(\Pten^a=\bm{0}\) recovers the passive convention used in the solid-mechanics module.
 \end{punchbox}
@@ -738,6 +744,7 @@ At each structural quadrature point:
   \item evaluate \(\Pten^a\) from the activation model;
   \item add the stresses before assembling the force projection.
 \end{enumerate}
+\medskip
 \begin{punchbox}
 \small Once expressed as PK1 stress, passive and active contributions use the same FE assembly and fluid-coupling operators.
 \end{punchbox}
@@ -770,6 +777,7 @@ which pulls back to
 \begin{punchbox}
 \small This convention uses the mapped fiber \(\avec\), not its unit direction. A model based on \(\mvec=\avec/\lambda_f\) contains different powers of \(\lambda_f\); the scalar \(T\) must be calibrated for the convention used.
 \end{punchbox}
+\soft{\scriptsize Explicitly: \(\sigten^a=T\lambda_f^2\,\mvec\otimes\mvec\), so the Cauchy fiber stress is \(T\lambda_f^2\); the unit-direction law \(\sigten^a=\widehat T\,\mvec\otimes\mvec\) gives \(\Pten^a=J\widehat T\lambda_f^{-2}\,\avec\otimes\fzero\). The pull-back uses \((\avec\otimes\avec)\Ften^{-\mathsf T}=\avec\otimes(\Ften^{-1}\avec)=\avec\otimes\fzero\). The scalar \(T\) is unrelated to the bold transmission force \(\Tvec=-\Pten\Nvec\).}
 \end{frame}
 
 % ----- 27. Jellyfish fibers -----
@@ -791,7 +799,7 @@ With the mapped-fiber convention, the active PK1 stress is
 \]
 \begin{itemize}\itemsep4pt
 \small
-  \item The direction is tangent to circles centered on the bell axis.
+  \item The direction is tangent to circles centered on the bell axis: \(|\fzero|=1\) and \(\fzero\cdot(X_1,X_2,0)=0\).
   \item Positive activation produces circumferential contractile stress.
   \item At \(R=0\), the circumferential direction is undefined. Avoid axis quadrature points, regularize the field, or set the activation to zero there.
 \end{itemize}
@@ -812,17 +820,18 @@ Write the tension magnitude as
   0\le\alpha,\beta,\gamma\le1.
 \]
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.49\textwidth}
+\begin{column}{0.47\textwidth}
 \textbf{Spatial profile \(\alpha(X_3)\)}
 
 Selects the active band of the bell. A smooth transition avoids a discontinuous stress field.
 \end{column}
-\begin{column}{0.51\textwidth}
+\begin{column}{0.49\textwidth}
 \textbf{Temporal profile \(\beta(t)\)}
 
 Controls contraction and relaxation over the pulse cycle. Smooth ramps reduce impulsive forcing.
 \end{column}
 \end{columns}
+\medskip
 \begin{punchbox}
 \small Report \(T_{\max}\), the spatial and temporal profiles, and the fiber-stress convention together. A value calibrated for a unit-current-fiber convention cannot be transferred unchanged.
 \end{punchbox}
@@ -846,6 +855,7 @@ An optional restoring force can anchor a selected region:
   \(\int_{B_0}\Gvec\cdot\Vvec\,d\Xvec\).
   \item \(\kappa\) has units of force per reference volume per displacement.
 \end{itemize}
+\medskip
 \begin{punchbox}
 \small A large tether stiffness can dominate the explicit structural time-step restriction. Verify that the tether does not alter the intended deformation outside the anchored region.
 \end{punchbox}
@@ -870,6 +880,7 @@ For a block \(B_0=[0,L]\times[0,H]\times[0,W]\), prescribe
   \item \(\lambda_\perp=\lambda^{-1/2}\): prescribed isochoric stretch;
   \item traction-free lateral faces: solve for \(\lambda_\perp\) from the constitutive law.
 \end{itemize}
+\medskip
 \begin{punchbox}
 \small Prescribing the lateral stretch and prescribing zero lateral traction are different experiments.
 \end{punchbox}
@@ -928,16 +939,18 @@ Consider the energy per reference volume
   I_1=\operatorname{tr}(\Ften^{\mathsf T}\Ften).
 \]
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.52\textwidth}
+\begin{column}{0.50\textwidth}
 \(\mu_s\) is the infinitesimal shear modulus.
 \end{column}
-\begin{column}{0.48\textwidth}
+\begin{column}{0.46\textwidth}
 \(\lambda_{\mathrm L}\) is the first Lamé parameter, not the bulk modulus.
 \end{column}
 \end{columns}
+\medskip
 \begin{punchbox}
 \small In the small-strain limit, the bulk modulus is \(K=\lambda_{\mathrm L}+2\mu_s/3\).
 \end{punchbox}
+\soft{\scriptsize Same model and symbols as deck 4-2 (there \(\mu\) without subscript); compressible neo-Hookean form as in Bonet \& Wood (2008). The subscript \(s\) distinguishes the solid shear modulus \(\mu_s\) from the fluid viscosity \(\mu\).}
 \end{frame}
 
 % ----- 34. Differentiate energy -----
@@ -981,7 +994,7 @@ For \(\Ften=\operatorname{diag}(\lambda,\lambda_\perp,\lambda_\perp)\),
 \]
 \begin{itemize}\itemsep5pt
   \item If \(\lambda_\perp=1\), then \(P_{22}=P_{33}=\lambda_{\mathrm L}\ln\lambda\), generally nonzero.
-  \item A uniaxial-stress test requires \(P_{22}=P_{33}=0\) and determines \(\lambda_\perp\).
+  \item A uniaxial-stress test requires \(P_{22}=P_{33}=0\) and determines \(\lambda_\perp\): multiplying by \(\lambda_\perp\), \(\mu_s(\lambda_\perp^2-1)+\lambda_{\mathrm L}\ln(\lambda\lambda_\perp^2)=0\).
   \item An incompressibility constraint \(J=1\) introduces an undetermined pressure and is a different constitutive problem.
 \end{itemize}
 \end{frame}
@@ -1013,7 +1026,7 @@ In the partitioned description,
 % ----- 38. Kinematic versus coupled -----
 \begin{frame}{Kinematic test and fully coupled IBFE simulation}
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.49\textwidth}
+\begin{column}{0.47\textwidth}
 \textbf{Kinematic constitutive test}
 \begin{itemize}\itemsep6pt
   \item prescribe \(\chi\);
@@ -1022,7 +1035,7 @@ In the partitioned description,
   \item use the result to verify material routines.
 \end{itemize}
 \end{column}
-\begin{column}{0.51\textwidth}
+\begin{column}{0.49\textwidth}
 \textbf{Fully coupled simulation}
 \begin{itemize}\itemsep6pt
   \item assemble and spread \(\Fvec\);
@@ -1032,6 +1045,7 @@ In the partitioned description,
 \end{itemize}
 \end{column}
 \end{columns}
+\medskip
 \begin{punchbox}
 \small The homogeneous stretch validates the solid-side formulas. It is not itself a dynamically coupled IBFE solution.
 \end{punchbox}
@@ -1042,7 +1056,7 @@ In the partitioned description,
 % ----- 22. Verification -----
 \begin{frame}{IBFE verification checklist}
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.51\textwidth}
+\begin{column}{0.49\textwidth}
 \textbf{Solid mechanics}
 \begin{itemize}\itemsep4pt
   \item verify \(J>0\) and monitor volume drift;
@@ -1051,7 +1065,7 @@ In the partitioned description,
   \item check boundary tractions and sign conventions.
 \end{itemize}
 \end{column}
-\begin{column}{0.49\textwidth}
+\begin{column}{0.47\textwidth}
 \textbf{Eulerian coupling}
 \begin{itemize}\itemsep4pt
   \item verify total-force consistency;
@@ -1061,6 +1075,7 @@ In the partitioned description,
 \end{itemize}
 \end{column}
 \end{columns}
+\medskip
 \begin{punchbox}
 \centering
 \small Constitutive accuracy, FE assembly, and Lagrangian--Eulerian coupling require separate tests.
@@ -1069,14 +1084,18 @@ In the partitioned description,
 
 % ----- 23. References -----
 \begin{frame}{References and resources}
-\footnotesize
+\scriptsize
 \begin{itemize}\itemsep4pt
   \item B. E. Griffith and X. Luo, \emph{Hybrid finite difference/finite element immersed boundary method}, \emph{Int. J. Numer. Meth. Biomed. Engng.} 33 (2017), e2888, \href{https://doi.org/10.1002/cnm.2888}{doi:10.1002/cnm.2888}.
-  \item D. Boffi, L. Gastaldi, L. Heltai, and C. S. Peskin, \emph{On the hyper-elastic formulation of the immersed boundary method}, \emph{Comput. Methods Appl. Mech. Engrg.} 197 (2008), 2210--2231.
+  \item D. Boffi, L. Gastaldi, L. Heltai, and C. S. Peskin, \emph{On the hyper-elastic formulation of the immersed boundary method}, \emph{Comput. Methods Appl. Mech. Engrg.} 197 (2008), 2210--2231, \href{https://doi.org/10.1016/j.cma.2007.09.015}{doi:10.1016/j.cma.2007.09.015}.
   \item B. E. Griffith and N. A. Patankar, \emph{Immersed methods for fluid--structure interaction}, \emph{Annu. Rev. Fluid Mech.} 52 (2020), 421--448, \href{https://doi.org/10.1146/annurev-fluid-010719-060228}{doi:10.1146/annurev-fluid-010719-060228}.
   \item C. S. Peskin, \emph{The immersed boundary method}, \emph{Acta Numerica} 11 (2002), 479--517, \href{https://doi.org/10.1017/S0962492902000077}{doi:10.1017/S0962492902000077}.
   \item A. P. Hoover, B. E. Griffith, and L. A. Miller, \emph{Quantifying performance in the medusan mechanospace with an actively swimming three-dimensional jellyfish model}, \emph{J. Fluid Mech.} 813 (2017), 1112--1155, \href{https://doi.org/10.1017/jfm.2017.3}{doi:10.1017/jfm.2017.3}.
+  \item G. A. Holzapfel, \emph{Nonlinear Solid Mechanics: A Continuum Approach for Engineering}, Wiley, 2000. (Piola transform, hyperelasticity.)
+  \item J. Bonet and R. D. Wood, \emph{Nonlinear Continuum Mechanics for Finite Element Analysis}, 2nd ed., Cambridge University Press, 2008. (Compressible neo-Hookean model.)
 \end{itemize}
+{\scriptsize\color{DarkGray}Figure credit: IBFE-sketch (configurations slide), schematic from the instructor's course notes.\par}
+\medskip
 \begin{punchbox}
 \centering
 \small IBAMR documentation and source: \href{https://ibamr.github.io}{ibamr.github.io}

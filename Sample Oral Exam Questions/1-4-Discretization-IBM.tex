@@ -41,7 +41,7 @@ At each time step, elastic forces are computed on the structure, these forces ar
 \item \textbf{How are the fluid variables discretized in space and time?}
 
 \textit{Sample answer:}  
-In the classical prototype, velocity and pressure are discretized on a uniform Cartesian grid with spacing $h = \Delta x$, and time is discretized with a step $\Delta t$. Spatial derivatives are commonly approximated with second-order finite differences on a staggered MAC grid. Modern IB solvers may instead use locally refined Cartesian grids and other compatible fluid discretizations.
+In the classical prototype, velocity and pressure are discretized on a uniform Cartesian grid with spacing $h = \Delta x$, and time is discretized with a step $\Delta t$. Spatial derivatives are commonly approximated with second-order finite differences on a staggered MAC grid. Modern IB solvers may instead use locally refined Cartesian grids and other compatible fluid discretizations. (Historical note: Peskin's original and \emph{Acta Numerica} (2002) schemes use a collocated grid with the centered operator $D^0$, which is why his four-point kernel imposes the even--odd condition; the staggered MAC grid is standard in Roma, Peskin, and Berger (1999) and in IBAMR.)
 
 \item \textbf{Why are staggered grids commonly used in IB implementations?}
 
@@ -195,7 +195,7 @@ where $\phi$ is compactly supported and symmetric.
 \item \textbf{What properties of the cosine kernel make it suitable for IB coupling?}
 
 \textit{Sample answer:}  
-The four-point-support cosine kernel is symmetric, compactly supported, satisfies the discrete partition-of-unity condition, and has a constant discrete sum of squares. It is simple to implement. Unlike Peskin's classical four-point kernel, however, it does not satisfy the exact first-moment condition for every subgrid offset, so the appropriate kernel depends on the required invariance and accuracy properties.
+The four-point-support cosine kernel is symmetric, compactly supported, satisfies the discrete partition-of-unity condition, and has a constant discrete sum of squares. It is simple to implement. Unlike Peskin's classical four-point kernel, however, it does not satisfy the exact first-moment condition for every subgrid offset, so the appropriate kernel depends on the required invariance and accuracy properties. Quantitatively, $M_1(r)=\sum_j(r-j)\phi_{\cos}(r-j)=r-\tfrac12+\tfrac12\bigl(\cos\tfrac{\pi r}{2}-\sin\tfrac{\pi r}{2}\bigr)$ for $0\le r<1$, with maximum $|M_1|\approx0.021$ (in units of $h$) near $r\approx0.21$ and $0.79$. It does satisfy the even--odd condition, and it is the simple approximation to the four-point kernel given by Peskin (2002, eq.~6.28).
 
 \end{enumerate}
 
@@ -214,5 +214,18 @@ In the classical explicit, regularized-delta implementation, important limitatio
 Modern methods introduce implicit or semi-implicit coupling, finite-element structural models (IBFE), adaptive mesh refinement, and multilevel solvers to improve stability, accuracy, and flexibility.
 
 \end{enumerate}
+
+\section*{References}
+\sloppy
+
+The model answers are adapted from deck 1-4, which follows these sources.
+\begin{itemize}
+\item C.~S. Peskin, ``Numerical analysis of blood flow in the heart,'' \emph{J. Comput. Phys.} 25 (1977), 220--252, doi:10.1016/0021-9991(77)90100-0.
+\item C.~S. Peskin and D.~M. McQueen, ``A three-dimensional computational method for blood flow in the heart. I. Immersed elastic fibers in a viscous incompressible fluid,'' \emph{J. Comput. Phys.} 81 (1989), 372--405.
+\item C.~S. Peskin, ``The immersed boundary method,'' \emph{Acta Numerica} 11 (2002), 479--517, doi:10.1017/S0962492902000077. Fiber forces, the IMEX fluid update with $D^0$, kernels (cosine kernel: eq.~6.28).
+\item A.~M. Roma, C.~S. Peskin, and M.~J. Berger, ``An adaptive version of the immersed boundary method,'' \emph{J. Comput. Phys.} 153 (1999), 509--534, doi:10.1006/jcph.1999.6293.
+\item F.~H. Harlow and J.~E. Welch, ``Numerical calculation of time-dependent viscous incompressible flow of fluid with free surface,'' \emph{Phys. Fluids} 8 (1965), 2182--2189, doi:10.1063/1.1761178 (MAC grid).
+\item B.~E. Griffith and N.~A. Patankar, ``Immersed methods for fluid--structure interaction,'' \emph{Annu. Rev. Fluid Mech.} 52 (2020), 421--448, doi:10.1146/annurev-fluid-010719-060228.
+\end{itemize}
 
 \end{document}

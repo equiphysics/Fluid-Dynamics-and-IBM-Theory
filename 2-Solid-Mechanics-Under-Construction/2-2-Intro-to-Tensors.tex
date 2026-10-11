@@ -1,12 +1,15 @@
-\documentclass{beamer}
+\documentclass[aspectratio=169,11pt]{beamer}
 
+% Shared style, ported from the UF Animal Sciences 2026 talk (ibfe-tutorials.sty at the repo root).
+\makeatletter\def\input@path{{./}{../}}\makeatother
+\usepackage{ibfe-tutorials}
+
+\usepackage[utf8]{inputenc}
 \usepackage{graphicx}
 % Resolve ../pictures/... whether compiling in this folder or from the repo root.
 \graphicspath{{./}{../}{2-Solid-Mechanics-Under-Construction/}}
 \usepackage{amsmath}
-\usepackage[utf8]{inputenc}
-\usetheme{default}
-\usefonttheme{serif}
+\usepackage{amssymb}
 
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta}
@@ -14,16 +17,13 @@
 
 \title{Introduction to Tensors}
 \author{Laura A. Miller}
-
-\date{\today}
+\institute{Department of Mathematics, University of Arizona}
+\date{IBFE Tutorials \textbullet\ Module 2}
 
 \begin{document}
 
-\begin{frame}
-  \titlepage
-  \begin{center}
-    {\tiny AI tools were used to assist with formatting, organization, and clarification of the instructor's original notes.}
-  \end{center}
+\begin{frame}[plain,b]
+\maketutorialtitle
 \end{frame}
 
 \begin{frame}{Introduction to Tensors}
@@ -75,9 +75,10 @@
     \item We often introduce a \textbf{rotated Cartesian basis}
           $\{\mathbf{m}_1,\mathbf{m}_2,\mathbf{m}_3\}$ via a rotation matrix $Q$:
           \[
-              \mathbf{m}_i = Q\,\mathbf{e}_i.
+              \mathbf{m}_i = \sum_{j=1}^{3} Q_{ij}\,\mathbf{e}_j, \qquad Q_{ij} = \mathbf{m}_i\cdot\mathbf{e}_j .
           \]
           The basis changes, but the physical vector or tensor does not.
+          (Row $i$ of $Q$ lists the $\mathbf{e}$-components of $\mathbf{m}_i$; this is the same $Q$ used in the transformation law below. The rotation \emph{tensor} that carries each $\mathbf{e}_i$ onto $\mathbf{m}_i$ has component matrix $Q^T$.)
 
     \item Understanding different bases is essential for interpreting how tensors
           transform and why their component matrices change under rotation.
@@ -170,15 +171,13 @@ Q_{ij} = \mathbf{m}_i \cdot \mathbf{e}_j .
 If $S$ is a second-order tensor with components $S_{ij}$ in the 
 $\mathbf{e}$-basis, then its components in the 
 $\mathbf{m}$-basis are given by the \textbf{tensor transformation law}:
-\[
+\begin{gather*}
 S^{(m)} = Q\, S^{(e)}\, Q^{T}.
-\]
-
-\[
-S^{(m)}_{ij} 
-= 
+\\
+S^{(m)}_{ij}
+=
 Q_{ik}\, S^{(e)}_{kl}\, Q_{jl}.
-\]
+\end{gather*}
 
 \medskip
 \begin{itemize}
@@ -213,6 +212,8 @@ We now express both \(d\mathbf{u}\) and \(d\mathbf{x}\) in components relative t
 
 \begin{frame}{Matrix Representation of a Tensor -- Part 2}
 
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.50\textwidth}
 \begin{itemize}
 
 \item Using the component forms of \(d\mathbf{u}\) and \(d\mathbf{x}\),
@@ -232,6 +233,11 @@ du_3 &= \frac{\partial u_3}{\partial x_1} dx_1
      + \frac{\partial u_3}{\partial x_2} dx_2
      + \frac{\partial u_3}{\partial x_3} dx_3.
 \end{align*}
+
+\end{itemize}
+\end{column}
+\begin{column}{0.48\textwidth}
+\begin{itemize}
 
 \item Written in matrix form:
 \[
@@ -256,6 +262,8 @@ dx_1 \\ dx_2 \\ dx_3
 \]
 
 \end{itemize}
+\end{column}
+\end{columns}
 
 \end{frame}
 
@@ -312,7 +320,9 @@ matrix representation of \(S\), \(\mathbf{u}\), and \(\mathbf{v}\) may change.
 
 \end{frame}
 
-\begin{frame}{Example: The Gradient of a Vector Field}
+\begin{frame}{Example: The Gradient of a Vector Field (recap)}
+
+{\footnotesize\color{DarkGray}Recap of Parts 1--3, stated for a general vector field $\mathbf{u}$ (not only a displacement).\par}
 
 Let $\mathbf{u}(\mathbf{x})$ be a vector field in $\mathbb{R}^3$, and define its
 gradient as the second-order tensor
@@ -407,6 +417,50 @@ The displacement gradient does exactly this:
 
 \end{frame}
 
+\begin{frame}{Why the Traction Is Linear in $\mathbf{n}$: Cauchy's Tetrahedron}
+\begin{columns}[c,onlytextwidth]
+\begin{column}{0.34\textwidth}
+\centering
+\begin{tikzpicture}[x={(1cm,0cm)},y={(0cm,1cm)},z={(-0.5cm,-0.45cm)},scale=1.35,>={Latex[length=1.8mm]}]
+  \coordinate (O) at (0,0,0);
+  \coordinate (X) at (2,0,0);
+  \coordinate (Y) at (0,1.8,0);
+  \coordinate (Z) at (0,0,2);
+  \fill[LightGray!60] (X) -- (Y) -- (Z) -- cycle;
+  \draw[thick] (X) -- (Y) -- (Z) -- cycle;
+  \draw[dashed,DarkGray] (O) -- (X) (O) -- (Y) (O) -- (Z);
+  \draw[->,thick] (0.667,0.6,0.667) -- ++(0.55,0.5,0.55) node[above right] {$\mathbf{n}$};
+  \node[font=\scriptsize,below] at (0.667,0.6,0.667) {$\Delta A$};
+  \node[below,font=\scriptsize] at (X) {$x_1$};
+  \node[left,font=\scriptsize] at (Y) {$x_2$};
+  \node[below left,font=\scriptsize] at (Z) {$x_3$};
+\end{tikzpicture}
+
+{\tiny\color{DarkGray}Schematic: instructor's course notes.\par}
+\end{column}
+\begin{column}{0.64\textwidth}
+\footnotesize
+\begin{itemize}
+\item Cut a small tetrahedron with three faces normal to $-\mathbf{e}_1,-\mathbf{e}_2,-\mathbf{e}_3$ and a slanted face of area $\Delta A$ with outward normal $\mathbf{n}$. The coordinate faces have areas $\Delta A_j = n_j\,\Delta A$; the volume is $\Delta V = \tfrac13 h\,\Delta A$ ($h$ = height).
+\item Linear momentum balance:
+\[
+\mathbf{t}(\mathbf{n})\,\Delta A + \sum_{j}\mathbf{t}(-\mathbf{e}_j)\,n_j\,\Delta A + \mathbf{b}\,\Delta V = \rho\,\mathbf{a}\,\Delta V .
+\]
+\item Divide by $\Delta A$ and let $h\to 0$ (volume terms vanish). With $\mathbf{t}(-\mathbf{e}) = -\mathbf{t}(\mathbf{e})$ (action--reaction):
+\[
+\mathbf{t}(\mathbf{n}) = \sum_j \mathbf{t}(\mathbf{e}_j)\,n_j
+\ \Longrightarrow\
+t_i = \sigma_{ij}\,n_j,
+\]
+with $\sigma_{ij} := [\mathbf{t}(\mathbf{e}_j)]_i$.
+\item So the three tractions on the coordinate planes determine the traction on \emph{every} plane: this is Cauchy's theorem.
+\end{itemize}
+\end{column}
+\end{columns}
+\vspace{1mm}
+{\tiny\color{DarkGray}Standard argument; see Bower (2010), \S2.2, and Gurtin, Fried \& Anand (2010).\par}
+\end{frame}
+
 \begin{frame}{Component Form of the Stress Tensor}
 
 \begin{itemize}
@@ -437,21 +491,135 @@ the components $\sigma_{ij}$ represent:
 \item Symmetry \(\sigma_{ij}=\sigma_{ji}\) follows from balance of angular momentum for a continuum without body couples or couple stresses (see the moment balance on a small cube).
 \end{itemize}
 
+\vspace{1mm}
+{\tiny\color{DarkGray}Convention: with $\mathbf{t}=\boldsymbol{\sigma}\mathbf{n}$, $\sigma_{ij}$ is the $i$-component of the traction on a face with normal $\mathbf{e}_j$. Bower (2010) and many engineering texts use the transpose labelling ($\mathbf{t}=\mathbf{n}\cdot\boldsymbol{\sigma}$, first index = face); because $\boldsymbol{\sigma}$ is symmetric the numbers are identical.\par}
+
+\end{frame}
+
+\begin{frame}{Normal and Shear Stresses}
+\begin{itemize}
+\item Writing the components with coordinate labels $x,y,z$,
+\[
+\boldsymbol{\sigma}=
+\begin{bmatrix}
+\sigma_{xx} & \sigma_{xy} & \sigma_{xz}\\
+\sigma_{yx} & \sigma_{yy} & \sigma_{yz}\\
+\sigma_{zx} & \sigma_{zy} & \sigma_{zz}
+\end{bmatrix}.
+\]
+\item The \textbf{diagonal} entries $\sigma_{xx},\sigma_{yy},\sigma_{zz}$ are \textbf{normal stresses}: the traction component perpendicular to the face with normal $\mathbf{e}_x$, $\mathbf{e}_y$, $\mathbf{e}_z$ (positive = tension, negative = compression).
+\item The \textbf{off-diagonal} entries are \textbf{shear stresses}: traction components parallel to the face. With the convention above, $\sigma_{xy}$ is the $x$-component of the traction on the face whose normal is $\mathbf{e}_y$; by symmetry it equals $\sigma_{yx}$, the $y$-component on the face with normal $\mathbf{e}_x$.
+\item This split is tied to the chosen axes: rotating the basis mixes normal and shear components. In the principal basis (eigenvectors of $\boldsymbol{\sigma}$) all shear components vanish.
+\end{itemize}
+\vspace{1mm}
+{\tiny\color{DarkGray}Ported from the instructor's earlier notes (\texttt{OLD-2-Solid-Mechanics.tex}), with the index convention made consistent with this deck.\par}
+\end{frame}
+
+\begin{frame}{Normal and Shear Stresses on an Arbitrary Plane}
+\begin{itemize}
+\item On a plane with unit normal $\mathbf{n}$, the traction $\mathbf{t}=\boldsymbol{\sigma}\mathbf{n}$ splits into
+\[
+\sigma_n = \mathbf{n}\cdot\boldsymbol{\sigma}\mathbf{n} \quad\text{(normal stress)},\qquad
+\boldsymbol{\tau} = \boldsymbol{\sigma}\mathbf{n} - \sigma_n\,\mathbf{n} \quad\text{(shear traction)},
+\]
+with $|\boldsymbol{\tau}|^2 = |\mathbf{t}|^2 - \sigma_n^2$.
+\item Example: $\boldsymbol{\sigma}=\begin{bmatrix}2&1&0\\1&0&0\\0&0&0\end{bmatrix}\,\text{MPa}$ and $\mathbf{n}=\mathbf{e}_x$ give $\mathbf{t}=(2,1,0)$ MPa, so $\sigma_n=2$ MPa and $\boldsymbol{\tau}=(0,1,0)$ MPa.
+\item A basis-independent split is into \textbf{spherical} and \textbf{deviatoric} parts:
+\[
+\boldsymbol{\sigma} = \underbrace{\tfrac13(\mathrm{tr}\,\boldsymbol{\sigma})\,\mathbf{I}}_{-p\,\mathbf{I}} + \boldsymbol{\sigma}', \qquad \mathrm{tr}\,\boldsymbol{\sigma}'=0,
+\]
+where $p=-\tfrac13\mathrm{tr}\,\boldsymbol{\sigma}$ is the mean pressure. The deviator $\boldsymbol{\sigma}'$ carries all of the shear, in every basis.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Principal Stresses and Stress Invariants}
+\begin{itemize}
+\item Because $\boldsymbol{\sigma}$ is symmetric, it has three real eigenvalues $\sigma_1\ge\sigma_2\ge\sigma_3$ (the \textbf{principal stresses}) and an orthonormal set of eigenvectors (the \textbf{principal directions}); see the eigenvalue slides later in this deck.
+\item On a plane normal to a principal direction the traction is purely normal: $\boldsymbol{\sigma}\mathbf{m}_k=\sigma_k\mathbf{m}_k$, so the shear traction is zero.
+\item The largest shear traction over all planes is $\tau_{\max}=\tfrac12(\sigma_1-\sigma_3)$, on planes at $45^\circ$ to the $\mathbf{m}_1$ and $\mathbf{m}_3$ directions.
+\item Invariants of stress used in practice:
+\[
+I_1=\mathrm{tr}\,\boldsymbol{\sigma}=\sigma_1+\sigma_2+\sigma_3=-3p,\quad
+J_2=\tfrac12\,\boldsymbol{\sigma}':\boldsymbol{\sigma}',\quad
+\sigma_{\rm vM}=\sqrt{3J_2}\ \text{(von Mises)} .
+\]
+\item Example: uniaxial tension $\sigma_{11}=\sigma_0$ (all else 0) gives $\sigma_1=\sigma_0$, $\sigma_2=\sigma_3=0$, $\tau_{\max}=\sigma_0/2$, and $\sigma_{\rm vM}=\sigma_0$.
+\end{itemize}
+\vspace{1mm}
+{\tiny\color{DarkGray}After Bower (2010), \S2.2 (principal stresses and invariants).\par}
 \end{frame}
 
 \begin{frame}{Why the Stress Tensor Is Symmetric}
 
+\begin{columns}[c,onlytextwidth]
+\begin{column}{0.48\textwidth}
 \begin{figure}[h]
     \centering
-    \includegraphics[width=0.55\textwidth]{../pictures/moment-balance-cube.jpg}
+    % Native redraw of ../pictures/moment-balance-cube.jpg (JPG kept on disk; original hand sketch, source unknown).
+    % Labels follow this deck's convention: sigma_{ij} = i-component of the traction on the face with normal e_j.
+    \begin{tikzpicture}[x={(1cm,0cm)},y={(0cm,1cm)},z={(-0.55cm,-0.4cm)},scale=0.78,
+        >={Latex[length=1.6mm]},lab/.style={font=\scriptsize,inner sep=1pt}]
+      \def\a{3}
+      % hidden edges
+      \draw[dashed,DarkGray] (0,0,0) -- (\a,0,0) (0,0,0) -- (0,\a,0) (0,0,0) -- (0,0,\a);
+      % visible faces
+      \draw[thick] (0,0,\a) -- (\a,0,\a) -- (\a,\a,\a) -- (0,\a,\a) -- cycle;
+      \draw[thick] (\a,0,\a) -- (\a,0,0) -- (\a,\a,0) -- (\a,\a,\a);
+      \draw[thick] (0,\a,\a) -- (0,\a,0) -- (\a,\a,0);
+      % front face (normal +z)
+      \draw[->,thick] (1.5,1.5,\a) -- ++(0,0,1.0) node[lab,below left] {$\sigma_{zz}$};
+      \draw[->,thick] (1.5,1.5,\a) -- ++(0.85,0,0) node[lab,below] {$\sigma_{xz}$};
+      \draw[->,thick] (1.5,1.5,\a) -- ++(0,0.85,0) node[lab,above] {$\sigma_{yz}$};
+      % right face (normal +x)
+      \draw[->,thick] (\a,1.5,1.5) -- ++(0.9,0,0) node[lab,right] {$\sigma_{xx}$};
+      \draw[->,thick] (\a,1.5,1.5) -- ++(0,0.85,0) node[lab,above] {$\sigma_{yx}$};
+      \draw[->,thick] (\a,1.5,1.5) -- ++(0,0,0.85) node[lab,below right] {$\sigma_{zx}$};
+      % top face (normal +y)
+      \draw[->,thick] (1.5,\a,1.5) -- ++(0,0.9,0) node[lab,above] {$\sigma_{yy}$};
+      \draw[->,thick] (1.5,\a,1.5) -- ++(0.85,0,0) node[lab,below right] {$\sigma_{xy}$};
+      \draw[->,thick] (1.5,\a,1.5) -- ++(0,0,0.85) node[lab,left] {$\sigma_{zy}$};
+      % hidden faces (negative normals): equal and opposite to leading order
+      \draw[->,dashed,DarkGray] (0,1.5,1.5) -- ++(-0.8,0,0) node[lab,left] {$\sigma_{xx}$};
+      \draw[->,dashed,DarkGray] (1.5,0,1.5) -- ++(0,-0.8,0) node[lab,below] {$\sigma_{yy}$};
+      % edge lengths
+      \draw[|<->|,DarkGray] (0,-1.3,\a) -- (\a,-1.3,\a) node[midway,below,lab] {$\Delta x$};
+      \draw[|<->|,DarkGray] (-1.35,0,\a) -- (-1.35,\a,\a) node[midway,left,lab] {$\Delta y$};
+      \draw[|<->|,DarkGray] (\a+0.35,-0.2,\a) -- (\a+0.35,-0.2,0) node[midway,below right,lab] {$\Delta z$};
+    \end{tikzpicture}
     \caption{Moment balance on a shrinking cube gives \(\sigma_{ij}=\sigma_{ji}\).}
 \end{figure}
-
+\vspace{-4mm}
+{\centering\tiny\color{DarkGray}Schematic: instructor's course notes. Solid arrows: positive faces; dashed: two of the opposite (negative) faces.\par}
+\end{column}
+\begin{column}{0.49\textwidth}
+\small
 \begin{itemize}
-  \item Taking moments about an axis through the centre of a cube of side \(h\), the shear tractions on opposite faces contribute a net couple proportional to \((\sigma_{ij}-\sigma_{ji})h^3\), while body couples and inertia contribute at higher order in \(h\).
+  \item Taking moments about an axis through the centre of a cube of side \(h\), the shear tractions on opposite faces contribute a net couple proportional to \((\sigma_{ij}-\sigma_{ji})h^3\): force \(\sim \sigma h^2\) times lever arm \(\sim h\). Body \emph{forces} and rotational inertia contribute only at higher order in \(h\) (\(O(h^4)\) and \(O(h^5)\)), and so do the \(O(h)\) differences between tractions on opposite faces.
+  \item A distributed body \emph{couple} (moment per unit volume) would also scale as \(h^3\); this is why it must be assumed absent.
   \item Letting \(h \to 0\) and requiring angular momentum balance therefore forces \(\sigma_{ij}=\sigma_{ji}\), provided the material transmits no body couples or couple stresses.
 \end{itemize}
+\end{column}
+\end{columns}
 
+\end{frame}
+
+\begin{frame}{Why the Stress Tensor Is Symmetric: the Moment Balance in Detail}
+\begin{itemize}
+  \item Take moments about the $z$-axis through the centre of a cube of side $h$. Only shear tractions with a lever arm contribute:
+  \begin{itemize}
+    \item faces $x=\pm h/2$: traction $\pm\boldsymbol{\sigma}\mathbf{e}_x$ has $y$-component $\pm\sigma_{yx}$, force $\pm\sigma_{yx}h^2$, lever arm $\pm h/2$; together they give $+\sigma_{yx}h^3$;
+    \item faces $y=\pm h/2$: traction $\pm\boldsymbol{\sigma}\mathbf{e}_y$ has $x$-component $\pm\sigma_{xy}$; using $M_z = xF_y - yF_x$ they give $-\sigma_{xy}h^3$.
+  \end{itemize}
+  \item Angular momentum balance about the $z$-axis:
+  \[
+    \underbrace{(\sigma_{yx}-\sigma_{xy})\,h^3}_{\text{surface tractions}} + \underbrace{O(h^4)}_{\text{body force, stress gradients}}
+    = \underbrace{\frac{d}{dt}\big(I_{zz}\,\omega_z\big)}_{O(\rho h^5)} .
+  \]
+  \item Divide by $h^3$ and let $h\to 0$: $\sigma_{xy}=\sigma_{yx}$. The $x$- and $y$-axes give $\sigma_{yz}=\sigma_{zy}$ and $\sigma_{xz}=\sigma_{zx}$.
+  \item In index form: $\epsilon_{ijk}\,\sigma_{kj} = 0$ for each $i$, i.e.\ $\boldsymbol{\sigma}=\boldsymbol{\sigma}^T$.
+\end{itemize}
+\vspace{1mm}
+{\tiny\color{DarkGray}Standard argument; see Bower (2010), \S2.3 (angular momentum balance), and Gurtin, Fried \& Anand (2010).\par}
 \end{frame}
 
 \begin{frame}{The Cauchy Stress Tensor and Traction Vectors}
@@ -481,9 +649,12 @@ the internal state of stress at a material point in the
           transmitted across that surface.
 
     \item Units: both $\boldsymbol{\sigma}$ and $\mathbf{T}$ have
-          SI units of pascals (Pa). The direction vector 
+          SI units of pascals (Pa). The direction vector
           $\mathbf{e}$ is dimensionless.
 \end{itemize}
+
+\vspace{1mm}
+{\tiny\color{DarkGray}Text adapted from the Wikipedia article ``Cauchy stress tensor'' (CC BY-SA 4.0), \url{https://en.wikipedia.org/wiki/Cauchy_stress_tensor}.\par}
 
 \end{frame}
 
@@ -497,11 +668,12 @@ the internal state of stress at a material point in the
 
 
     \item The Cauchy stress tensor is the appropriate stress measure for
-          \textbf{small deformations} and is central in 
+          \textbf{small deformations} and is central in
           \textbf{linear elasticity} and most engineering stress analyses.
+          (Cauchy stress is defined for \emph{any} deformation --- it is force per unit \emph{current} area; for small deformations all stress measures coincide, so it is the natural one to use there.)
 
     \item For \textbf{large or finite deformations}, alternative stress measures
-          are used:
+          referred to the reference configuration are often more convenient:
     \begin{itemize}
         \item Piola–Kirchhoff stress tensors,
         \item the Biot stress tensor,
@@ -554,12 +726,16 @@ the internal state of stress at a material point in the
 
 \begin{figure}[h]
     \centering
-    \includegraphics[width=0.75\textwidth]{../pictures/2-2/cauchy_stress_wiki.png}
+    \includegraphics[width=0.75\textwidth,height=0.56\textheight,keepaspectratio]{../pictures/2-2/cauchy_stress_wiki.png}
     \caption{
         Cauchy stress tensor representation showing traction vectors on the
         faces of an infinitesimal cube (image: Wikipedia, CC BY-SA 3.0).
     }
 \end{figure}
+\vspace{-3mm}
+{\centering\tiny\color{DarkGray}Image: Sanpaz, ``Components stress tensor cartesian.svg'', Wikimedia Commons, CC BY-SA 3.0 (\url{https://commons.wikimedia.org/wiki/File:Components_stress_tensor_cartesian.svg}). Used unmodified.\par}
+\vspace{1mm}
+{\tiny Note: this figure labels the components with the \emph{first} index giving the face normal and the second the direction, $\mathbf{T}^{(\mathbf{e}_i)} = \sigma_{i1}\mathbf{e}_1+\sigma_{i2}\mathbf{e}_2+\sigma_{i3}\mathbf{e}_3$, the transpose of the labelling on the previous slides. Since $\boldsymbol{\sigma}$ is symmetric the values agree.\par}
 
 \end{frame}
 
@@ -622,6 +798,7 @@ F_{ij} = \frac{\partial w_i}{\partial x_j}.
 \[
 F^{(m)} = Q\,F^{(e)}\,Q^T.
 \]
+(This assumes the same basis change is applied in the reference and deformed configurations. Strictly, $\mathbf{F}$ is a \emph{two-point} tensor: if the two bases are changed independently, $F^{\rm new} = Q_{\rm current}\,F^{\rm old}\,Q_{\rm reference}^T$.)
 
 \item Therefore $\mathbf{F}$ is a true second-order tensor:
 \begin{itemize}
@@ -822,8 +999,52 @@ d\mathbf{w} = \mathbf{F}\,d\mathbf{x}.
 
 \end{frame}
 
+\begin{frame}{Worked Example: A Dyadic (Tensor) Product}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.48\textwidth}
+\begin{itemize}
+\item Take
+\[
+\mathbf{a} = \begin{bmatrix} 1 \\ 2 \\ 3 \end{bmatrix}, \qquad
+\mathbf{b} = \begin{bmatrix} 4 \\ 5 \\ 6 \end{bmatrix}.
+\]
+\item $S=\mathbf{a}\otimes\mathbf{b}$ has components $S_{ij}=a_i b_j$: row $i$ is $a_i$ times the whole (row) vector $\mathbf{b}^T$:
+\[
+\begin{aligned}
+\text{row 1}: &\; 1\cdot(4,5,6) = (4,5,6)\\
+\text{row 2}: &\; 2\cdot(4,5,6) = (8,10,12)\\
+\text{row 3}: &\; 3\cdot(4,5,6) = (12,15,18)
+\end{aligned}
+\]
+\end{itemize}
+\end{column}
+\begin{column}{0.50\textwidth}
+\begin{itemize}
+\item Hence
+\[
+\mathbf{a}\otimes\mathbf{b} = \mathbf{a}\,\mathbf{b}^T =
+\begin{bmatrix} 4 & 5 & 6 \\ 8 & 10 & 12 \\ 12 & 15 & 18 \end{bmatrix}.
+\]
+\item Check the defining action on $\mathbf{u}=\mathbf{e}_1$: $(\mathbf{a}\otimes\mathbf{b})\mathbf{e}_1 = \mathbf{a}\,(\mathbf{b}\cdot\mathbf{e}_1) = 4\mathbf{a} = (4,8,12)^T$, the first column. \checkmark
+\end{itemize}
+\end{column}
+\end{columns}
+\vspace{1mm}
+{\tiny\color{DarkGray}Ported from the instructor's earlier notes (\texttt{OLD-2-Solid-Mechanics.tex}).\par}
+\end{frame}
 
-\begin{frame}{Representing Tensor Components with Matrices}
+\begin{frame}{Worked Example: A Dyadic Product (continued)}
+\begin{itemize}
+\item Every column of $\mathbf{a}\otimes\mathbf{b}$ is a multiple of $\mathbf{a}=(1,2,3)^T$ (column $j$ is $b_j\mathbf{a}$), so the matrix has \textbf{rank one} and $\det(\mathbf{a}\otimes\mathbf{b})=0$. This is the matrix form of ``$S\mathbf{u}$ is always parallel to $\mathbf{a}$''.
+\item Order matters: $\mathbf{b}\otimes\mathbf{a} = (\mathbf{a}\otimes\mathbf{b})^T = \begin{bmatrix} 4 & 8 & 12 \\ 5 & 10 & 15 \\ 6 & 12 & 18 \end{bmatrix}$.
+\item The trace is the dot product: $\mathrm{tr}(\mathbf{a}\otimes\mathbf{b}) = 4+10+18 = 32 = \mathbf{a}\cdot\mathbf{b}$.
+\item The tensor product generalizes to higher order: if $\mathbf{A}$ has order $m$ and $\mathbf{B}$ has order $n$, then $(\mathbf{A}\otimes\mathbf{B})_{i_1\dots i_m j_1\dots j_n} = A_{i_1\dots i_m}B_{j_1\dots j_n}$ has order $m+n$ (e.g.\ the stiffness tensor $C_{ijkl}$ is fourth order).
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}{Representing Tensor Components with Matrices (recap)}
+    {\footnotesize\color{DarkGray}Recap of ``Matrix Representation of a Tensor'' above; it opens the tensor-algebra reference section that follows Bower, Appendix B.\par}
     \begin{itemize}
         \item   Second-order tensors can be represented by matrices.
 
@@ -849,7 +1070,7 @@ d\mathbf{w} = \mathbf{F}\,d\mathbf{x}.
 \end{frame}
 
 \begin{frame}
-\frametitle{Defining Individual Tensor Components}
+\frametitle{Defining Individual Tensor Components (recap of the dyadic form)}
 \begin{itemize}
     \item Where the individual components are defined as: 
     \begin{align*}
@@ -862,6 +1083,7 @@ d\mathbf{w} = \mathbf{F}\,d\mathbf{x}.
     S = \sum_{i=1}^{3} \sum_{j=1}^{3} S_{ij} e_i \otimes e_j
     \]
     \item This is useful for polar coordinates.
+    \item (Why: in polar or other curvilinear coordinates the basis vectors $\mathbf{e}_r,\mathbf{e}_\theta$ vary from point to point, so it is safest to keep the basis dyads $\mathbf{e}_i\otimes\mathbf{e}_j$ explicit when differentiating; Bower, Appendix D.)
 \end{itemize}
 \end{frame}
 
@@ -888,7 +1110,7 @@ d\mathbf{w} = \mathbf{F}\,d\mathbf{x}.
 \begin{frame}
 \frametitle{Product of a Tensor and a Vector}
 \begin{itemize}
-    \item Let a be a vector and S a second order tensor.  Then
+    \item Let u be a vector and S a second order tensor.  Then
     \[
     v = S u
     \]
@@ -975,7 +1197,7 @@ S_{31} & S_{32} & S_{33}
 \]
 
 \vspace{-2mm}
-\tiny
+\scriptsize
 \[
 = \begin{bmatrix}
 T_{11}S_{11} + T_{12}S_{21} + T_{13}S_{31} &
@@ -1069,7 +1291,9 @@ T_{31}S_{13} + T_{32}S_{23} + T_{33}S_{33}
     \[
     + S_{13}T_{31} + S_{23}T_{32} + S_{33}T_{33}
     \]
-    \item Note that \(S \cdot \cdot T = S^T : T\) 
+    \item Note that \(S \cdot \cdot T = S^T : T\)
+    \item Compactly, \(S : T = S_{ij}T_{ij}\) and \(S\cdot\cdot T = S_{ij}T_{ji} = \mathrm{tr}(ST)\) (sum over repeated indices). For symmetric \(S\) or \(T\) the two coincide.
+    \item Naming caution: Bower calls \(S\cdot\cdot T\) the ``outer product'', but it is a \emph{scalar} (a double contraction). It is not the tensor (dyadic) product \(S\otimes T\), which is a fourth-order tensor.
 \end{itemize}
 \end{frame}
 
@@ -1125,6 +1349,12 @@ T_{31}S_{13} + T_{32}S_{23} + T_{33}S_{33}
     are known as the eigenvalues and eigenvectors of S, or the principal values and principal directions of S.
     \item Note that \(\lambda\) may be complex.
     \item For a second order tensor in three dimensions, there are generally three values of \(\lambda\) and three unit vectors m (each determined up to sign) which satisfy this equation.
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Tensor Eigenvalues and Eigenvectors (continued)}
+\begin{itemize}
     \item Occasionally, there may be only two or one distinct value of \(\lambda\). For a symmetric tensor, a repeated eigenvalue means there are infinitely many possible vectors m that satisfy the equation, spanning an eigenplane or all of space. (A non-symmetric tensor with a repeated eigenvalue may instead be defective, with fewer independent eigenvectors than eigenvalues.)
     \item The eigenvalues of a tensor, and the components of the eigenvectors, may be computed by finding the eigenvalues and eigenvectors of the matrix of components.
     \item The eigenvalues of a symmetric tensor are always real.
@@ -1134,6 +1364,7 @@ T_{31}S_{13} + T_{32}S_{23} + T_{33}S_{33}
 
 \begin{frame}
 \frametitle{Change of Basis}
+{\footnotesize\color{DarkGray}Recap of the tensor transformation law stated earlier, now with a proof.\par}
 \begin{itemize}
     \item Let S be a tensor, and let \(\{e_1, e_2, e_3\}\) be a Cartesian basis.
     \item Suppose that the components of S in the basis \(\{e_1, e_2, e_3\}\) are known to be
@@ -1187,15 +1418,14 @@ T_{31}S_{13} + T_{32}S_{23} + T_{33}S_{33}
     [S^{(m)}] = [Q] [S^{(e)}] [Q]^T
     \]
     or, written out in full
-    \tiny
-    \[
+    \scriptsize
+    \begin{multline*}
     \begin{bmatrix}
         S_{11}^{(m)} & S_{12}^{(m)} & S_{13}^{(m)} \\
         S_{21}^{(m)} & S_{22}^{(m)} & S_{23}^{(m)} \\
         S_{31}^{(m)} & S_{32}^{(m)} & S_{33}^{(m)}
-    \end{bmatrix} = \]
+    \end{bmatrix} =
     \\
-    \[
     \begin{bmatrix}
         m_1 \cdot e_1 & m_1 \cdot e_2 & m_1 \cdot e_3 \\
         m_2 \cdot e_1 & m_2 \cdot e_2 & m_2 \cdot e_3 \\
@@ -1211,7 +1441,7 @@ T_{31}S_{13} + T_{32}S_{23} + T_{33}S_{33}
         m_1 \cdot e_2 & m_2 \cdot e_2 & m_3 \cdot e_2 \\
         m_1 \cdot e_3 & m_2 \cdot e_3 & m_3 \cdot e_3
     \end{bmatrix}
-    \]
+    \end{multline*}
 \end{itemize}
 \end{frame}
 
@@ -1289,6 +1519,8 @@ T_{31}S_{13} + T_{32}S_{23} + T_{33}S_{33}
     \end{enumerate}
     \item These are the coefficients of the characteristic polynomial, so they are exactly the symmetric functions of the three eigenvalues.
     \item Other quantities—the eigenvalues themselves, the trace, the determinant, and the inner and outer products—are invariants too, but they are not independent of \(I_1, I_2, I_3\): any of them can be computed from the eigenvalues, and the eigenvalues from \(I_1, I_2, I_3\).
+    \item (This holds for symmetric \(S\), as assumed on the previous slide. For example \(S\cdot\cdot S = \mathrm{tr}(S^2) = I_1^2 - 2I_2\) always, and \(S:S = \mathrm{tr}(S^TS)\) equals it when \(S=S^T\). For a non-symmetric \(S\), \(S:S\) is an additional invariant not determined by the eigenvalues.)
+    \item Characteristic polynomial: \(\det(S-\lambda I) = -\lambda^3 + I_1\lambda^2 - I_2\lambda + I_3\), so \(I_1=\lambda_1+\lambda_2+\lambda_3\), \(I_2=\lambda_1\lambda_2+\lambda_2\lambda_3+\lambda_3\lambda_1\), \(I_3=\lambda_1\lambda_2\lambda_3\).
 \end{itemize}
 \end{frame}
 
@@ -1369,5 +1601,24 @@ T_{31}S_{13} + T_{32}S_{23} + T_{33}S_{33}
 Sections on tensor algebra are adapted from A. F. Bower, \emph{Applied Mechanics of Solids}
 (CRC Press, 2010), Appendix B, whose online version at \url{http://solidmechanics.org}
 is made freely available for non-commercial educational use. Used here for teaching.
+
+\medskip
+The stress slides draw on Bower (2010), \S2.2--2.3, and on the Wikipedia article ``Cauchy stress tensor''. The worked dyadic-product example and the normal/shear decomposition are ported from the instructor's earlier notes (\texttt{OLD-2-Solid-Mechanics.tex}).
+\end{frame}
+
+\begin{frame}{References}
+\scriptsize
+\begin{itemize}
+  \item A. F. Bower, \emph{Applied Mechanics of Solids}, CRC Press, Boca Raton, 2010. doi:10.1201/9781439802489. Online: \url{https://solidmechanics.org} (Appendix B: tensors; Appendix D: polar coordinates; \S2.2--2.3: stress and its symmetry).
+  \item M. E. Gurtin, E. Fried, L. Anand, \emph{The Mechanics and Thermodynamics of Continua}, Cambridge University Press, 2010. doi:10.1017/CBO9780511762956 (tensor algebra; Cauchy's theorem; symmetry of stress).
+  \item Wikipedia contributors, ``Cauchy stress tensor'', \emph{Wikipedia}, CC BY-SA 4.0, \url{https://en.wikipedia.org/wiki/Cauchy_stress_tensor}.
+  \item Sanpaz, ``Components stress tensor cartesian.svg'', Wikimedia Commons, CC BY-SA 3.0, \url{https://commons.wikimedia.org/wiki/File:Components_stress_tensor_cartesian.svg}.
+  \item Instructor's earlier notes, \texttt{OLD-2-Solid-Mechanics.tex} (worked dyadic example; normal and shear stresses).
+\end{itemize}
+\medskip
+\textbf{Figures.} Stress cube for the symmetry argument: schematic redrawn for these notes (earlier sketch \texttt{pictures/moment-balance-cube.jpg} kept on disk).
+
+\medskip
+\textbf{Further reading.} G. A. Holzapfel, \emph{Nonlinear Solid Mechanics}, Wiley, 2000, Ch.~1 (vectors and tensors); P. A. Kelly, \emph{Solid Mechanics Part III}, University of Auckland lecture notes (online), Ch.~1 (vectors and tensors).
 \end{frame}
 \end{document}

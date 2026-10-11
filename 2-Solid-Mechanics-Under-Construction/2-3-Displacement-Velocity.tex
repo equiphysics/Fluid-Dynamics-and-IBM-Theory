@@ -1,24 +1,25 @@
-\documentclass{beamer}
+\documentclass[aspectratio=169,11pt]{beamer}
+
+% Shared style, ported from the UF Animal Sciences 2026 talk (ibfe-tutorials.sty at the repo root).
+\makeatletter\def\input@path{{./}{../}}\makeatother
+\usepackage{ibfe-tutorials}
+
+\usepackage[utf8]{inputenc}
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{graphicx}
 % Resolve ../pictures/... whether compiling in this folder or from the repo root.
 \graphicspath{{./}{../}{2-Solid-Mechanics-Under-Construction/}}
 
-\usetheme{default} % Or any other Beamer theme
-\usefonttheme{serif} 
-
 \title{Mathematical Description of Shape Changes in Solids}
 \author{Laura A. Miller}
-\date{\today}
+\institute{Department of Mathematics, University of Arizona}
+\date{IBFE Tutorials \textbullet\ Module 2}
 
 \begin{document}
 
-\begin{frame}
-  \titlepage
-  \begin{center}
-    {\tiny AI tools were used to assist with formatting, organization, and clarification of the instructor's original notes.}
-  \end{center}
+\begin{frame}[plain,b]
+\maketutorialtitle
 \end{frame}
 
 \begin{frame}{Introduction}
@@ -27,6 +28,8 @@
     \item   We will focus on the mathematical description of shape changes in a solid.
     \item   This includes displacement and velocity fields, and deformation gradient tensors.
   \end{itemize}
+  \vspace{3mm}
+  {\scriptsize\color{DarkGray}This deck closely follows A. F. Bower, \emph{Applied Mechanics of Solids} (CRC Press, 2010), \S2.1 (\url{https://solidmechanics.org}); text, equations and figures are adapted from that section, which is made freely available for non-commercial educational use. Notation: $\mathbf{x}$ = reference position, $\mathbf{y}$ = deformed position (Bower's convention); deck 2-2 writes $\mathbf{w}$ and decks 4-x write $\boldsymbol{\chi}(\mathbf{X},t)$ for the same map.\par}
 \end{frame}
 
 \begin{frame}{Mathematical description of shape changes in solids}
@@ -34,6 +37,7 @@
         \item   In this section, we list the various mathematical formulas that are used to characterize shape changes in solids (and in fluids).
         \item   The formulas might look scary at first, but they are mostly just definitions.
         \item   Shape changes near a point can always be characterized by six numbers.
+        \item   (Why six: the deformation gradient $\mathbf{F}$ has nine components, but three of them describe a local rigid rotation, which does not change shape. A symmetric strain tensor has the remaining six.)
     \end{itemize}
 \end{frame}
 
@@ -46,17 +50,25 @@
 \end{frame}
 
 \begin{frame}{The Displacement and Velocity Fields}
+\begin{columns}[c,onlytextwidth]
+\begin{column}{0.52\textwidth}
   \begin{itemize}
     \item   The displacement vector $\mathbf{u}(\mathbf{x}, t)$ describes the motion of each point in the solid.
     \item   The displacement vector is defined as:
     $$ \mathbf{y} = \mathbf{x} + \mathbf{u}(\mathbf{x}, t) $$
+    i.e.\ $\mathbf{u} = \mathbf{y} - \mathbf{x}$, where $\mathbf{x}$ is the position of a material particle in the undeformed (reference) solid and $\mathbf{y}$ its position at time $t$.
     \item   In index notation:
     $$ y_{i}=x_{i}+u_{i}(x_{1},x_{2},x_{3},t) $$
     \item   The displacement field completely specifies the change in shape of the solid.
   \end{itemize}
+\end{column}
+\begin{column}{0.46\textwidth}
 \begin{center}
-   \includegraphics[width=0.6\textwidth]{../pictures/2-3/image004.png} 
+   \includegraphics[width=\linewidth]{../pictures/2-3/image004.png}
 \end{center}
+{\centering\tiny\color{DarkGray}Figure: A. F. Bower, \emph{Applied Mechanics of Solids} (CRC Press, 2010), \S2.1.1, solidmechanics.org (free for non-commercial educational use).\par}
+\end{column}
+\end{columns}
 
 \end{frame}
 
@@ -64,11 +76,16 @@
   \begin{itemize}
     \item   The velocity field describes the motion of the solid.
     \item   The velocity field is defined as the time derivative of the displacement field:
-    $$ v_{i}(x_{k},t)=\frac{\partial y_{i}}{\partial t}=\frac{\partial u_{i}(x_{k},t)}{\partial t} \quad \text{x = const} $$
+    $$ v_{i}(x_{k},t)=\frac{\partial y_{i}}{\partial t}=\frac{\partial u_{i}(x_{k},t)}{\partial t} \qquad (\mathbf{x} = \text{const}) $$
+    \item   ``$\mathbf{x}$ = const'' means the derivative is taken with the \emph{reference} position $\mathbf{x}$ held fixed, i.e.\ following one material particle. This is the \textbf{material (Lagrangian) velocity}; the second equality holds because $\mathbf{x}$ does not depend on $t$.
+    \item   Similarly the acceleration is $a_i = \partial^2 u_i/\partial t^2$ at fixed $\mathbf{x}$, the quantity that appears in the equations of motion (deck 2-1).
+    \item   In a fluid one usually works with the spatial (Eulerian) velocity field $\mathbf{v}(\mathbf{y},t)$; the two descriptions are linked by $\mathbf{v}_{\rm material}(\mathbf{x},t) = \mathbf{v}_{\rm spatial}(\mathbf{y}(\mathbf{x},t),t)$ (decks 0-1 and 4-2).
   \end{itemize}
 \end{frame}
 
 \begin{frame}{Examples of Simple Deformations}
+\begin{columns}[c,onlytextwidth]
+\begin{column}{0.46\textwidth}
   \begin{itemize}
     \item   \textbf{Volume preserving uniaxial extension}
     $$
@@ -80,12 +97,19 @@
     $$
 
   \end{itemize}
+\end{column}
+\begin{column}{0.52\textwidth}
 \begin{center}
-   \includegraphics[width=0.5\textwidth]{../pictures/2-3/image008.png} 
+   \includegraphics[width=0.9\linewidth]{../pictures/2-3/image008.png}
 \end{center}
+{\centering\tiny\color{DarkGray}Figure: Bower (2010), \S2.1.1, solidmechanics.org (free for non-commercial educational use).\par}
+\end{column}
+\end{columns}
 \end{frame}
 
 \begin{frame}{Examples of Simple Deformations}
+\begin{columns}[c,onlytextwidth]
+\begin{column}{0.46\textwidth}
   \begin{itemize}
     \item   \textbf{Simple shear}
     $$
@@ -96,12 +120,19 @@
     \end{aligned}
     $$
   \end{itemize}
+\end{column}
+\begin{column}{0.52\textwidth}
 \begin{center}
-   \includegraphics[width=0.5\textwidth]{../pictures/2-3/image011.png} 
+   \includegraphics[width=0.9\linewidth]{../pictures/2-3/image011.png}
 \end{center}
+{\centering\tiny\color{DarkGray}Figure: Bower (2010), \S2.1.1, solidmechanics.org (free for non-commercial educational use).\par}
+\end{column}
+\end{columns}
 \end{frame}
 
 \begin{frame}{Examples of Simple Deformations (continued)}
+\begin{columns}[c,onlytextwidth]
+\begin{column}{0.46\textwidth}
   \begin{itemize}
     \item   \textbf{Rigid rotation through angle \(\theta\) about \(e_3\) axis}
     $$
@@ -112,12 +143,19 @@
     \end{aligned}
     $$
   \end{itemize}
+\end{column}
+\begin{column}{0.52\textwidth}
   \begin{center}
-   \includegraphics[width=0.5\textwidth]{../pictures/2-3/rigid-rot.png} 
+   \includegraphics[width=0.9\linewidth]{../pictures/2-3/rigid-rot.png}
 \end{center}
+{\centering\tiny\color{DarkGray}Figure: Bower (2010), \S2.1.1, solidmechanics.org (free for non-commercial educational use).\par}
+\end{column}
+\end{columns}
 \end{frame}
 
 \begin{frame}{Examples of Simple Deformations (continued)}
+\begin{columns}[c,onlytextwidth]
+\begin{column}{0.55\textwidth}
   \begin{itemize}
     \item   \textbf{General rigid rotation about the origin}
     $$ \mathbf{y} = \mathbf{R} \cdot \mathbf{x} \quad \text{or} \quad y_{i}=R_{ij}x_{j} $$
@@ -130,9 +168,14 @@
     \end{cases}
     $$
   \end{itemize}
+\end{column}
+\begin{column}{0.43\textwidth}
   \begin{center}
-   \includegraphics[width=0.5\textwidth]{../pictures/2-3/gen-rigid-rot.png} 
+   \includegraphics[width=\linewidth]{../pictures/2-3/gen-rigid-rot.png}
 \end{center}
+{\centering\tiny\color{DarkGray}Figure: Bower (2010), \S2.1.1, solidmechanics.org (free for non-commercial educational use).\par}
+\end{column}
+\end{columns}
 \end{frame}
 
 \begin{frame}{Examples of Simple Deformations (continued)}
@@ -141,7 +184,7 @@
     Alternatively, a rigid rotation through angle \(\theta\) (with right hand screw convention) about an axis through the origin that is parallel to a unit vector \(\mathbf{n}\) can be written as
     $$ \mathbf{y} = \cos\theta \mathbf{x} + (1 - \cos\theta)(\mathbf{n} \cdot \mathbf{x})\mathbf{n} + \sin\theta (\mathbf{n} \times \mathbf{x}) $$
     \item   The components of R are thus
-    $$ R_{ij} = \cos\theta \delta_{ij} + (1 - \cos\theta)n_i n_j + \sin\theta \epsilon_{ikj} n_k $$
+    $$ R_{ij} = \cos\theta \delta_{ij} + (1 - \cos\theta)n_i n_j + \sin\theta \epsilon_{ikj} n_k \;\big(= \cos\theta \delta_{ij} + (1 - \cos\theta)n_i n_j - \sin\theta \epsilon_{ijk} n_k\big)$$
     where \(\epsilon_{ijk}\) is the permutation symbol, satisfying
     $$
     \epsilon_{ijk}=\begin{cases}
@@ -150,6 +193,7 @@
       0 & \text{otherwise}
     \end{cases}
     $$
+    \item   Check: with $\mathbf{n}=\mathbf{e}_3$ this reduces to the rotation about $\mathbf{e}_3$ on the previous slide ($R_{12} = \sin\theta\,\epsilon_{132} = -\sin\theta$, $R_{21} = \sin\theta\,\epsilon_{231} = +\sin\theta$).
   \end{itemize}
 \end{frame}
 
@@ -168,6 +212,26 @@
     where \(A_{ij}\) are constants.
     \item   The physical significance of a homogeneous deformation is that all straight lines in the solid remain straight under the deformation.
     \item   Thus, every point in the solid experiences the same shape change. All the deformations listed above are examples of homogeneous deformations.
+    \item   ($\mathbf{c}$ is a rigid translation; the shape change is carried entirely by the constant matrix $\mathbf{A}$, which is the deformation gradient $\mathbf{F}$ defined below.)
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Worked Examples: $\mathbf{F}$ and $J$ for the Simple Deformations}
+  \begin{itemize}
+    \item Using $F_{ij} = \partial y_i/\partial x_j$ (defined on the next slides) and $J=\det\mathbf{F}$ (end of this deck):
+  \end{itemize}
+  \[
+  \renewcommand{\arraystretch}{1.15}
+  \begin{array}{lcc}
+  \text{deformation} & \mathbf{F} & J=\det\mathbf{F}\\ \hline
+  \text{uniaxial extension} & \mathrm{diag}\big(\lambda,\ \lambda^{-1/2},\ \lambda^{-1/2}\big) & \lambda\cdot\lambda^{-1/2}\cdot\lambda^{-1/2} = 1\\[3pt]
+  \text{simple shear} & \begin{bmatrix}1&\tan\theta&0\\0&1&0\\0&0&1\end{bmatrix} & 1\\[14pt]
+  \text{rotation about } \mathbf{e}_3 & \begin{bmatrix}\cos\theta&-\sin\theta&0\\ \sin\theta&\cos\theta&0\\0&0&1\end{bmatrix} & \cos^2\theta+\sin^2\theta = 1\\[14pt]
+  \text{homogeneous} & \mathbf{A} & \det\mathbf{A}
+  \end{array}
+  \]
+  \begin{itemize}
+    \item All three named examples preserve volume ($J=1$), but only the rotation preserves shape: $\mathbf{F}^T\mathbf{F}=\mathbf{I}$ for the rotation, whereas $\mathbf{F}^T\mathbf{F}\neq\mathbf{I}$ for extension and shear.
   \end{itemize}
 \end{frame}
 
@@ -184,6 +248,7 @@
             \]
             where \(u_1\), \(u_2\), and \(u_3\) are the components of the displacement vector \(\mathbf{u}\), and \(x_1\), \(x_2\), and \(x_3\) are the components of the position vector \(\mathbf{x}\).
         \item Bower writes this as \(\mathbf{u} \otimes \nabla\); deck 2-2 writes \(\nabla \mathbf{u}\) with \((\nabla \mathbf{u})_{ij} = \partial u_i / \partial x_j\); they are the same object.
+        \item Caution: a few texts define \(\nabla\mathbf{u}\) as the \emph{transpose}, \((\nabla\mathbf{u})_{ij} = \partial u_j/\partial x_i\) (sometimes written \(\nabla\otimes\mathbf{u}\)). Always check which index is differentiated; these decks use \(\partial u_i/\partial x_j\) throughout.
     \end{itemize}
 \end{frame}
 
@@ -249,15 +314,21 @@
 \end{frame}
 
 \begin{frame}{Deformation Gradient Tensor and Infinitesimal Line Elements}
+\begin{columns}[c,onlytextwidth]
+\begin{column}{0.50\textwidth}
   \begin{itemize}
     \item   The concepts of displacement gradient and deformation gradient are introduced to quantify the change in shape of infinitesimal line elements in a solid body.
     \item   Imagine drawing a straight line on the undeformed configuration of a solid.
     \item   The line would be mapped to a smooth curve on the deformed configuration.
   \end{itemize}
-
+\end{column}
+\begin{column}{0.48\textwidth}
     \begin{center}
-   \includegraphics[width=0.5\textwidth]{../pictures/2-3/infinitesimal.png} 
+   \includegraphics[width=\linewidth]{../pictures/2-3/infinitesimal.png}
 \end{center}
+{\centering\tiny\color{DarkGray}Figure: Bower (2010), \S2.1.2, solidmechanics.org (free for non-commercial educational use).\par}
+\end{column}
+\end{columns}
 \end{frame}
 
 \begin{frame}{Deformation Gradient Tensor and Infinitesimal Line Elements}
@@ -293,7 +364,7 @@
     \end{itemize}
 \end{frame}
 
-\begin{frame}{Derivation of  dy = F · dx}
+\begin{frame}{Derivation of  $dy = F \cdot dx$}
   \begin{itemize}
     \item   Consider an infinitesimal line element dx in a deforming solid.
     \item   When the solid is deformed, this line element is stretched and rotated to a deformed line element dy.
@@ -319,6 +390,8 @@
 \end{frame}
 
 \begin{frame}{Deformation gradient resulting from two successive deformations (1/3)}
+\begin{columns}[c,onlytextwidth]
+\begin{column}{0.50\textwidth}
 \begin{itemize}
     \item \textbf{Successive Deformations:} Consider two successive deformations applied to a solid.
     \item \textbf{Mapping Line Elements:}
@@ -333,10 +406,15 @@
                 \]
         \end{itemize}
 \end{itemize}
+\end{column}
+\begin{column}{0.48\textwidth}
 \begin{figure}
     \centering
-    \includegraphics[scale=0.5]{../pictures/2-3/2-deformation.png}
+    \includegraphics[width=\linewidth]{../pictures/2-3/2-deformation.png}
 \end{figure}
+{\centering\tiny\color{DarkGray}Figure: Bower (2010), \S2.1.3, solidmechanics.org (free for non-commercial educational use).\par}
+\end{column}
+\end{columns}
 \end{frame}
 
 \begin{frame}{Deformation gradient resulting from two successive deformations (2/3)}
@@ -392,6 +470,8 @@
     \centering
     \includegraphics[scale=0.7]{../pictures/2-3/jacobian-deformation.png}
 \end{figure}
+\vspace{-3mm}
+{\centering\tiny\color{DarkGray}Figure: Bower (2010), \S2.1.4, solidmechanics.org (free for non-commercial educational use).\par}
 \end{frame}
 
 \begin{frame}{The Jacobian of the deformation gradient (2/4)}
@@ -436,13 +516,37 @@
 \end{itemize}
 \end{frame}
 
+\begin{frame}{The Jacobian of the deformation gradient (3/4, continued)}
+\begin{itemize}
+    \item \textbf{Why $J>0$:} $J=0$ would crush a finite volume element to zero volume, and $J<0$ would turn it inside out (a reflection), which no continuous motion starting from $\mathbf{F}=\mathbf{I}$ (where $J=1$) can reach without passing through $J=0$.
+    \item \textbf{Why $\rho=\rho_0/J$:} conservation of mass for the element, $\rho\,dV = \rho_0\,dV_0$, combined with $dV = J\,dV_0$.
+    \item \textbf{Identity used above:} $\epsilon_{ijk}A_{il}A_{jm}A_{kn}$ is antisymmetric in $(l,m,n)$, so it equals $\epsilon_{lmn}$ times its value for $(l,m,n)=(1,2,3)$, which is $\epsilon_{ijk}A_{i1}A_{j2}A_{k3}=\det\mathbf{A}$.
+    \item \textbf{Incompressible IBFE models} enforce $J=1$ only approximately (through a volumetric energy penalising $J\neq 1$); monitoring $J$ is a useful accuracy check (deck 4-2).
+\end{itemize}
+\end{frame}
+
 \begin{frame}{The Jacobian of the deformation gradient (4/4)}
 \begin{itemize}
     \item \textbf{Jacobian Derivative:} Derivative of J with respect to F:
         \[
         \frac{\partial J}{\partial F_{ij}} = J F_{ji}^{-1}
         \]
+    \item In tensor form, $\dfrac{\partial J}{\partial \mathbf{F}} = J\,\mathbf{F}^{-T}$.
+    \item \textbf{Where it comes from (Jacobi's formula):} $dJ = J\,\mathrm{tr}\!\left(\mathbf{F}^{-1}d\mathbf{F}\right) = J\,F^{-1}_{ji}\,dF_{ij}$. Equivalently, expand $\det\mathbf{F}$ along row $i$: $\partial J/\partial F_{ij}$ is the cofactor of $F_{ij}$, and the cofactor matrix is $J\mathbf{F}^{-T}$.
+    \item \textbf{Check in 1D:} $J=F_{11}$ gives $\partial J/\partial F_{11} = 1 = J F_{11}^{-1}$.
+    \item This identity is used to differentiate strain-energy functions $W(J)$ when computing the first Piola--Kirchhoff stress $\mathbf{P}=\partial W/\partial\mathbf{F}$ (deck 4-2).
 \end{itemize}
+\end{frame}
+
+\begin{frame}{References}
+\scriptsize
+\begin{itemize}
+  \item A. F. Bower, \emph{Applied Mechanics of Solids}, CRC Press, Boca Raton, 2010. doi:10.1201/9781439802489. Online: \url{https://solidmechanics.org}. \S2.1.1--2.1.4 (text, equations and all figures in this deck; free for non-commercial educational use); Appendices B--C (tensors, index notation).
+  \item M. E. Gurtin, E. Fried, L. Anand, \emph{The Mechanics and Thermodynamics of Continua}, Cambridge University Press, 2010. doi:10.1017/CBO9780511762956 (kinematics; Jacobi's formula).
+  \item G. A. Holzapfel, \emph{Nonlinear Solid Mechanics: A Continuum Approach for Engineering}, Wiley, Chichester, 2000, Ch.~2 (kinematics).
+\end{itemize}
+\medskip
+\textbf{Further reading.} P. A. Kelly, \emph{Solid Mechanics Part III: Foundations of Continuum Solid Mechanics}, University of Auckland lecture notes (online), kinematics chapter.
 \end{frame}
 
   \end{document}

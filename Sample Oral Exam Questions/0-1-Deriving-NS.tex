@@ -90,13 +90,15 @@ $D\rho/Dt+\rho\nabla\cdot\mathbf{u}=0$; hence a positive-density material with $
 \subsection*{5. Viscous Stress and Newtonian Fluids}
 \begin{enumerate}
 \item \textbf{Question:} What is the physical meaning of the rate-of-strain tensor $\mathbf{D}$?\\
-\textbf{Answer:} $\mathbf{D}=\tfrac12(\nabla\mathbf{u}+\nabla\mathbf{u}^{T})$ is the symmetric part of the velocity gradient. It measures instantaneous stretching and shear of material line elements; rigid-body rotation lies in the antisymmetric part and does not contribute to $\mathbf{D}$.
+\textbf{Answer:} $\mathbf{D}=\tfrac12\bigl(\nabla\mathbf{u}+(\nabla\mathbf{u})^{T}\bigr)$ is the symmetric part of the velocity gradient. It measures instantaneous stretching and shear of material line elements; rigid-body rotation lies in the antisymmetric part and does not contribute to $\mathbf{D}$.
 
 \item \textbf{Question:} What are the key assumptions behind $\boldsymbol{\tau} = 2\mu \mathbf{D} + \lambda (\nabla \cdot \mathbf{u})\mathbf{I}$?\\
 \textbf{Answer:} This is the most general linear, isotropic, frame-indifferent viscous response of a simple Newtonian fluid, with instantaneous dependence on the local rate of deformation. The coefficients may depend on thermodynamic state but not on the deformation history. For incompressible flow the $\lambda$ term vanishes; for compressible flow thermodynamic admissibility constrains the shear and bulk viscosities.
+Specifically, non-negative viscous dissipation requires $\mu\ge0$ and $\zeta=\lambda+\tfrac23\mu\ge0$; Stokes' hypothesis sets $\zeta=0$.
 
 \item \textbf{Question:} How does viscosity act as momentum diffusion?\\
 \textbf{Answer:} Viscous stress transfers momentum across neighboring material layers. For constant $\mu$ in an incompressible Newtonian fluid, its divergence is $\mu\nabla^2\mathbf{u}$, a diffusion operator that damps velocity gradients and dissipates kinetic energy into internal energy.
+Dividing by $\rho$ shows that $\nu=\mu/\rho$ plays the role of a momentum diffusivity, with units $\mathrm{m^2\,s^{-1}}$; a velocity disturbance spreads a distance of order $\sqrt{\nu t}$ in time $t$.
 
 \item \textbf{Question:} When does the Newtonian assumption break down?\\
 \textbf{Answer:} It can break down in polymer solutions, concentrated suspensions, mucus, and blood at low shear rates, where stress may depend nonlinearly on shear rate, on deformation history, or on evolving microstructure. Whether a Newtonian approximation is acceptable depends on the material, time scale, and shear-rate range.
@@ -120,7 +122,7 @@ $D\rho/Dt+\rho\nabla\cdot\mathbf{u}=0$; hence a positive-density material with $
 \subsection*{7. Boundary Conditions and Non-Dimensionalization}
 \begin{enumerate}
 \item \textbf{Question:} Explain the physical reasoning behind the no-slip and no-penetration conditions.\\
-\textbf{Answer:} At an impermeable wall moving with velocity $\mathbf{u}_w$, no penetration is $(\mathbf{u}-\mathbf{u}_w)\cdot\mathbf{n}=0$. No slip additionally sets the tangential relative velocity to zero, so $\mathbf{u}=\mathbf{u}_w$. It is an effective interfacial model supported for many continuum liquid flows, not a consequence of incompressibility; slip laws may be appropriate at rarefied, microstructured, or specially treated interfaces.
+\textbf{Answer:} At an impermeable wall moving with velocity $\mathbf{u}_w$ (written $\mathbf{U}_{\mathrm{wall}}$ in the tutorial deck), no penetration is $(\mathbf{u}-\mathbf{u}_w)\cdot\mathbf{n}=0$. No slip additionally sets the tangential relative velocity to zero, so $\mathbf{u}=\mathbf{u}_w$. It is an effective interfacial model supported for many continuum liquid flows, not a consequence of incompressibility; slip laws may be appropriate at rarefied, microstructured, or specially treated interfaces.
 
 \item \textbf{Question:} Why do we nondimensionalize the Navier--Stokes equations?\\
 \textbf{Answer:} Nondimensionalization exposes competing balances, identifies independent dimensionless groups, permits similarity comparisons, and gives variables of order one for analysis and computation. It does not by itself guarantee numerical stability; the discretization and time integrator still determine stability.
@@ -143,4 +145,15 @@ $D\rho/Dt+\rho\nabla\cdot\mathbf{u}=0$; hence a positive-density material with $
 \item \textbf{Question:} How would you connect the continuum Navier--Stokes framework to molecular-scale descriptions?\\
 \textbf{Answer:} Kinetic theory and nonequilibrium statistical mechanics define continuum fields as coarse-grained molecular moments and relate fluxes such as stress to microscopic dynamics. A continuum description also requires scale separation: the mean free path and molecular correlation scales must be small relative to the macroscopic length and time scales. Constitutive coefficients such as viscosity may be computed or measured from microscopic correlations.
 \end{enumerate}
+
+\subsection*{Sources}
+The questions follow the tutorial deck \emph{From conservation laws to Navier--Stokes}; source file:\\
+{\small\texttt{0-Intro-to-Fluid-Mechanics/0-1-Deriving-NavierStokes.tex}}.\\
+Standard references for the model answers:
+\begin{itemize}[itemsep=0.2em]
+  \item D. J. Acheson, \emph{Elementary Fluid Dynamics}. Clarendon Press, Oxford, 1990.
+  \item G. K. Batchelor, \emph{An Introduction to Fluid Dynamics}. Cambridge University Press, 1967.
+  \item L. D. Landau and E. M. Lifshitz, \emph{Fluid Mechanics}, 2nd ed. Pergamon Press, 1987.
+  \item M. E. Gurtin, E. Fried, and L. Anand, \emph{The Mechanics and Thermodynamics of Continua}. Cambridge University Press, 2010.
+\end{itemize}
 \end{document}

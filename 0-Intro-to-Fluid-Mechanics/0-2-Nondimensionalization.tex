@@ -3,22 +3,10 @@
 % =====================================================================
 \documentclass[aspectratio=169,11pt]{beamer}
 
-% Match the visual language of the SIAM Waves talk.
-\usetheme{Boadilla}
-\usecolortheme{seahorse}
-\useinnertheme{rectangles}
-\useoutertheme{infolines}
+% Shared style, ported from the UF Animal Sciences 2026 talk (ibfe-tutorials.sty at the repo root).
+\makeatletter\def\input@path{{./}{../}}\makeatother
+\usepackage{ibfe-tutorials}
 
-\setbeamercolor{structure}{fg=blue!55!black}
-\setbeamercolor{title}{fg=white,bg=blue!55!black}
-\setbeamercolor{frametitle}{fg=blue!55!black}
-\setbeamercolor{block title}{bg=blue!12,fg=blue!55!black}
-\setbeamercolor{block body}{bg=blue!4}
-\setbeamertemplate{navigation symbols}{}
-\setbeamerfont{frametitle}{series=\bfseries,size=\large}
-\setbeamerfont{title}{series=\bfseries,size=\Large}
-
-\usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage{graphicx}
 \usepackage{amsmath,amssymb,bm}
@@ -29,70 +17,44 @@
 \usepackage{hyperref}
 
 \graphicspath{{../pictures/1-0/}{pictures/1-0/}}
-\hypersetup{colorlinks=true,urlcolor=blue!55!black}
 
-\newcommand{\hi}[1]{\textcolor{blue!55!black}{\textbf{#1}}}
-\newcommand{\warn}[1]{\textcolor{red!70!black}{\textbf{#1}}}
-\newcommand{\soft}[1]{\textcolor{gray!50!black}{#1}}
 \newcommand{\uvec}{\bm{u}}
 \newcommand{\xvec}{\bm{x}}
 \newcommand{\bvec}{\bm{b}}
-
-\newtcolorbox{punchbox}{
-  enhanced,
-  colback=blue!4,
-  colframe=blue!55!black,
-  boxrule=0.6pt,
-  arc=2pt,
-  left=4pt,right=4pt,top=3pt,bottom=3pt
-}
 
 \title[Scaling and similarity]{Nondimensionalization and similarity}
 \subtitle{Fluid, transport, and immersed-structure parameters}
 \author[Miller]{Laura A. Miller}
 \institute[UArizona]{Department of Mathematics, University of Arizona}
-\date{}
+\date{IBFE Tutorials \textbullet\ Module 0}
 
 \begin{document}
 
 % ----- 1. Title -----
+% The right-hand panel of \maketutorialtitle shows the key dimensionless groups
+% instead of an image: \includegraphics is redirected for this frame only.
 \begin{frame}[plain]
-  \begin{beamercolorbox}[sep=10pt,center]{title}
-    {\bfseries\Large Nondimensionalization and similarity}\\[3pt]
-    {\normalsize Fluid, transport, and immersed-structure parameters}
-  \end{beamercolorbox}
-  \vspace{1.4em}
-  \begin{columns}[T,onlytextwidth]
-  \begin{column}{0.55\textwidth}
-    \textbf{\large Laura A. Miller}\\[4pt]
-    Department of Mathematics\\
-    University of Arizona\\[14pt]
-    {\small IBFE Tutorials}
-  \end{column}
-  \begin{column}{0.45\textwidth}
-    \begin{punchbox}
-    \centering
-    \[
-      \mathrm{Re}=\frac{\rho U L}{\mu},
-      \qquad
-      \mathrm{St}_L=\frac{fL}{U}
-    \]
-    \[
-      \alpha=L\sqrt{\frac{\omega}{\nu}},
-      \qquad
-      \mathrm{Pe}=\frac{UL}{D}
-    \]
-    \end{punchbox}
-  \end{column}
-  \end{columns}
-  \vfill
-  \centering{\tiny\color{black!55}AI tools were used to assist with formatting, organization, and clarification of the instructor's original notes.}
+\renewcommand{\includegraphics}[2][]{%
+  \begin{punchbox}
+  \centering
+  \[
+    \mathrm{Re}=\frac{\rho U L}{\mu},
+    \qquad
+    \mathrm{St}_L=\frac{fL}{U}
+  \]
+  \[
+    \alpha=L\sqrt{\frac{\omega}{\nu}},
+    \qquad
+    \mathrm{Pe}=\frac{UL}{D}
+  \]
+  \end{punchbox}}
+\maketutorialtitle[dimensionless-groups]
 \end{frame}
 
 % ----- 2. Purpose -----
 \begin{frame}{Why nondimensionalize?}
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.56\textwidth}
+\begin{column}{0.54\textwidth}
 Nondimensional variables let us:
 \begin{itemize}\itemsep5pt
   \item compare systems with different sizes, speeds, and materials;
@@ -101,7 +63,7 @@ Nondimensional variables let us:
   \item design dynamically similar experiments and simulations.
 \end{itemize}
 \end{column}
-\begin{column}{0.44\textwidth}
+\begin{column}{0.42\textwidth}
 \begin{punchbox}
 \small
 A nondimensional solution can always be converted back to physical units once the reference scales are known.
@@ -110,6 +72,8 @@ A nondimensional solution can always be converted back to physical units once th
 \soft{Choose and report the scales. A value such as $\mathrm{Re}=100$ is only reproducible when $L$ and $U$ are defined.}
 \end{column}
 \end{columns}
+\vfill
+{\scriptsize\color{DarkGray} Background: S. Vogel, \emph{Life in Moving Fluids} (1994) and D. J. Acheson, \emph{Elementary Fluid Dynamics} (1990). Definitions of the Strouhal, Womersley, and P\'eclet numbers were adapted from Wikipedia (CC BY-SA 4.0) in the original notes. Full references are at the end of the deck.\par}
 \end{frame}
 
 % ----- 3. Scales -----
@@ -130,13 +94,13 @@ Pressure & $P_I=\rho U^2$ & inertial pressure \\
 \end{center}
 \medskip
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.50\textwidth}
+\begin{column}{0.48\textwidth}
 \begin{punchbox}
 \small
 Use the same $L$ and $U$ in every dimensionless group and coefficient unless a different scale is explicitly introduced.
 \end{punchbox}
 \end{column}
-\begin{column}{0.50\textwidth}
+\begin{column}{0.48\textwidth}
 \small
 The computational domain must be large enough that moving the outer boundary farther away does not change the quantity of interest. There is no universal ``$10L$'' rule.
 \end{column}
@@ -193,6 +157,7 @@ For a Newtonian fluid with constant density $\rho$ and viscosity $\mu$,
 \qquad
 \nu=\frac{\mu}{\rho}.
 \]
+{\small Derivation: divide the dimensional momentum equation by $\rho U^2/L$; the viscous term becomes $\mu U/L^2\div\rho U^2/L=1/\mathrm{Re}$.}
 
 Here $\bvec^*=(L/U^2)\bvec$ is a dimensionless body-force acceleration. If $\bvec=-g\hat{\bm\jmath}$, then $\bvec^*=-(1/\mathrm{Fr}^2)\hat{\bm\jmath}$, where $\mathrm{Fr}=U/\sqrt{gL}$ is the Froude number.
 \end{frame}
@@ -200,13 +165,13 @@ Here $\bvec^*=(L/U^2)\bvec$ is a dimensionless body-force acceleration. If $\bve
 % ----- 6. Re -----
 \begin{frame}{Reynolds number}
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.54\textwidth}
+\begin{column}{0.52\textwidth}
 \centering
 \includegraphics[width=\linewidth]{Re.png}
 
-{\scriptsize Flight speed versus $\log_{10}\mathrm{Re}$, from dust to airships. Redrawn after P.~B.~S. Lissaman, \emph{Annu. Rev. Fluid Mech.} 15 (1983), Fig.~1.}
+{\scriptsize Flight speed versus $\log_{10}\mathrm{Re}$, from dust to airships. Redrawn after P.~B.~S. Lissaman, ``Low-Reynolds-number airfoils,'' \emph{Annu. Rev. Fluid Mech.} 15 (1983), 223--239, Fig.~1.}
 \end{column}
-\begin{column}{0.46\textwidth}
+\begin{column}{0.44\textwidth}
 \[
   \mathrm{Re}=\frac{\text{inertial scale}}{\text{viscous scale}}
   =\frac{\rho U^2/L}{\mu U/L^2}.
@@ -283,6 +248,7 @@ where $A$ is the stated excursion scale. If $A=L$, then $\mathrm{St}_A=\mathrm{S
 \begin{punchbox}
 \small State whether the characteristic length is a chord, diameter, wake width, or motion amplitude. Different choices define different Strouhal numbers.
 \end{punchbox}
+\soft{\scriptsize The number is named for V. Strouhal, who studied vortex shedding from wires in 1878. Definition adapted from Wikipedia, ``Strouhal number'' (CC BY-SA 4.0), as in the original notes.}
 \end{frame}
 
 \begin{frame}{Strouhal number in swimming and flying}
@@ -296,7 +262,7 @@ where $f$ is stroke or tail-beat frequency, $A$ is a stated excursion amplitude,
   \item Many cruising swimmers and flyers in the Taylor et al. data lie in $0.2<\mathrm{St}_A<0.4$.
   \item The interval is empirical, not a universal efficiency optimum for every body, gait, or amplitude convention.
 \end{itemize}
-\soft{\scriptsize State whether $A$ is peak or peak-to-peak excursion. Taylor, Nudds, and Thomas, \emph{Nature} 425 (2003).}
+\soft{\scriptsize State whether $A$ is peak or peak-to-peak excursion; Taylor et al.\ use the peak-to-peak excursion of the wingtip or tail tip. Taylor, Nudds, and Thomas, \emph{Nature} 425 (2003), 707--711.}
 \end{frame}
 
 % ----- 9. Womersley -----
@@ -306,13 +272,13 @@ For oscillatory viscous flow with angular frequency $\omega$,
   \boxed{\alpha=L\sqrt{\frac{\omega}{\nu}}}.
 \]
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.52\textwidth}
+\begin{column}{0.50\textwidth}
 \begin{itemize}\itemsep5pt
   \item $\alpha\ll1$: viscosity communicates the oscillation across the length scale during each cycle.
   \item $\alpha\gg1$: unsteady inertia dominates away from a thin oscillatory boundary layer.
 \end{itemize}
 \end{column}
-\begin{column}{0.48\textwidth}
+\begin{column}{0.46\textwidth}
 \[
   \delta_\omega\sim\sqrt{\frac{2\nu}{\omega}},
   \qquad
@@ -325,6 +291,8 @@ If $\mathrm{Re}$ and $\mathrm{St}_L=fL/U$ use the same $L$ and $U$,
 \end{column}
 \end{columns}
 \soft{\footnotesize If one group uses pipe radius and another uses diameter, the relation acquires the corresponding factor.}
+
+\soft{\scriptsize Interpretation: $\alpha^2=\omega L^2/\nu$ is the ratio of transient inertia, $\rho\omega U$, to viscous force, $\mu U/L^2$. Named for J. R. Womersley (\emph{J. Physiol.} 127, 1955). Definition adapted from Wikipedia, ``Womersley number'' (CC BY-SA 4.0), as in the original notes.}
 \end{frame}
 
 \begin{frame}{Illustrative Womersley numbers in canine vessels}
@@ -366,7 +334,25 @@ Main pulmonary artery & $15$ \\
 \begin{punchbox}
 \small These values illustrate the strong vessel-size dependence of $\alpha$. They are not universal physiological constants: radius, frequency, and viscosity must accompany any reported value.
 \end{punchbox}
-\soft{\scriptsize Values after W. W. Nichols and M. F. O'Rourke, \emph{McDonald's Blood Flow in Arteries}, 5th ed. (Hodder Arnold, 2005).}
+\soft{\scriptsize Values after W. W. Nichols and M. F. O'Rourke, \emph{McDonald's Blood Flow in Arteries}, 5th ed. (Hodder Arnold, 2005). Further sources on the next slide.}
+\end{frame}
+
+\begin{frame}{Canine Womersley numbers: a worked check and sources}
+\textbf{Order-of-magnitude check} for the ascending aorta. Take an illustrative radius $R\approx0.75\,\mathrm{cm}$, heart rate $f=2\,\mathrm{Hz}$, and blood kinematic viscosity $\nu\approx4\times10^{-6}\,\mathrm{m^2\,s^{-1}}$:
+\[
+  \omega=2\pi f\approx12.6\,\mathrm{s^{-1}},
+  \qquad
+  \alpha=R\sqrt{\frac{\omega}{\nu}}
+  \approx7.5\times10^{-3}\,\mathrm{m}\times\sqrt{\frac{12.6}{4\times10^{-6}}}\,\mathrm{m^{-1}}
+  \approx13,
+\]
+consistent with the tabulated $13.2$. With the diameter in place of the radius, the same vessel would give $\alpha\approx27$; always state which length is used.
+
+\medskip
+\begin{punchbox}
+\small Because $\alpha\propto R$, a factor of $\sim10^3$ in radius between the aorta and a capillary produces the factor of $\sim10^3$ in $\alpha$ seen in the table.
+\end{punchbox}
+\soft{\scriptsize Sources: the same ten canine values are commonly cited from the table of typical canine vascular parameters in C. G. Caro, T. J. Pedley, R. C. Schroter, and W. A. Seed, \emph{The Mechanics of the Circulation} (Oxford Univ. Press, 1978), as reproduced in Wikipedia, ``Womersley number'' (CC BY-SA 4.0); table number to be confirmed. The original tutorial's Womersley material was adapted from that Wikipedia article.}
 \end{frame}
 
 % ----- 10. Peclet -----
@@ -384,15 +370,17 @@ With $c-c_0=Cc^*$ and the same $L$, $U$, and $L/U$ scales,
   \boxed{\mathrm{Pe}=\frac{UL}{D}}.
 \]
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.50\textwidth}
+\begin{column}{0.48\textwidth}
 \hi{$\mathrm{Pe}\ll1$}: diffusion dominates transport.
 \end{column}
-\begin{column}{0.50\textwidth}
+\begin{column}{0.48\textwidth}
 \hi{$\mathrm{Pe}\gg1$}: advection dominates transport.
 \end{column}
 \end{columns}
 \medskip
 For mass transfer, $\mathrm{Pe}=\mathrm{Re}\,\mathrm{Sc}$; for heat transfer, $\mathrm{Pe}=\mathrm{Re}\,\mathrm{Pr}$, provided all groups use the same $L$ and $U$.
+
+\soft{\scriptsize Here $\mathrm{Sc}=\nu/D$ and $\mathrm{Pr}=\nu/\kappa$, with $\kappa$ the thermal diffusivity. Named for J. C. E. P\'eclet. Definitions adapted from Wikipedia, ``P\'eclet number'' (CC BY-SA 4.0), as in the original notes.}
 \end{frame}
 
 % ----- 11. Force scales -----
@@ -481,7 +469,7 @@ one can change Reynolds number by changing $U$, $L$, $\rho$, or $\mu$.
 % ----- 13. EI -----
 \begin{frame}{Flexural rigidity and effective stiffness}
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.52\textwidth}
+\begin{column}{0.50\textwidth}
 For a physical three-dimensional beam,
 \[
   \boxed{B=EI},
@@ -493,7 +481,7 @@ where
   \item $EI$ is flexural rigidity $[\mathrm{N\,m^2}]$.
 \end{itemize}
 \end{column}
-\begin{column}{0.48\textwidth}
+\begin{column}{0.46\textwidth}
 \begin{punchbox}
 \small
 Flexural rigidity is a material-and-section property. The force/displacement stiffness also depends on beam length, loading, and boundary conditions; commonly $K_{\mathrm{eff}}\sim EI/L_b^3$.
@@ -505,20 +493,20 @@ A 2-D model may use rigidity per unit out-of-plane depth, with units $\mathrm{N\
 \end{frame}
 
 \begin{frame}{Approximate Young's modulus: compliant materials}
-\scriptsize
+\footnotesize
 \setlength{\tabcolsep}{3pt}
-\renewcommand{\arraystretch}{1.08}
+\renewcommand{\arraystretch}{1.0}
 \begin{center}
 \begin{tabular}{@{}p{0.55\textwidth}rr@{}}
 \toprule
 Material & GPa & psi \\
 \midrule
-Rubber, small strain & $0.01$--$0.1$ & $1{,}450$--$14{,}503$ \\
+Rubber, small strain & $0.01$--$0.1$ & $1{,}450$--$14{,}504$ \\
 Low-density polyethylene & $0.11$--$0.45$ & $16{,}000$--$65{,}000$ \\
 Diatom frustules, largely hydrated silica & $0.35$--$2.77$ & $50{,}000$--$400{,}000$ \\
 PTFE & $0.5$ & $72{,}500$ \\
 High-density polyethylene & $0.8$ & $116{,}000$ \\
-Bacteriophage capsids & $1$--$3$ & $150{,}000$--$435{,}000$ \\
+Bacteriophage capsids & $1$--$3$ & $145{,}000$--$435{,}000$ \\
 Polypropylene & $1.5$--$2$ & $218{,}000$--$290{,}000$ \\
 Polyethylene terephthalate & $2.2$--$2.7$ & $320{,}000$--$390{,}000$ \\
 Nylon & $2$--$4$ & $290{,}000$--$580{,}000$ \\
@@ -532,10 +520,11 @@ Human cortical bone & $14$ & $2.03\times10^6$ \\
 \begin{punchbox}
 \small These are order-of-magnitude reference values. Modulus depends on composition, orientation, hydration, strain, and test protocol.
 \end{punchbox}
+{\tiny\color{DarkGray} Conversion: $1\,\mathrm{GPa}\approx145{,}038\,\mathrm{psi}$. Values follow the table ``Approximate Young's modulus for various materials'' in Wikipedia, ``Young's modulus'' (CC BY-SA 4.0), which cites a primary source for each entry; source to be confirmed.\par}
 \end{frame}
 
 \begin{frame}{Approximate Young's modulus: stiffer materials}
-\scriptsize
+\footnotesize
 \setlength{\tabcolsep}{3pt}
 \renewcommand{\arraystretch}{1.08}
 \begin{center}
@@ -561,34 +550,42 @@ Tooth enamel, largely calcium phosphate & $83$ & $12.0\times10^6$ \\
 \begin{punchbox}
 \small Use a source appropriate to the actual material and loading direction before converting $E$ into flexural rigidity $EI$.
 \end{punchbox}
+{\tiny\color{DarkGray} Conversion: $1\,\mathrm{GPa}\approx145{,}038\,\mathrm{psi}$. Values follow the same Wikipedia ``Young's modulus'' table (CC BY-SA 4.0); source to be confirmed.\par}
 \end{frame}
 
 % ----- 14. I -----
 \begin{frame}{Second moment of area}
-For a cross-sectional area $A$ and an in-plane reference axis $B$,
+For a cross-sectional area $A$ and an in-plane reference axis $\ell$,
 \[
-  \boxed{I_B=\iint_A r_\perp^2\,dA},
+  \boxed{I_\ell=\iint_A r_\perp^2\,dA},
 \]
 where $r_\perp$ is the perpendicular distance from the axis to the area element $dA$.
 
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.44\textwidth}
 For the Cartesian axes,
 \[
   I_x=\iint_A y^2\,dA,
   \qquad
   I_y=\iint_A x^2\,dA.
 \]
+\end{column}
+\begin{column}{0.52\textwidth}
 The polar second moment about the perpendicular $z$ axis is
 \[
   J_z=\iint_A(x^2+y^2)\,dA=I_x+I_y.
 \]
+\end{column}
+\end{columns}
 \begin{punchbox}
 \small $I_x$ and $I_y$ control bending about the corresponding axes. $J_z$ is a polar area moment and should not be confused with a mass moment of inertia.
 \end{punchbox}
+\soft{\scriptsize The axis is written $\ell$ to avoid confusion with the flexural rigidity $B=EI$. For an axis parallel to a centroidal axis at distance $d$, the parallel-axis theorem gives $I_\ell=I_{\mathrm{centroid}}+Ad^2$.}
 \end{frame}
 
 \begin{frame}{Rectangle with centroid at the origin}
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.56\textwidth}
+\begin{column}{0.54\textwidth}
 For width $b$ in the $x$ direction and height $h$ in the $y$ direction,
 \[
   I_x
@@ -605,11 +602,14 @@ For width $b$ in the $x$ direction and height $h$ in the $y$ direction,
   =\frac{bh}{12}(b^2+h^2).
 \]
 \end{column}
-\begin{column}{0.44\textwidth}
+\begin{column}{0.42\textwidth}
 \centering
 \includegraphics[width=\linewidth]{IJ.png}
 
-{\scriptsize Rectangular cross-section of width $b$ and height $h$ with centroid $C$ (schematic).}
+{\scriptsize Rectangular cross-section of width $b$ and height $h$ with centroid $C$ (schematic). Schematic: instructor's course notes.}
+
+\medskip
+{\small Bending about $x$ (load along $y$) uses $I_x\propto h^3$: a plank is far stiffer on edge than flat.}
 \end{column}
 \end{columns}
 \end{frame}
@@ -630,6 +630,7 @@ For example, with inertial normalization,
   k_{\mathrm{beam}}
   =k_{\mathrm{beam},I}^*\,\rho U^2L^3.
 \]
+{\small In the notation of the earlier slides, $k_{\mathrm{spring},I}^*=k_s^{(I)}$ and $k_{\mathrm{beam},I}^*=k_b^{(I)}$ (2-D, per unit depth).}
 
 \begin{punchbox}
 \small A coefficient does not determine deformation by itself. Geometry, loading, boundary conditions, and the constitutive law all matter, so report a sensitivity study rather than a universal ``good'' value.
@@ -637,14 +638,16 @@ For example, with inertial normalization,
 \end{frame}
 
 \begin{frame}{Beam-stiffness starting estimate}
+\small
 With inertial normalization,
 \[
   k_b=k_b^{(I)}\rho U^2L^3.
 \]
 The original course heuristic used $k_b^{(I)}\approx10$ as a trial value that produced modest bending, roughly a few degrees, in a particular model.
 
-\begin{itemize}\itemsep6pt
-  \item Use the same characteristic velocity and length as the fluid scaling; a peak velocity may be appropriate for a peak-load estimate. In practice: try $U_{\max}$ for the velocity scale and the boundary length for $L$; these are rough estimates and should be reported with the choice made.
+\begin{itemize}\itemsep2pt
+  \item Use the same characteristic velocity and length as the fluid scaling; a peak velocity may be appropriate for a peak-load estimate.
+  \item In practice: try $U_{\max}$ for the velocity scale and the boundary length for $L$; these are rough estimates and should be reported with the choice made. If $\mathrm{Re}$ was defined with a different velocity $U$ (same $L$), the two coefficients for one dimensional $k_b$ satisfy $k_b^{(I)}\big|_{U_{\max}}=k_b^{(I)}\big|_{U}\,(U/U_{\max})^2$.
   \item Compare the resulting $k_b$ with a physical rigidity such as $EI$ under the model's per-depth convention.
   \item Sweep $k_b^{(I)}$ and demonstrate convergence of the deformation or performance metric.
 \end{itemize}
@@ -662,14 +665,14 @@ At moderate or high Reynolds number, estimate a total hydrodynamic load from a p
 For a 2-D model per unit depth, use the corresponding projected length instead of area. At low Reynolds number, use a geometry-specific viscous drag law.
 
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.52\textwidth}
+\begin{column}{0.50\textwidth}
 For a target displacement $\delta_{\max}$,
 \[
   K_{\mathrm{eff}}\sim\frac{F_{\mathrm{char}}}{\delta_{\max}}
 \]
 provides an order-of-magnitude starting point.
 \end{column}
-\begin{column}{0.48\textwidth}
+\begin{column}{0.46\textwidth}
 \begin{punchbox}
 \small
 Do not use the Eulerian grid spacing $\Delta x$ as a physical area or mass unless you are explicitly constructing a discrete per-node quantity. Otherwise the physical model changes when the grid is refined.
@@ -686,13 +689,13 @@ If $F_b$ is the characteristic load supported by a spring-like constraint and $\
 Choose $\delta_{\max}$ from the physical tolerance, such as maximum displacement from a target point or resting length.
 
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.51\textwidth}
+\begin{column}{0.49\textwidth}
 At moderate or high Reynolds number,
 \[
   F_b\sim\tfrac12 C_D\rho U^2A.
 \]
 \end{column}
-\begin{column}{0.49\textwidth}
+\begin{column}{0.47\textwidth}
 At low Reynolds number, use a geometry-specific viscous drag law rather than a universal grid-based estimate.
 \end{column}
 \end{columns}
@@ -720,11 +723,15 @@ This formula is a useful analogy, but an immersed structure has distributed mode
 \begin{punchbox}
 \small Report the damping law and demonstrate that the physical response and time-step restriction are adequately resolved.
 \end{punchbox}
+\soft{\scriptsize Critical damping, $c=c_{\mathrm{crit}}$, returns the oscillator to rest fastest without overshoot; the damping ratio is $\zeta_d=c/c_{\mathrm{crit}}$. Background: Wikipedia, ``Damping'' (CC BY-SA 4.0), linked in the original notes.}
 \end{frame}
 
 % ----- 18. Efficiency -----
 \begin{frame}{Efficiency at steady swimming or flying}
+\small
 In a statistically steady or time-periodic state, mean kinetic energy does not grow, although it may oscillate instantaneously. Input power still balances drag and energizes the wake.
+
+{\small A thermodynamic efficiency (useful work, i.e.\ change in kinetic or potential energy, divided by energy input) would therefore be zero for every steady swimmer. Efficiency must instead be defined through a chosen performance metric, as below.}
 
 \begin{columns}[T,onlytextwidth]
 \begin{column}{0.48\textwidth}
@@ -750,10 +757,12 @@ Here $D_{\mathrm{tow}}$ is the drag from a matched towing test.
 \begin{punchbox}
 \small State the system boundary, useful-power definition, and treatment of negative actuator work; different efficiency measures answer different questions.
 \end{punchbox}
+\soft{\scriptsize For a review of thrust, drag, and efficiency definitions in swimming, see Smits, \emph{J. Fluid Mech.} 874 (2019), P1.}
 \end{frame}
 
 % ----- 19. COT -----
 \begin{frame}{Cost of transport}
+\small
 If $E_{\mathrm{in}}$ is the input energy used to travel distance $d$,
 \[
   C=\frac{E_{\mathrm{in}}}{d}
@@ -762,21 +771,29 @@ If $E_{\mathrm{in}}$ is the input energy used to travel distance $d$,
 \]
 
 Common normalizations are
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.41\textwidth}
 \[
   C_m=\frac{E_{\mathrm{in}}}{m d}
   =\frac{\overline{P}_{\mathrm{in}}}{m\overline{U}}
   \quad [\mathrm{J\,kg^{-1}\,m^{-1}}],
 \]
+\end{column}
+\begin{column}{0.57\textwidth}
 \[
   C^*=\frac{\overline{P}_{\mathrm{in}}}{m g\overline{U}}
   \quad \text{(dimensionless, weight-normalized)}.
 \]
+\end{column}
+\end{columns}
 
 For a distributed actuator, compute input power from the work rate using a stated sign convention, for example
 \[
   P_{\mathrm{in}}(t)=\int_{\Gamma}\bm{f}_{\mathrm{act}}\cdot\uvec_b\,d\Gamma,
 \]
 where $\bm{f}_{\mathrm{act}}$ is the actuator force density on the structure $\Gamma$ and $\uvec_b$ is the boundary velocity. Average $P_{\mathrm{in}}$ over a whole number of cycles before forming $C$.
+
+\soft{\scriptsize Recall: work $=$ force $\times$ distance [N\,m]; power $=$ force $\times$ velocity [N\,m\,s$^{-1}$]. The mass-specific cost $C_m$ is the form compared across animals by K. Schmidt-Nielsen, \emph{Science} 177 (1972), 222--228; the weight-normalized $C^*$ is the ``specific resistance'' of G. Gabrielli and T. von K\'arm\'an, \emph{Mech. Eng.} 72 (1950), 775--781.}
 \end{frame}
 
 % ----- 20. Summary -----
@@ -796,16 +813,33 @@ where $\bm{f}_{\mathrm{act}}$ is the actuator force density on the structure $\G
 
 % ----- 21. References -----
 \begin{frame}{References}
-\footnotesize
+\small
 \begin{itemize}\itemsep4pt
   \item D. J. Acheson, \emph{Elementary Fluid Dynamics}. Clarendon Press, 1990.
   \item S. Vogel, \emph{Life in Moving Fluids}, 2nd ed. Princeton University Press, 1994.
-  \item G. K. Taylor, R. L. Nudds, and A. L. R. Thomas, ``Flying and swimming animals cruise at a Strouhal number tuned for high power efficiency,'' \emph{Nature} 425 (2003), \href{https://doi.org/10.1038/nature02000}{doi:10.1038/nature02000}.
-  \item J. R. Womersley, ``Method for the calculation of velocity, rate of flow and viscous drag in arteries when the pressure gradient is known,'' \emph{J. Physiol.} 127 (1955), \href{https://doi.org/10.1113/jphysiol.1955.sp005276}{doi:10.1113/jphysiol.1955.sp005276}.
-  \item A. J. Smits, ``Undulatory and oscillatory swimming,'' \emph{J. Fluid Mech.} 874 (2019), \href{https://doi.org/10.1017/jfm.2019.284}{doi:10.1017/jfm.2019.284}.
+  \item G. K. Taylor, R. L. Nudds, and A. L. R. Thomas, ``Flying and swimming animals cruise at a Strouhal number tuned for high power efficiency,'' \emph{Nature} 425 (2003), 707--711, \href{https://doi.org/10.1038/nature02000}{doi:10.1038/nature02000}.
+  \item J. R. Womersley, ``Method for the calculation of velocity, rate of flow and viscous drag in arteries when the pressure gradient is known,'' \emph{J. Physiol.} 127 (1955), 553--563, \href{https://doi.org/10.1113/jphysiol.1955.sp005276}{doi:10.1113/jphysiol.1955.sp005276}.
+  \item A. J. Smits, ``Undulatory and oscillatory swimming,'' \emph{J. Fluid Mech.} 874 (2019), P1, \href{https://doi.org/10.1017/jfm.2019.284}{doi:10.1017/jfm.2019.284}.
   \item C. S. Peskin, ``The immersed boundary method,'' \emph{Acta Numerica} 11 (2002), \href{https://doi.org/10.1017/S0962492902000077}{doi:10.1017/S0962492902000077}.
   \item B. E. Griffith and X. Y. Luo, ``Hybrid finite difference/finite element version of the immersed boundary method,'' \emph{Int. J. Numer. Meth. Biomed. Engng.} 33 (2017), \href{https://doi.org/10.1002/cnm.2888}{doi:10.1002/cnm.2888}.
 \end{itemize}
+\end{frame}
+
+\begin{frame}{References (continued)}
+\footnotesize
+\begin{itemize}\itemsep4pt
+  \item P. B. S. Lissaman, ``Low-Reynolds-number airfoils,'' \emph{Annu. Rev. Fluid Mech.} 15 (1983), 223--239,
+  \href{https://doi.org/10.1146/annurev.fl.15.010183.001255}{doi:10.1146/annurev.fl.15.010183.001255}. Fig.~1 redrawn on the Reynolds-number slide.
+  \item W. W. Nichols and M. F. O'Rourke, \emph{McDonald's Blood Flow in Arteries}, 5th ed. Hodder Arnold, 2005.
+  \item C. G. Caro, T. J. Pedley, R. C. Schroter, and W. A. Seed, \emph{The Mechanics of the Circulation}. Oxford University Press, 1978 (2nd ed., Cambridge University Press, 2012). Canine Womersley values.
+  \item K. Schmidt-Nielsen, ``Locomotion: energy cost of swimming, flying, and running,'' \emph{Science} 177 (1972), 222--228,
+  \href{https://doi.org/10.1126/science.177.4045.222}{doi:10.1126/science.177.4045.222}.
+  \item G. Gabrielli and T. von K\'arm\'an, ``What price speed? Specific power required for propulsion of vehicles,'' \emph{Mechanical Engineering} 72 (1950), 775--781.
+  \item Wikipedia articles ``Strouhal number,'' ``Womersley number,'' ``P\'eclet number,'' ``Damping,'' and ``Young's modulus'' (CC BY-SA 4.0), \url{https://en.wikipedia.org}; definitions and the modulus table were adapted from these in the original notes.
+\end{itemize}
+\begin{punchbox}
+\small Figure credits: \texttt{Re.png} redrawn after Lissaman (1983), Fig.~1; \texttt{IJ.png} schematic from the instructor's course notes.
+\end{punchbox}
 \end{frame}
 
 \end{document}

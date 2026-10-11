@@ -1,21 +1,10 @@
 \documentclass[aspectratio=169,11pt]{beamer}
 
-\usetheme{Boadilla}
-\usecolortheme{seahorse}
-\useinnertheme{rectangles}
-\useoutertheme{infolines}
-\setbeamercolor{structure}{fg=blue!55!black}
-\setbeamercolor{title}{fg=white,bg=blue!55!black}
-\setbeamercolor{frametitle}{fg=blue!55!black}
-\setbeamercolor{block title}{bg=blue!12,fg=blue!55!black}
-\setbeamercolor{block body}{bg=blue!4}
-\setbeamertemplate{navigation symbols}{}
-\setbeamerfont{frametitle}{series=\bfseries,size=\large}
-\setbeamerfont{title}{series=\bfseries,size=\Large}
+% Shared style, ported from the UF Animal Sciences 2026 talk (ibfe-tutorials.sty at the repo root).
+\makeatletter\def\input@path{{./}{../}}\makeatother
+\usepackage{ibfe-tutorials}
 
-\usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
-\DeclareFontShape{T1}{cmss}{b}{n}{<->ssub*cmss/bx/n}{}
 \usepackage{amsmath,amssymb,bm}
 \usepackage{mathtools}
 \usepackage{tikz}
@@ -27,7 +16,7 @@
 \newcommand{\pp}{p}
 \newcommand{\Rey}{\mathrm{Re}}
 \newcommand{\avg}[1]{\overline{#1}}
-\newcommand{\up}{\uu'}
+\renewcommand{\up}{\uu'} % the style file's \up is an arrow pictogram; this deck's \up is the fluctuation
 \newcommand{\ubar}{\avg{\uu}}
 \newcommand{\grad}{\nabla}
 \newcommand{\Div}{\nabla\cdot}
@@ -36,16 +25,14 @@
 \title[RANS II: Momentum]{RANS Part 2: Reynolds-Averaged Momentum Equation (x-component)}
 \author[Miller]{Laura A. Miller}
 \institute[UArizona]{Department of Mathematics, University of Arizona}
-\date{}
+\date{IBFE Tutorials \textbullet\ Module 5\\[3pt]
+  Adapted from a \href{https://www.youtube.com/watch?v=mDt-HJEXK6g}{lecture by Steven L. Brunton}.}
 
 \begin{document}
 
 % ------------------------------------------------------------
-\begin{frame}
-  \titlepage
-  \vspace{-1.4em}
-  \centering{\scriptsize Adapted from a lecture by Steven L. Brunton.}
-  \\[2pt]{\tiny\color{black!55}AI tools were used to assist with formatting, organization, and clarification of the instructor's original notes.}
+\begin{frame}[plain]
+\maketutorialtitle
 \end{frame}
 
 % ------------------------------------------------------------
@@ -103,15 +90,18 @@ then time-average to get an equation for $\ubar$.
 \centering
 \begin{tikzpicture}[
   node distance=7mm,
-  box/.style={rounded corners,draw=blue!55!black,thick,fill=blue!5,
+  box/.style={rounded corners,draw=DarkGray,thick,fill=LightGray!40,
               minimum width=3.15cm,minimum height=1.15cm,align=center},
-  arrow/.style={-{Latex[length=3mm]},very thick,blue!55!black}]
+  arrow/.style={-{Latex[length=3mm]},very thick,DarkGray}]
   \node[box] (ns) {instantaneous\\Navier--Stokes\\$u_j\partial_j u_i$};
   \node[box,right=of ns] (avg) {decompose + average\\$u_i=\bar u_i+u'_i$};
   \node[box,right=of avg] (rans) {mean equation\\$\bar u_j\partial_j\bar u_i$\\$+\,\partial_j\overline{u'_i u'_j}$};
   \draw[arrow] (ns) -- (avg);
   \draw[arrow] (avg) -- (rans);
 \end{tikzpicture}
+
+\vspace{0.4em}
+{\scriptsize\color{DarkGray} Schematic: instructor's course notes. Index notation: $u_i$ ($i=1,2,3$) are the components $(u,v,w)$, $\partial_j=\partial/\partial x_j$, and a repeated index is summed.\par}
 
 \vspace{0.7em}
 \begin{block}{The nonlinear term does not simply average away}
@@ -320,6 +310,7 @@ u'\,\partial_x u'+v'\,\partial_y u'+w'\,\partial_z u'
 \begin{block}{Why the half-factor disappears}
 As on the streamwise slide: the product-rule correction supplies the second copy of $u'\,\partial_x u'$, so the first term is $\partial_x(u'^2)$, not $\tfrac12\partial_x(u'^2)$.
 \end{block}
+{\small In detail: $\partial_x(u'^2)=2u'\partial_xu'$ contains one copy too many; the extra copy is cancelled by the $-u'\partial_xu'$ inside $-u'(\Div\up)$. That whole bracket vanishes only because all three of its pieces are kept together, which is why the cross terms must be treated in the same step.\par}
 \end{frame}
 
 % ------------------------------------------------------------
@@ -465,6 +456,23 @@ RANS reduces space-time complexity, but pays a price: \textbf{closure modeling}.
 \end{frame}
 
 % ------------------------------------------------------------
+\begin{frame}{Worked check: fully developed channel flow}
+Take a statistically stationary, fully developed channel, $\avg{u}=\avg{u}(y)$, $\avg{v}=\avg{w}=0$, with statistics independent of $x$ and $z$.
+\begin{itemize}
+  \item The left side $\avg{u}\,\partial_x\avg{u}+\avg{v}\,\partial_y\avg{u}+\avg{w}\,\partial_z\avg{u}$ vanishes term by term.
+  \item Of the Reynolds-stress terms only $\partial_y\avg{u'v'}$ survives, so the final x-equation becomes
+  \[
+    0=-\partial_x\avg{p}+\frac1{\Rey}\frac{\mathrm d^2\avg{u}}{\mathrm dy^2}-\frac{\mathrm d}{\mathrm dy}\avg{u'v'}.
+  \]
+  \item The y-equation gives $\avg{p}+\avg{v'^2}$ independent of $y$, so $\partial_x\avg{p}$ is a constant and the \emph{total} shear stress
+  $\frac1{\Rey}\frac{\mathrm d\avg{u}}{\mathrm dy}-\avg{u'v'}$ is linear in $y$.
+\end{itemize}
+\begin{block}{Interpretation}
+Near the wall the viscous part carries the stress; away from it the Reynolds shear stress $-\avg{u'v'}$ does. This is the starting point of the wall-scaling and log-law slides in deck 5-3 (see also Pope 2000, \S7.1).
+\end{block}
+\end{frame}
+
+% ------------------------------------------------------------
 \begin{frame}{Summary}
 \begin{itemize}
   \item Start with x-momentum component of incompressible Navier--Stokes.
@@ -484,8 +492,11 @@ RANS reduces space-time complexity, but pays a price: \textbf{closure modeling}.
 \small
 \begin{itemize}
   \item O. Reynolds, ``On the dynamical theory of incompressible viscous fluids and the determination of the criterion,'' \emph{Philosophical Transactions of the Royal Society A}, 186 (1895).
+  Pages 123--164; \href{https://doi.org/10.1098/rsta.1895.0004}{doi:10.1098/rsta.1895.0004}.
   \item S. B. Pope, \emph{Turbulent Flows}, Cambridge University Press (2000), Chapters 3--4.
   \item S. L. Brunton, lecture on Reynolds-averaged Navier--Stokes equations.
+  \href{https://www.youtube.com/watch?v=mDt-HJEXK6g}{YouTube} (the video linked from Part~1; the derivation sequence of this deck is adapted from Brunton's RANS lecture material).
+  \item D. C. Wilcox, \emph{Turbulence Modeling for CFD}, 3rd ed., DCW Industries (2006), Ch.~2 (Reynolds averaging and the Reynolds-stress tensor; alternative sign conventions).
 \end{itemize}
 
 \begin{block}{Convention used here}

@@ -3,6 +3,11 @@
 \usepackage{graphicx}
 \usepackage{amsmath}
 \usepackage[utf8]{inputenc}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric}
+% Older notes, kept for reference. The three pieces not covered elsewhere (equations of motion,
+% worked dyadic example, normal/shear decomposition) have been ported into decks 2-1 and 2-2.
+% Errors found in review have been corrected in place below (Oct 2026); nothing was removed.
 \title{Introduction to Solid Mechanics}
 \author{Laura Miller and Gemini Advanced}
 \date{\today}
@@ -19,6 +24,7 @@
     \item \href{https://example.com/resource4}{Resource 4: Further Reading}
     \item \href{https://example.com/resource5}{Resource 5: Online Tools}
   \end{itemize}
+  {\footnotesize Note: Resources 3--5 are placeholder links from the original draft (example.com); no resources were ever assigned to them. See deck 2-1 for the current resource list.\par}
 \end{frame}
 
 \begin{frame}{What is Solid Mechanics?}
@@ -68,8 +74,40 @@
 
 \begin{frame}{Stress and Strain}
     \begin{figure}
-        \includegraphics[width=0.9\textwidth]{pictures/stress-strain-curve-001.png}
-        \caption{Stress vs. Strain. Note that the linear part of the graph represents a Hookean material that follows Hook's law.}
+        % Native redraw of pictures/stress-strain-curve-001.png (PNG kept on disk; the original
+        % carried a third-party logo watermark and the typo "Hook's Law").
+        \begin{tikzpicture}[scale=0.6,font=\scriptsize]
+          \coordinate (O) at (0,0);
+          \coordinate (A) at (1.6,3.0);
+          \coordinate (B) at (1.95,3.35);
+          \coordinate (C) at (2.7,3.3);
+          \coordinate (D) at (5.6,4.9);
+          \coordinate (E) at (7.4,3.8);
+          \fill[red!15] (O) -- (A) .. controls (1.72,3.25) .. (B) -- (1.95,0) -- cycle;
+          \fill[gray!25] (1.95,0) -- (B) .. controls (2.25,3.38) .. (C)
+               .. controls (3.7,3.25) and (4.3,4.9) .. (D)
+               .. controls (6.5,4.9) and (7.1,4.4) .. (E) -- (7.4,0) -- cycle;
+          \draw[-{Latex[length=2mm]},thick] (0,0) -- (8.2,0);
+          \draw[-{Latex[length=2mm]},thick] (0,0) -- (0,5.6);
+          \node[below=8pt] at (4.1,0) {Strain $\epsilon$};
+          \node[rotate=90,above=4pt] at (0,2.8) {Stress $\sigma$};
+          \node[below left] at (O) {$O$};
+          \draw[very thick] (O) -- (A) .. controls (1.72,3.25) .. (B) .. controls (2.25,3.38) .. (C)
+               .. controls (3.7,3.25) and (4.3,4.9) .. (D)
+               .. controls (6.5,4.9) and (7.1,4.4) .. (E);
+          \foreach \p/\pos in {A/left,B/above,C/above,D/above,E/above right}{
+            \filldraw (\p) circle (2pt);
+            \node[\pos] at (\p) {\textbf{\p}};
+          }
+          \node[rotate=62] at (1.0,1.45) {\tiny Hooke's law};
+          \node at (4.6,2.0) {plastic region};
+          \fill[red!15] (8.7,5.0) rectangle (9.2,5.4);
+          \node[right] at (9.25,5.2) {Elastic region};
+          \fill[gray!25] (8.7,4.3) rectangle (9.2,4.7);
+          \node[right] at (9.25,4.5) {Plastic region};
+          \node[anchor=north west,align=left,font=\tiny] at (8.6,4.0) {$O$--$A$: linear (Hooke's law)\\ $A$: proportional limit\\ $B$: yield point\\ $B$--$C$: yielding\\ $C$--$D$: strain hardening\\ $D$: ultimate strength\\ $D$--$E$: necking\\ $E$: fracture};
+        \end{tikzpicture}
+        \caption{Stress vs. Strain. Note that the linear part of the graph represents a Hookean material that follows Hooke's law. (Schematic redrawn for these notes.)}
     \end{figure}
 \end{frame}
 
@@ -91,7 +129,7 @@
         \begin{itemize}
             \item Scalar: 0th-order tensor (magnitude only)
             \item Vector: 1st-order tensor (magnitude and one direction)
-            \item Matrix: 2nd-order tensor (magnitude and two directions)
+            \item Matrix: 2nd-order tensor (magnitude and two directions) --- more precisely, a matrix is the \emph{component representation} of a 2nd-order tensor in a chosen basis (deck 2-2)
         \end{itemize}
     \end{itemize}
 \end{frame}
@@ -169,6 +207,7 @@
 \end{frame}
 
 \begin{frame}{Tensor Product Example - Part 3}
+\footnotesize
 \begin{itemize}
 \item Performing the scalar multiplication:
 \begin{align*}
@@ -200,7 +239,7 @@
 \begin{frame}{Stress: Introduction}
     \begin{itemize}
         \item Stress is a measure of the internal force acting per unit area within a deformable body.
-        \item It is a tensor quantity, meaning it has both magnitude and direction.
+        \item It is a tensor quantity, meaning it has both magnitude and direction. (Correction: a second-order tensor involves \emph{two} directions --- the orientation of the surface, through its normal $\mathbf{n}$, and the direction of the force on it.)
         \item The units of stress are typically Pascals (Pa) or pounds per square inch (psi).
         \item There are different types of stress, including normal stress (acting perpendicular to a surface) and shear stress (acting parallel to a surface).
     \end{itemize}
@@ -219,6 +258,7 @@
             \item $A$ is the area of the surface.
         \end{itemize}
         \item The Cauchy stress tensor describes the force acting per unit area at a point within the body.
+        \item Correction: $\boldsymbol{\sigma} = \mathbf{F}/A$ is only a 1D or average statement (a vector divided by an area is a vector, not a tensor). Precisely, the traction on a surface element is $\mathbf{t} = \lim_{\Delta A\to 0}\Delta\mathbf{F}/\Delta A$, and $\boldsymbol{\sigma}$ is the tensor with $\mathbf{t} = \boldsymbol{\sigma}\mathbf{n}$ for every unit normal $\mathbf{n}$ (Cauchy's theorem; deck 2-2).
     \end{itemize}
 \end{frame}
 
@@ -243,6 +283,14 @@
     \end{itemize}
 \end{frame}
 
+\begin{frame}{Cauchy Stress Tensor: Index Convention (added note)}
+    \begin{itemize}
+        \item The previous slide uses first index = face normal, second index = direction, as in Bower (2010): the traction is $\mathbf{t} = \mathbf{n}\cdot\boldsymbol{\sigma}$, i.e.\ $t_j = n_i\sigma_{ij}$.
+        \item Deck 2-2 uses the transposed labelling $\mathbf{t}=\boldsymbol{\sigma}\mathbf{n}$, $t_i = \sigma_{ij}n_j$, for which $\sigma_{xy}$ is the $x$-component of the traction on the face normal to $y$.
+        \item Because $\boldsymbol{\sigma}$ is symmetric (balance of angular momentum), the two readings give the same number: $\sigma_{xy}=\sigma_{yx}$.
+    \end{itemize}
+\end{frame}
+
 \begin{frame}{Cauchy Stress Tensor: Normal and Shear Stresses}
     \begin{itemize}
         \item The Cauchy stress tensor can be decomposed into normal and shear stress components.
@@ -250,8 +298,28 @@
         \item Shear stresses act parallel to the faces of the infinitesimal cube.
     \end{itemize}
     \begin{figure}
-        \includegraphics[width=0.5\textwidth]{pictures/moment-balance-cube.jpg}
-        \caption{Shear stress acting on a cube.}
+        % Native redraw of pictures/moment-balance-cube.jpg (JPG kept on disk; original hand sketch, source unknown).
+        \begin{tikzpicture}[x={(1cm,0cm)},y={(0cm,1cm)},z={(-0.55cm,-0.4cm)},scale=0.55,
+            >={Latex[length=1.4mm]},lab/.style={font=\tiny,inner sep=1pt}]
+          \def\a{3}
+          \draw[dashed,gray] (0,0,0) -- (\a,0,0) (0,0,0) -- (0,\a,0) (0,0,0) -- (0,0,\a);
+          \draw[thick] (0,0,\a) -- (\a,0,\a) -- (\a,\a,\a) -- (0,\a,\a) -- cycle;
+          \draw[thick] (\a,0,\a) -- (\a,0,0) -- (\a,\a,0) -- (\a,\a,\a);
+          \draw[thick] (0,\a,\a) -- (0,\a,0) -- (\a,\a,0);
+          \draw[->,thick] (1.5,1.5,\a) -- ++(0,0,1.0) node[lab,below left] {$\sigma_{zz}$};
+          \draw[->,thick] (1.5,1.5,\a) -- ++(0.85,0,0) node[lab,below] {$\sigma_{xz}$};
+          \draw[->,thick] (1.5,1.5,\a) -- ++(0,0.85,0) node[lab,above] {$\sigma_{yz}$};
+          \draw[->,thick] (\a,1.5,1.5) -- ++(0.9,0,0) node[lab,right] {$\sigma_{xx}$};
+          \draw[->,thick] (\a,1.5,1.5) -- ++(0,0.85,0) node[lab,above] {$\sigma_{yx}$};
+          \draw[->,thick] (\a,1.5,1.5) -- ++(0,0,0.85) node[lab,below right] {$\sigma_{zx}$};
+          \draw[->,thick] (1.5,\a,1.5) -- ++(0,0.9,0) node[lab,above] {$\sigma_{yy}$};
+          \draw[->,thick] (1.5,\a,1.5) -- ++(0.85,0,0) node[lab,below right] {$\sigma_{xy}$};
+          \draw[->,thick] (1.5,\a,1.5) -- ++(0,0,0.85) node[lab,left] {$\sigma_{zy}$};
+          \draw[|<->|,gray] (0,-1.0,\a) -- (\a,-1.0,\a) node[midway,below,lab] {$\Delta x$};
+          \draw[|<->|,gray] (-1.0,0,\a) -- (-1.0,\a,\a) node[midway,left,lab] {$\Delta y$};
+          \draw[|<->|,gray] (\a+0.35,-0.2,\a) -- (\a+0.35,-0.2,0) node[midway,below right,lab] {$\Delta z$};
+        \end{tikzpicture}
+        \caption{Shear stress acting on a cube. (Schematic redrawn for these notes; labels use $\sigma_{ij}$ = $i$-component of the traction on the face with normal $\mathbf{e}_j$, as in deck 2-2.)}
     \end{figure}
 \end{frame}
 
@@ -290,7 +358,7 @@
 \begin{frame}{Deformation Gradient Tensor}
     \begin{itemize}
         \item The deformation gradient tensor (F) is a fundamental concept in solid mechanics that describes how a body deforms.
-        \item It maps the position of a point in the undeformed configuration to its corresponding position in the deformed configuration.
+        \item It maps the position of a point in the undeformed configuration to its corresponding position in the deformed configuration. (Correction: that is what the deformation \emph{map} $\mathbf{x}=\phi(\mathbf{X})$ does; $F$ is its derivative and maps infinitesimal line elements, $d\mathbf{x} = F\,d\mathbf{X}$.)
         \item Mathematically, F is defined as the derivative of the deformation map:
         \begin{equation*}
         F = \frac{\partial \mathbf{x}}{\partial \mathbf{X}}
@@ -317,8 +385,24 @@
 
 \begin{frame}{Stress and Strain}
     \begin{figure}
-        \includegraphics[width=0.9\textwidth]{pictures/Conceptual-diagram-of-deformation-gradient-tensor.png}
-        \caption{Conceptual diagram of deformation gradient tensor.}
+        % Native redraw of pictures/Conceptual-diagram-of-deformation-gradient-tensor.png
+        % (PNG kept on disk; ResearchGate-style figure of unknown source).
+        \begin{tikzpicture}[>={Latex[length=2mm]}]
+          \draw[thick] plot[smooth cycle,tension=0.8] coordinates {(0,0) (0.3,1.6) (1.3,2.6) (2.3,2.1) (2.1,0.8) (2.4,-0.6) (1.6,-1.6) (0.4,-1.3)};
+          \fill (1.1,0.2) circle (1.5pt);
+          \draw[->,thick] (1.1,0.2) -- (1.6,0.6);
+          \node at (1.0,0.9) {\large $d\mathbf{X}$};
+          \node at (1.1,-2.0) {reference configuration};
+          \draw[thick,fill=white] (3.4,0.15) -- (4.3,0.15) -- (4.3,0.45) -- (4.9,-0.05) -- (4.3,-0.55) -- (4.3,-0.25) -- (3.4,-0.25) -- cycle;
+          \node at (4.15,1.0) {deformation};
+          \node at (4.15,-1.0) {$d\mathbf{x} = F\,d\mathbf{X}$};
+          \draw[thick] plot[smooth cycle,tension=0.8] coordinates {(5.9,-0.4) (6.6,1.4) (7.9,2.7) (9.0,2.2) (8.6,0.6) (8.7,-1.1) (7.6,-2.0) (6.3,-1.8)};
+          \fill (7.0,-0.1) circle (1.5pt);
+          \draw[->,thick] (7.0,-0.1) -- (8.0,0.25);
+          \node at (7.2,0.65) {\large $d\mathbf{x}$};
+          \node at (7.4,-2.45) {current configuration};
+        \end{tikzpicture}
+        \caption{Conceptual diagram of deformation gradient tensor. (Schematic redrawn for these notes.)}
     \end{figure}
 \end{frame}
 
@@ -385,16 +469,25 @@
 \item Its constitutive law relates the stress and strain in the material through a strain energy density function.
 \item The strain energy density function for a neo-Hookean material is given by:
 \begin{equation*}
-W = \frac{\mu}{2} (I_1 - 3) + \frac{\lambda}{2} (J - 1)^2
+W = \frac{\mu}{2} (I_1 - 3) - \mu\ln J + \frac{\lambda}{2} (J - 1)^2
 \end{equation*}
 where:
 \begin{itemize}
 \item $W$ is the strain energy density function
 \item $\mu$ is the shear modulus
-\item $\lambda$ is the bulk modulus
+\item $\lambda$ is the first Lam\'e parameter (corrected: \emph{not} the bulk modulus; in the small-strain limit the bulk modulus is $K = \lambda + 2\mu/3$)
 \item $I_1$ is the first invariant of the right Cauchy-Green deformation tensor
 \item $J$ is the determinant of the deformation gradient tensor
 \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Neo-Hookean Material: Correction Note}
+\begin{itemize}
+\item An earlier version of these notes wrote $W = \frac{\mu}{2}(I_1-3) + \frac{\lambda}{2}(J-1)^2$, without the $-\mu\ln J$ term. That energy gives $\mathbf{P} = \mu\mathbf{F} + \lambda J(J-1)\mathbf{F}^{-T}$, which at $\mathbf{F}=\mathbf{I}$ equals $\mu\mathbf{I}\neq\mathbf{0}$: the undeformed body would be under stress. It is also inconsistent with the $\mathbf{P}$ stated on the ``Part 2'' slide.
+\item Adding $-\mu\ln J$ fixes both: $\partial(\mu\ln J)/\partial\mathbf{F} = \mu\mathbf{F}^{-T}$, so $\mathbf{P}(\mathbf{I}) = \mu\mathbf{I} - \mu\mathbf{I} + \mathbf{0} = \mathbf{0}$.
+\item The form used here, $W=\frac{\mu}{2}(I_1-3)-\mu\ln J+\frac{\lambda}{2}(J-1)^2$, is one of several \emph{compressible} neo-Hookean models. A common alternative replaces $\frac{\lambda}{2}(J-1)^2$ by $\frac{\lambda}{2}(\ln J)^2$ (e.g.\ Holzapfel 2000; Bonet \& Wood 2008). Both reduce to linear elasticity with Lam\'e constants $\lambda,\mu$ for small strains.
+\item Another family splits $W$ into an isochoric part $\frac{\mu}{2}(\bar I_1-3)$, $\bar I_1 = J^{-2/3}I_1$, plus a volumetric penalty $U(J)$; this is the form typically used for nearly incompressible tissue in IBFE (deck 4-2).
 \end{itemize}
 \end{frame}
 
@@ -405,7 +498,7 @@ where:
 C = F^T F
 \end{equation*}
 where F is the deformation gradient tensor.
-\item The first invariant ($I_1$) of C is a scalar quantity that measures the change in the square of the length of an infinitesimal line element due to deformation.
+\item The first invariant ($I_1$) of C is a scalar quantity that measures the change in the square of the length of an infinitesimal line element due to deformation. (Corrected on the next slide.)
 \item Mathematically, $I_1$ is the trace of C:
 \begin{equation*}
 I_1 = tr(C)
@@ -414,6 +507,19 @@ I_1 = tr(C)
 \begin{equation*}
 I_1 = \lambda_1^2 + \lambda_2^2 + \lambda_3^2
 \end{equation*}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{What $I_1$ Measures (correction)}
+\begin{itemize}
+\item No single line element is involved: $I_1 = \mathrm{tr}\,C$ is the \emph{sum} of the squared stretches of any three mutually orthogonal unit fibres,
+\begin{equation*}
+I_1 = \sum_{k=1}^{3} |F\mathbf{e}_k|^2 = \lambda_1^2+\lambda_2^2+\lambda_3^2 ,
+\end{equation*}
+the same for every orthonormal triad because the trace is invariant.
+\item $I_1 = 3$ in the undeformed state ($F = I$), so $I_1 - 3$ measures overall stretching; this is why it appears in the neo-Hookean energy.
+\item The change in squared length of a \emph{single} fibre $d\mathbf{X}$ is instead $|d\mathbf{x}|^2 - |d\mathbf{X}|^2 = d\mathbf{X}\cdot(C-I)\,d\mathbf{X} = 2\,d\mathbf{X}\cdot E\,d\mathbf{X}$ (Green--Lagrange strain $E$).
+\item $I_1$ alone does not separate shape change from volume change; for nearly incompressible models the isochoric invariant $\bar I_1 = J^{-2/3}I_1$ is used (deck 4-2).
 \end{itemize}
 \end{frame}
 
@@ -441,7 +547,7 @@ J = \det(F)
 
 \begin{frame}{First Piola-Kirchhoff Stress}
 \begin{itemize}
-\item The first Piola-Kirchhoff stress tensor is a measure of the force acting per unit area in the undeformed configuration of a solid body.
+\item The first Piola-Kirchhoff stress tensor is a measure of the force acting per unit area in the undeformed configuration of a solid body. (More precisely: the \emph{current} force per unit \emph{reference} area, $d\mathbf{f} = \mathbf{P}\mathbf{N}\,dA_0$, with $\mathbf{N}$ the reference normal.)
 \item It is related to the Cauchy stress tensor (the stress in the deformed configuration) by the deformation gradient.
 \item The first Piola-Kirchhoff stress is often used in the formulation of the finite element method for solid mechanics.
 \end{itemize}
@@ -470,6 +576,7 @@ P = \frac{\partial W}{\partial F}
 P = \frac{\partial W}{\partial F} = \mu (F - F^{-T}) + \lambda J (J - 1) F^{-T}
 \end{equation*}
 \item This constitutive law is often used to model the behavior of rubber-like materials and biological tissues.
+\item This $\mathbf{P}$ follows from the corrected $W$ (with the $-\mu\ln J$ term; see the correction note) and vanishes at $\mathbf{F}=\mathbf{I}$. The corresponding Cauchy stress is $\boldsymbol{\sigma} = J^{-1}\mathbf{P}\mathbf{F}^T = \frac{\mu}{J}(\mathbf{B}-\mathbf{I}) + \lambda(J-1)\mathbf{I}$, with $\mathbf{B}=\mathbf{F}\mathbf{F}^T$.
 \end{itemize}
 \end{frame}
 
@@ -477,8 +584,9 @@ P = \frac{\partial W}{\partial F} = \mu (F - F^{-T}) + \lambda J (J - 1) F^{-T}
 \begin{itemize}
 \item Recall that the strain energy density function for a neo-Hookean material is:
 \begin{equation*}
-W = \frac{\mu}{2} (I_1 - 3) + \frac{\lambda}{2} (J - 1)^2
+W = \frac{\mu}{2} (I_1 - 3) - \mu\ln J + \frac{\lambda}{2} (J - 1)^2
 \end{equation*}
+(corrected form, including $-\mu\ln J$; see the correction note)
 \item To find the first Piola-Kirchhoff stress tensor, we take the derivative of W with respect to the deformation gradient tensor F:
 \begin{equation*}
 \mathbf{P} = \frac{\partial W}{\partial \mathbf{F}}
@@ -491,8 +599,8 @@ W = \frac{\mu}{2} (I_1 - 3) + \frac{\lambda}{2} (J - 1)^2
 \item Using the chain rule, we can break down the derivative as follows:
 \begin{align*}
 \mathbf{P} &= \frac{\partial W}{\partial \mathbf{F}} \\
-&= \frac{\partial}{\partial \mathbf{F}} \left[ \frac{\mu}{2} (I_1 - 3) + \frac{\lambda}{2} (J - 1)^2 \right] \\
-&= \frac{\mu}{2} \frac{\partial I_1}{\partial \mathbf{F}} + \lambda (J - 1) \frac{\partial J}{\partial \mathbf{F}}
+&= \frac{\partial}{\partial \mathbf{F}} \left[ \frac{\mu}{2} (I_1 - 3) - \mu\ln J + \frac{\lambda}{2} (J - 1)^2 \right] \\
+&= \frac{\mu}{2} \frac{\partial I_1}{\partial \mathbf{F}} - \frac{\mu}{J}\frac{\partial J}{\partial \mathbf{F}} + \lambda (J - 1) \frac{\partial J}{\partial \mathbf{F}}
 \end{align*}
 \end{itemize}
 \end{frame}
@@ -506,9 +614,11 @@ W = \frac{\mu}{2} (I_1 - 3) + \frac{\lambda}{2} (J - 1)^2
 \end{align*}
 \item Substituting these identities into the previous equation, we get:
 \begin{align*}
-\mathbf{P} &= \frac{\mu}{2} \cdot 2 \mathbf{F} + \lambda (J - 1) \cdot J \mathbf{F}^{-T} \\
-&= \mu \mathbf{F} + \lambda J (J - 1) \mathbf{F}^{-T}
+\mathbf{P} &= \frac{\mu}{2} \cdot 2 \mathbf{F} - \frac{\mu}{J}\cdot J\mathbf{F}^{-T} + \lambda (J - 1) \cdot J \mathbf{F}^{-T} \\
+&= \mu (\mathbf{F} - \mathbf{F}^{-T}) + \lambda J (J - 1) \mathbf{F}^{-T}
 \end{align*}
+\item This agrees with ``Constitutive Law for a Neo-Hookean Material -- Part 2''. (Without the $-\mu\ln J$ term one would get $\mu\mathbf{F} + \lambda J(J-1)\mathbf{F}^{-T}$, which does not vanish at $\mathbf{F}=\mathbf{I}$.)
+\item Here $\partial I_1/\partial\mathbf{F} = 2\mathbf{F}$ because $I_1 = \mathrm{tr}(\mathbf{F}^T\mathbf{F}) = F_{iJ}F_{iJ}$.
 \end{itemize}
 \end{frame}
 
@@ -517,6 +627,7 @@ W = \frac{\mu}{2} (I_1 - 3) + \frac{\lambda}{2} (J - 1)^2
         \item The equations of motion for an elastic body describe the dynamic behavior of the body under the influence of external forces.
         \item They are typically expressed in terms of the displacement field, the stress tensor, and the body force density.
         \item The equations of motion can be derived from the principle of virtual work or the principle of least action.
+        \item (The most direct route is balance of \emph{linear} momentum applied to an arbitrary sub-volume, as in deck 2-1; the variational principles give the same equations for elastic bodies and are the starting point for the finite element weak form.)
     \end{itemize}
 \end{frame}
 
@@ -524,7 +635,7 @@ W = \frac{\mu}{2} (I_1 - 3) + \frac{\lambda}{2} (J - 1)^2
 
     \begin{itemize}
         \item The equations of motion for an elastic body describe how the body deforms and moves under the influence of external forces.
-        \item These equations are typically derived from the conservation of linear momentum and angular momentum.
+        \item These equations are typically derived from the conservation of linear momentum and angular momentum. (Correction: the equation below is the balance of \emph{linear} momentum; balance of angular momentum adds no new equation of motion but requires $\boldsymbol{\sigma} = \boldsymbol{\sigma}^T$.)
         \item For a continuous elastic body, the equations of motion can be expressed in the following general form:
         \begin{equation*}
         \rho \frac{\partial^2 \mathbf{u}}{\partial t^2} = \nabla \cdot \boldsymbol{\sigma} + \mathbf{f}
@@ -550,8 +661,23 @@ W = \frac{\mu}{2} (I_1 - 3) + \frac{\lambda}{2} (J - 1)^2
             \item $\boldsymbol{\sigma}$ is the Cauchy stress tensor
             \item $\mathbf{f}$ is the body force vector (e.g., gravity)
         \end{itemize}
-        \item This equation states that the acceleration of a point in the body is proportional to the sum of the internal stresses and external forces acting on it.
+        \item This equation states that the acceleration of a point in the body is proportional to the sum of the internal stresses and external forces acting on it. (Precisely: mass per unit volume times acceleration equals the net force per unit volume, namely the divergence of the stress plus the body force.)
         \item The specific form of the equations of motion depends on the constitutive law of the material and the type of analysis being performed (e.g., static, dynamic).
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Equations of Motion for an Elastic Body - Part 3 (added)}
+    \begin{itemize}
+        \item \textbf{Small deformations:} $\partial^2\mathbf{u}/\partial t^2$ (at fixed material point) is the acceleration, and the divergence may be taken in either configuration. With isotropic linear elasticity this gives the Navier--Cauchy equations
+        \begin{equation*}
+        \rho\,\frac{\partial^2\mathbf{u}}{\partial t^2} = (\lambda+\mu)\nabla(\nabla\cdot\mathbf{u}) + \mu\nabla^2\mathbf{u} + \mathbf{f}.
+        \end{equation*}
+        \item \textbf{Large deformations:} the divergence of $\boldsymbol{\sigma}$ must be taken with respect to the \emph{current} position, or equivalently the balance is written on the reference configuration with the first Piola--Kirchhoff stress:
+        \begin{equation*}
+        \rho_0\,\frac{\partial^2\mathbf{u}}{\partial t^2} = \nabla_{\mathbf{X}}\cdot\mathbf{P} + \mathbf{f}_0 ,
+        \end{equation*}
+        with $\rho_0 = J\rho$ and $\mathbf{f}_0 = J\mathbf{f}$ per unit reference volume.
+        \item Static equilibrium: drop the inertia term, $\nabla\cdot\boldsymbol{\sigma} + \mathbf{f} = \mathbf{0}$.
     \end{itemize}
 \end{frame}
 
@@ -559,8 +685,30 @@ W = \frac{\mu}{2} (I_1 - 3) + \frac{\lambda}{2} (J - 1)^2
 
 \begin{frame}{Supporting Figures}
     \begin{figure}
-        \includegraphics[width=0.8\textwidth]{solid_mechanics_concepts.png}
-        \caption{Illustration of solid mechanics concepts.}
+        % The original \includegraphics{solid_mechanics_concepts.png} referred to an image that was never
+        % added to the repository; replaced by a native concept map so the file compiles.
+        \begin{tikzpicture}[font=\scriptsize,>={Latex[length=1.8mm]},
+            box/.style={draw,rounded corners,align=center,fill=gray!10,minimum width=2.1cm,minimum height=0.7cm}]
+          \node[box] (motion) at (0,0) {Motion\\ $\mathbf{x}=\phi(\mathbf{X},t)$};
+          \node[box] (F) at (3.2,0) {Deformation gradient\\ $F=\partial\mathbf{x}/\partial\mathbf{X}$};
+          \node[box] (strain) at (6.6,0) {Strain\\ $E=\tfrac12(F^TF-I)$, $J=\det F$};
+          \node[box] (law) at (6.6,-1.7) {Constitutive law\\ $W(F)$, $\mathbf{P}=\partial W/\partial F$};
+          \node[box] (stress) at (3.2,-1.7) {Stress\\ $\mathbf{P}$, $\boldsymbol{\sigma}=J^{-1}\mathbf{P}F^T$};
+          \node[box] (eom) at (0,-1.7) {Equations of motion\\ $\rho\ddot{\mathbf{u}}=\nabla\cdot\boldsymbol{\sigma}+\mathbf{f}$};
+          \node[box] (bc) at (0,-3.3) {Boundary and\\ initial conditions};
+          \node[box] (fem) at (3.2,-3.3) {Finite elements\\ (module 3)};
+          \node[box] (ibfe) at (6.6,-3.3) {IBFE: coupling\\ to the fluid (module 4)};
+          \draw[->] (motion) -- (F);
+          \draw[->] (F) -- (strain);
+          \draw[->] (strain) -- (law);
+          \draw[->] (law) -- (stress);
+          \draw[->] (stress) -- (eom);
+          \draw[->] (eom) -- (motion);
+          \draw[->] (bc) -- (eom);
+          \draw[->] (eom) -- (fem);
+          \draw[->] (fem) -- (ibfe);
+        \end{tikzpicture}
+        \caption{Illustration of solid mechanics concepts. (Concept map drawn for these notes; it replaces a missing image file.)}
     \end{figure}
 \end{frame}
 
@@ -575,6 +723,18 @@ W = \frac{\mu}{2} (I_1 - 3) + \frac{\lambda}{2} (J - 1)^2
     \item[Pound per Square Inch (psi)] A unit of pressure or stress in the imperial and US customary systems.
     \item[Continuum Mechanics] The branch of mechanics that deals with the analysis of the kinematics and mechanical behavior of materials modeled as a continuous mass rather than as discrete particles.
   \end{description}
+\end{frame}
+
+\begin{frame}{References}
+  \scriptsize
+  \begin{itemize}
+    \item A. F. Bower, \emph{Applied Mechanics of Solids}, CRC Press, 2010. doi:10.1201/9781439802489. \url{https://solidmechanics.org}.
+    \item G. A. Holzapfel, \emph{Nonlinear Solid Mechanics: A Continuum Approach for Engineering}, Wiley, 2000 (hyperelasticity; compressible neo-Hookean forms).
+    \item J. Bonet, R. D. Wood, \emph{Nonlinear Continuum Mechanics for Finite Element Analysis}, 2nd ed., Cambridge University Press, 2008 (compressible neo-Hookean model with $\frac{\lambda}{2}(\ln J)^2$).
+    \item M. E. Gurtin, E. Fried, L. Anand, \emph{The Mechanics and Thermodynamics of Continua}, Cambridge University Press, 2010.
+  \end{itemize}
+  \medskip
+  Figures: stress--strain curve, stress cube, deformation-gradient sketch and concept map are schematics redrawn for these notes; the earlier raster versions remain in \texttt{pictures/}. This file is superseded by decks 2-1, 2-2, 2-3 and 4-2; its equations of motion, worked dyadic example, and normal/shear decomposition have been ported (with corrections) into decks 2-1 and 2-2.
 \end{frame}
 
 \end{document}

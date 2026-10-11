@@ -3,24 +3,11 @@
 % =====================================================================
 \documentclass[aspectratio=169,11pt]{beamer}
 
-% Match the visual language of the SIAM Waves talk.
-\usetheme{Boadilla}
-\usecolortheme{seahorse}
-\useinnertheme{rectangles}
-\useoutertheme{infolines}
+% Shared style, ported from the UF Animal Sciences 2026 talk (ibfe-tutorials.sty at the repo root).
+\makeatletter\def\input@path{{./}{../}}\makeatother
+\usepackage{ibfe-tutorials}
 
-\setbeamercolor{structure}{fg=blue!55!black}
-\setbeamercolor{title}{fg=white,bg=blue!55!black}
-\setbeamercolor{frametitle}{fg=blue!55!black}
-\setbeamercolor{block title}{bg=blue!12,fg=blue!55!black}
-\setbeamercolor{block body}{bg=blue!4}
-\setbeamertemplate{navigation symbols}{}
-\setbeamerfont{frametitle}{series=\bfseries,size=\large}
-\setbeamerfont{title}{series=\bfseries,size=\Large}
-
-\usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
-\DeclareFontShape{T1}{cmss}{b}{n}{<->ssub*cmss/bx/n}{}
 \usepackage{graphicx}
 \usepackage{amsmath,amssymb,bm}
 \usepackage{booktabs,tabularx,array}
@@ -30,11 +17,7 @@
 \usepackage{hyperref}
 
 \graphicspath{{../pictures/}{pictures/}}
-\hypersetup{colorlinks=true,urlcolor=blue!55!black}
 
-\newcommand{\hi}[1]{\textcolor{blue!55!black}{\textbf{#1}}}
-\newcommand{\warn}[1]{\textcolor{red!70!black}{\textbf{#1}}}
-\newcommand{\soft}[1]{\textcolor{gray!50!black}{#1}}
 \newcommand{\xvec}{\bm{x}}
 \newcommand{\uvec}{\bm{u}}
 \newcommand{\Xvec}{\bm{X}}
@@ -43,45 +26,26 @@
 \newcommand{\Uvec}{\bm{U}}
 \newcommand{\jump}[1]{\left[\!\left[#1\right]\!\right]}
 
-\newtcolorbox{punchbox}{
-  enhanced,
-  colback=blue!4,
-  colframe=blue!55!black,
-  boxrule=0.6pt,
-  arc=2pt,
-  left=4pt,right=4pt,top=3pt,bottom=3pt
-}
+% Title-slide image followed by its source credit (see the title frame).
+\let\tutorialgraphic\includegraphics
+\newcommand{\creditedtitlegraphic}[2][]{%
+  \tutorialgraphic[#1]{#2}\par\vspace{2pt}
+  {\scriptsize Schematic after the Wikimedia Commons figure \emph{ImmersedBoundary grid} (Immersed boundary method article).\par}}
 
 \title[Immersed boundary method]{Motivation for the immersed boundary method}
 \subtitle{Classical Peskin formulation, tradeoffs, and method selection}
 \author[Miller]{Laura A. Miller}
 \institute[UArizona]{Department of Mathematics, University of Arizona}
-\date{}
+\date{IBFE Tutorials \textbullet\ Module 1}
 
 \begin{document}
 
 % ----- 1. Title -----
+% The image credit is kept under the title-slide image: \includegraphics is
+% wrapped for this frame only so \maketutorialtitle prints the credit too.
 \begin{frame}[plain]
-  \begin{beamercolorbox}[sep=10pt,center]{title}
-    {\bfseries\Large Motivation for the immersed boundary method}\\[3pt]
-    {\normalsize Classical Peskin formulation, tradeoffs, and method selection}
-  \end{beamercolorbox}
-  \vspace{1.1em}
-  \begin{columns}[T,onlytextwidth]
-  \begin{column}{0.48\textwidth}
-    \textbf{\large Laura A. Miller}\\[4pt]
-    Department of Mathematics\\
-    University of Arizona\\[14pt]
-    {\small IBFE Tutorials}
-  \end{column}
-  \begin{column}{0.52\textwidth}
-    \centering
-    \includegraphics[width=\linewidth]{ImmersedBoundary_grid2.png}\\[2pt]
-    {\scriptsize Schematic after the Wikimedia Commons figure \emph{ImmersedBoundary grid} (Immersed boundary method article).}
-  \end{column}
-  \end{columns}
-  \vfill
-  \centering{\tiny\color{black!55}AI tools were used to assist with formatting, organization, and clarification of the instructor's original notes.}
+\let\includegraphics\creditedtitlegraphic
+\maketutorialtitle[ImmersedBoundary_grid2.png]
 \end{frame}
 
 % ----- 2. Definition -----
@@ -105,7 +69,7 @@ The immersed boundary (IB) method is a computational framework for fluid--struct
 \text{fluid velocity}\xrightarrow{\;J\;}\text{structure motion}.
 \end{gathered}
 \]
-{\scriptsize The spreading operator $S$ and the interpolation operator $J$ are defined below.}
+{\scriptsize The spreading operator $S$ and the interpolation operator $J$ are defined below: continuum forms on the ``Continuum force and velocity coupling'' slide, discrete forms $S_h$, $J_h$ on the slide after it.}
 \end{punchbox}
 \medskip
 \small Introduced by Charles S. Peskin for cardiac fluid dynamics, the framework now supports many thin-boundary and volumetric FSI models.
@@ -116,7 +80,7 @@ The immersed boundary (IB) method is a computational framework for fluid--struct
 % ----- 2. Motivation -----
 \begin{frame}{Why use an immersed formulation?}
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.50\textwidth}
+\begin{column}{0.48\textwidth}
 \textbf{Body-fitted fluid meshes}
 \begin{itemize}\itemsep5pt
   \item conform to the moving fluid--structure interface;
@@ -124,7 +88,7 @@ The immersed boundary (IB) method is a computational framework for fluid--struct
   \item may require mesh smoothing or remeshing when motion, deformation, or contact degrades mesh quality.
 \end{itemize}
 \end{column}
-\begin{column}{0.50\textwidth}
+\begin{column}{0.48\textwidth}
 \textbf{The immersed alternative}
 \begin{itemize}\itemsep5pt
   \item keeps the Eulerian fluid grid fixed;
@@ -142,26 +106,26 @@ The immersed boundary (IB) method is a computational framework for fluid--struct
 % ----- 3. Scope and history -----
 \begin{frame}{The classical Peskin IB method}
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.43\textwidth}
+\begin{column}{0.41\textwidth}
 \centering
 \includegraphics[width=0.72\linewidth]{ImmersedBoundary_grid.png}
 
 {\scriptsize Blue: fixed Eulerian grid. Orange: moving Lagrangian points.
 Schematic after the Wikimedia Commons figure \emph{ImmersedBoundary grid} (Immersed boundary method article).}
 \end{column}
-\begin{column}{0.57\textwidth}
-\begin{itemize}\itemsep5pt
+\begin{column}{0.55\textwidth}
+\begin{itemize}\itemsep3pt
   \item Charles S. Peskin introduced the method to study flow around heart valves in the 1970s.
   \item The classical formulation couples an elastic boundary to a viscous incompressible fluid.
   \item Velocity, pressure, and momentum use an \hi{Eulerian} description. Structure position and elasticity use a \hi{Lagrangian} description.
   \item Later IB extensions treat volumetric solids, active materials, prescribed motion, and constrained rigid bodies.
 \end{itemize}
 \smallskip
-\soft{Applications include cardiac flow, cilia and flagella, animal locomotion, flexible beams, and membranes.}
+\soft{\small Applications include cardiac flow, cilia and flagella, animal locomotion, flexible beams, and membranes.}
 \end{column}
 \end{columns}
 \vfill
-{\scriptsize Peskin, \emph{Acta Numerica} 11 (2002); Griffith and Patankar, \emph{Annu. Rev. Fluid Mech.} 52 (2020).}
+{\scriptsize Peskin, \emph{J. Comput. Phys.} 10 (1972) and 25 (1977); Peskin, \emph{Acta Numerica} 11 (2002); Griffith and Patankar, \emph{Annu. Rev. Fluid Mech.} 52 (2020).}
 \end{frame}
 
 % ----- Applications -----
@@ -222,7 +186,7 @@ Schematic after the Wikimedia Commons figure \emph{ImmersedBoundary grid} (Immer
 \begin{frame}{Continuum force and velocity coupling}
 Let $q\in\mathcal U$ label a material point and let $\Xvec(q,t)$ be its position in the fluid domain $\Omega$.
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.50\textwidth}
+\begin{column}{0.43\textwidth}
 \textbf{Spread structural force to the fluid}
 \[
   \fvec(\xvec,t)
@@ -231,7 +195,7 @@ Let $q\in\mathcal U$ label a material point and let $\Xvec(q,t)$ be its position
 \]
 $\Fvec$ is a force density per unit material measure. The Dirac distribution places that force at the current structure location.
 \end{column}
-\begin{column}{0.50\textwidth}
+\begin{column}{0.53\textwidth}
 \textbf{Interpolate fluid velocity to the structure}
 \[
   \Uvec(q,t)=\frac{\partial\Xvec}{\partial t}
@@ -245,9 +209,11 @@ For continuous $\uvec$, the Dirac identity gives
 \]
 \end{column}
 \end{columns}
+\smallskip
 \begin{punchbox}
 \small At the continuum level, the kinematic equation imposes pointwise no slip on an impermeable material interface. It is not merely an averaged boundary condition.
 \end{punchbox}
+{\scriptsize In operator form, $\fvec=S[\Xvec]\,\Fvec$ and $\partial_t\Xvec=J[\Xvec]\,\uvec$ with $J=S^{*}$, the $L^2$ adjoint of $S$. Adapted from Griffith and Patankar (2020), \S2.1.1, Eqs.~1--4, and Peskin (2002).\par}
 \end{frame}
 
 % ----- 5. Discrete coupling -----
@@ -259,14 +225,14 @@ The numerical method replaces $\delta$ by a regularized kernel $\delta_h$ whose 
   \Uvec_h=J_h\uvec_h.
 \]
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.52\textwidth}
+\begin{column}{0.50\textwidth}
 \begin{itemize}\itemsep3pt
   \item $S_h$ spreads Lagrangian forces to nearby grid points.
   \item $J_h$ interpolates grid velocity to Lagrangian interaction points.
   \item Kernel support and moment conditions control smoothness, localization, and grid dependence.
 \end{itemize}
 \end{column}
-\begin{column}{0.48\textwidth}
+\begin{column}{0.46\textwidth}
 Choose $J_h$ as the weighted discrete adjoint of $S_h$ so that the transferred power is consistent:
 \[
   \left\langle \uvec_h,S_h\Fvec_h\right\rangle_E
@@ -280,12 +246,28 @@ Choose $J_h$ as the weighted discrete adjoint of $S_h$ so that the transferred p
 \end{punchbox}
 \end{frame}
 
+% ----- Adjointness (added worked step) -----
+\begin{frame}{Why adjoint operators transfer power consistently}
+With Eulerian grid spacing $h$ and Lagrangian quadrature weights $\Delta q_l$, define
+\[
+  \langle\uvec_h,\fvec_h\rangle_E=\sum_{\xvec}\uvec_h(\xvec)\cdot\fvec_h(\xvec)\,h^3,
+  \qquad
+  \langle\Uvec_h,\Fvec_h\rangle_L=\sum_{l}\Uvec_l\cdot\Fvec_l\,\Delta q_l.
+\]
+\begin{itemize}\itemsep4pt
+  \item Power the spread force does on the fluid: $P_E=\langle\uvec_h,S_h\Fvec_h\rangle_E$.
+  \item Power the structural force does at the interpolated structure velocity: $P_L=\langle J_h\uvec_h,\Fvec_h\rangle_L$.
+  \item If $J_h=S_h^{*}$, then $P_E=P_L$ for every $\uvec_h$ and $\Fvec_h$: the transfer step neither creates nor destroys energy.
+\end{itemize}
+{\scriptsize Here $\langle\cdot,\cdot\rangle_E$ and $\langle\cdot,\cdot\rangle_L$ are the discrete Eulerian and Lagrangian inner products induced by the quadrature rules. See Griffith and Patankar (2020), \S3.3, who write these operators as $S_{\mathrm{IB}}$ and $J_{\mathrm{IB}}$ with $J_{\mathrm{IB}}=S_{\mathrm{IB}}^{*}=h^3M^{-1}S_{\mathrm{IB}}^{\mathsf T}$, where $M$ is the diagonal matrix of Lagrangian quadrature weights (for uniform weights $\Delta q$, $J_{\mathrm{IB}}=(h^3/\Delta q)\,S_{\mathrm{IB}}^{\mathsf T}$).\par}
+\end{frame}
+
 % ----- 6. Strengths and limitations -----
 \begin{frame}{What regularized IB coupling buys and costs}
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.50\textwidth}
+\begin{column}{0.48\textwidth}
 \textbf{Strengths}
-\begin{itemize}\itemsep5pt
+\begin{itemize}\itemsep3pt
   \item No body-conforming fluid mesh or fluid-grid remeshing
   \item Large structural motion and deformation
   \item Thin immersed boundaries and transient contact
@@ -293,9 +275,9 @@ Choose $J_h$ as the weighted discrete adjoint of $S_h$ so that the transferred p
   \item Fiber, surface, and volumetric structural models
 \end{itemize}
 \end{column}
-\begin{column}{0.50\textwidth}
+\begin{column}{0.48\textwidth}
 \textbf{Numerical challenges}
-\begin{itemize}\itemsep5pt
+\begin{itemize}\itemsep3pt
   \item Pressure and traction jumps are smoothed at finite $h$
   \item Interfacial forces and stresses may converge slowly
   \item Coarse interaction-point spacing can cause leakage or volume error
@@ -304,7 +286,7 @@ Choose $J_h$ as the weighted discrete adjoint of $S_h$ so that the transferred p
 \end{column}
 \end{columns}
 \medskip
-\soft{AMR targets spatial resolution. Implicit or semi-implicit coupling targets stiffness. Sharp-interface corrections target jump accuracy. Finite-element structure models broaden constitutive and geometric choices.}
+\soft{\small AMR targets spatial resolution. Implicit or semi-implicit coupling targets stiffness. Sharp-interface corrections target jump accuracy. Finite-element structure models broaden constitutive and geometric choices.}
 \end{frame}
 
 % ----- Accuracy -----
@@ -355,23 +337,24 @@ the fluid solver, the structural discretization, and solution regularity.
 \begin{punchbox}
 \small Many apparent ``IB failures'' are mismatches among the grid, interaction points, kernel, and time integrator rather than failures of the continuum formulation.
 \end{punchbox}
+{\scriptsize With nodal quadrature, a structure leaks when its Lagrangian nodes become too far apart relative to $h$ (Peskin 2002). Non-nodal (e.g.\ Gaussian) quadrature lets the structural mesh be coarse provided the net of quadrature points is dense enough (Griffith and Luo 2017; Griffith and Patankar 2020, \S3.3).\par}
 \end{frame}
 
 % ----- 7. Method selection -----
 \begin{frame}{When is classical IB a good choice?}
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.50\textwidth}
+\begin{column}{0.48\textwidth}
 \textbf{Strong fit}
-\begin{itemize}\itemsep5pt
+\begin{itemize}\itemsep3pt
   \item Large or complicated structural motion
   \item Thin, flexible, or actively deforming structures
   \item Transient contact without a body-fitted fluid mesh
   \item Quantities of interest that tolerate regularized interfacial fields
 \end{itemize}
 \end{column}
-\begin{column}{0.50\textwidth}
+\begin{column}{0.48\textwidth}
 \textbf{Requires special care}
-\begin{itemize}\itemsep5pt
+\begin{itemize}\itemsep3pt
   \item Pointwise tractions or high-order interface stresses
   \item Thin high-Reynolds-number boundary layers
   \item Nearly rigid constraints or severe stiffness
@@ -382,23 +365,23 @@ the fluid solver, the structural discretization, and solution regularity.
 \begin{punchbox}
 \small High Reynolds number is not a formal exclusion. Published immersed FSI examples reach $\mathrm{Re}\approx 2\times10^4$, but thin shear layers and turbulence still require adequate resolution and modeling.
 \end{punchbox}
-{\scriptsize Griffith and Patankar, \emph{Annu. Rev. Fluid Mech.} 52 (2020).}
+{\tiny Griffith and Patankar, \emph{Annu. Rev. Fluid Mech.} 52 (2020); the $\mathrm{Re}\approx2\times10^4$ example is the bioprosthetic heart-valve application of their \S5.3.1.}
 \end{frame}
 
 % ----- 8. Numerical practice -----
 \begin{frame}{Discretization and convergence checklist}
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.50\textwidth}
+\begin{column}{0.48\textwidth}
 \textbf{Interaction geometry}
-\begin{itemize}\itemsep5pt
+\begin{itemize}\itemsep3pt
   \item Resolve the structure with enough Lagrangian interaction points or quadrature points relative to $h$.
   \item Coarse nodal coupling can leak. Excessively fine structural meshes add cost and may worsen stiffness or conditioning.
   \item Preserve weighted adjointness between spreading and interpolation.
 \end{itemize}
 \end{column}
-\begin{column}{0.50\textwidth}
+\begin{column}{0.48\textwidth}
 \textbf{Verification}
-\begin{itemize}\itemsep5pt
+\begin{itemize}\itemsep3pt
   \item Refine $h$, the Lagrangian discretization or quadrature, and $\Delta t$ consistently.
   \item Check velocity, deformation, volume, loads, and energy transfer separately.
   \item Use an implicit or semi-implicit treatment when elastic stiffness controls stability.
@@ -521,6 +504,25 @@ Traction balance determines jumps in pressure and velocity derivatives. Pressure
 {\scriptsize Li and Lai, \emph{J. Comput. Phys.} 171 (2001); Griffith and Patankar (2020).}
 \end{frame}
 
+% ----- Jump-condition sign check (added worked step) -----
+\begin{frame}{Worked step: the sign of the stress jump}
+Consider a steady one-dimensional balance with a point force at an interface $x=0$, normal $\bm n=+\bm e_x$ pointing from $\Omega^-=\{x<0\}$ to $\Omega^+=\{x>0\}$:
+\[
+  0=\frac{\partial\sigma}{\partial x}+f_\Gamma\,\delta(x).
+\]
+Integrate across $(-\epsilon,\epsilon)$ and let $\epsilon\to0$:
+\[
+  \sigma(0^+)-\sigma(0^-)+f_\Gamma=0
+  \qquad\Longrightarrow\qquad
+  \boxed{\jump{\sigma}=-f_\Gamma}.
+\]
+In several dimensions the same pillbox argument gives $\jump{\bm\sigma}\bm n=-\bm f_\Gamma$. With $\bm\sigma=-p\bm I+\mu(\nabla\uvec+\nabla\uvec^{\mathsf T})$, the normal component yields the pressure jump and the tangential components yield jumps in velocity derivatives.
+\begin{punchbox}
+\small If the force pushes the fluid toward $\Omega^+$ ($f_\Gamma>0$), the stress on the $+$ side is lower; for a fluid at rest ($\sigma=-p$) this means $p(0^+)=p(0^-)+f_\Gamma$, so the force compresses the fluid ahead of it.
+\end{punchbox}
+{\scriptsize Pillbox derivation in the spirit of Peskin (2002) and Li and Lai (2001).\par}
+\end{frame}
+
 % ----- IIM tradeoffs -----
 \begin{frame}{Immersed interface methods: strengths and tradeoffs}
 \begin{columns}[T,onlytextwidth]
@@ -551,7 +553,7 @@ Traction balance determines jumps in pressure and velocity derivatives. Pressure
 % ----- 11. Software and tutorials -----
 \begin{frame}{Open-source software and tutorials}
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.50\textwidth}
+\begin{column}{0.48\textwidth}
 \textbf{IBAMR}
 \begin{itemize}\itemsep4pt
   \item Distributed-memory C++ framework
@@ -559,8 +561,10 @@ Traction balance determines jumps in pressure and velocity derivatives. Pressure
   \item Examples for classical IB, IBFE, constrained IB, and IIM in two and three dimensions
 \end{itemize}
 \href{https://ibamr.github.io/}{\texttt{ibamr.github.io}}
+
+{\scriptsize Griffith et al., \emph{J. Comput. Phys.} 223 (2007).\par}
 \end{column}
-\begin{column}{0.50\textwidth}
+\begin{column}{0.48\textwidth}
 \textbf{IB2d}
 \begin{itemize}\itemsep4pt
   \item MATLAB and Python implementations in two dimensions
@@ -568,6 +572,8 @@ Traction balance determines jumps in pressure and velocity derivatives. Pressure
   \item Introductory video tutorials linked from the repository
 \end{itemize}
 \href{https://github.com/nickabattista/IB2d}{\texttt{github.com/nickabattista/IB2d}}
+
+{\scriptsize Battista, Strickland, and Miller, \emph{Bioinspir. Biomim.} 12 (2017).\par}
 \end{column}
 \end{columns}
 \medskip
@@ -609,12 +615,24 @@ Traction balance determines jumps in pressure and velocity derivatives. Pressure
 \begin{itemize}\itemsep7pt
   \item C. S. Peskin, \emph{The immersed boundary method}, \emph{Acta Numerica} 11 (2002), 479--517. \href{https://doi.org/10.1017/S0962492902000077}{doi:10.1017/S0962492902000077}.
   \item B. E. Griffith and N. A. Patankar, \emph{Immersed methods for fluid--structure interaction}, \emph{Annual Review of Fluid Mechanics} 52 (2020), 421--448. \href{https://doi.org/10.1146/annurev-fluid-010719-060228}{doi:10.1146/annurev-fluid-010719-060228}.
-  \item B. E. Griffith and X. Y. Luo, \emph{Hybrid finite difference/finite element immersed boundary method}, \emph{International Journal for Numerical Methods in Biomedical Engineering} 33 (2017), e2888. \href{https://doi.org/10.1002/cnm.2888}{doi:10.1002/cnm.2888}.
+  \item B. E. Griffith and X. Y. Luo, \emph{Hybrid finite difference/finite element version of the immersed boundary method}, \emph{International Journal for Numerical Methods in Biomedical Engineering} 33 (2017), e2888. \href{https://doi.org/10.1002/cnm.2888}{doi:10.1002/cnm.2888}.
   \item Z. Li and M.-C. Lai, \emph{The immersed interface method for the Navier--Stokes equations with singular forces}, \emph{Journal of Computational Physics} 171 (2001), 822--842. \href{https://doi.org/10.1006/jcph.2001.6813}{doi:10.1006/jcph.2001.6813}.
 \end{itemize}
 \begin{punchbox}
 \small Course copies of the first three papers are available in the repository's \texttt{papers/} directory.
 \end{punchbox}
+\end{frame}
+
+\begin{frame}{References (continued)}
+\footnotesize
+\begin{itemize}\itemsep5pt
+  \item C. S. Peskin, \emph{Flow patterns around heart valves: a numerical method}, \emph{Journal of Computational Physics} 10 (1972), 252--271. \href{https://doi.org/10.1016/0021-9991(72)90065-4}{doi:10.1016/0021-9991(72)90065-4}.
+  \item C. S. Peskin, \emph{Numerical analysis of blood flow in the heart}, \emph{Journal of Computational Physics} 25 (1977), 220--252. \href{https://doi.org/10.1016/0021-9991(77)90100-0}{doi:10.1016/0021-9991(77)90100-0}.
+  \item R. J. LeVeque and Z. Li, \emph{The immersed interface method for elliptic equations with discontinuous coefficients and singular sources}, \emph{SIAM Journal on Numerical Analysis} 31 (1994), 1019--1044. \href{https://doi.org/10.1137/0731054}{doi:10.1137/0731054}.
+  \item B. E. Griffith, R. D. Hornung, D. M. McQueen, and C. S. Peskin, \emph{An adaptive, formally second order accurate version of the immersed boundary method}, \emph{Journal of Computational Physics} 223 (2007), 10--49. (IBAMR.)
+  \item N. A. Battista, W. C. Strickland, and L. A. Miller, \emph{IB2d: a Python and MATLAB implementation of the immersed boundary method}, \emph{Bioinspiration \& Biomimetics} 12 (2017), 036003. \href{https://doi.org/10.1088/1748-3190/aa5e08}{doi:10.1088/1748-3190/aa5e08}.
+  \item Wikimedia Commons, figure ``ImmersedBoundary grid,'' used in the Wikipedia article ``Immersed boundary method,'' \url{https://en.wikipedia.org/wiki/Immersed_boundary_method}. Source of the schematics \texttt{ImmersedBoundary\_grid.png} and \texttt{ImmersedBoundary\_grid2.png}; licence to be confirmed.
+\end{itemize}
 \end{frame}
 
 \end{document}

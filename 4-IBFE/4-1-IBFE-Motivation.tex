@@ -3,24 +3,11 @@
 % =====================================================================
 \documentclass[aspectratio=169,11pt]{beamer}
 
-% Match the visual language of the SIAM Waves talk.
-\usetheme{Boadilla}
-\usecolortheme{seahorse}
-\useinnertheme{rectangles}
-\useoutertheme{infolines}
+% Shared style, ported from the UF Animal Sciences 2026 talk (ibfe-tutorials.sty at the repo root).
+\makeatletter\def\input@path{{./}{../}}\makeatother
+\usepackage{ibfe-tutorials}
 
-\setbeamercolor{structure}{fg=blue!55!black}
-\setbeamercolor{title}{fg=white,bg=blue!55!black}
-\setbeamercolor{frametitle}{fg=blue!55!black}
-\setbeamercolor{block title}{bg=blue!12,fg=blue!55!black}
-\setbeamercolor{block body}{bg=blue!4}
-\setbeamertemplate{navigation symbols}{}
-\setbeamerfont{frametitle}{series=\bfseries,size=\large}
-\setbeamerfont{title}{series=\bfseries,size=\Large}
-
-\usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
-\DeclareFontShape{T1}{cmss}{b}{n}{<->ssub*cmss/bx/n}{}
 \usepackage{graphicx}
 \usepackage{amsmath,amssymb,bm,mathtools}
 \usepackage{booktabs,tabularx,array}
@@ -31,11 +18,7 @@
 
 % These prefixes allow compilation from either the repository root or this folder.
 \graphicspath{{./}{../}{}}
-\hypersetup{colorlinks=true,urlcolor=blue!55!black}
 
-\newcommand{\hi}[1]{\textcolor{blue!55!black}{\textbf{#1}}}
-\newcommand{\warn}[1]{\textcolor{red!70!black}{\textbf{#1}}}
-\newcommand{\soft}[1]{\textcolor{gray!50!black}{#1}}
 \newcommand{\xvec}{\bm{x}}
 \newcommand{\Xvec}{\bm{X}}
 \newcommand{\uvec}{\bm{u}}
@@ -49,44 +32,20 @@
 \newcommand{\currentnormal}{\bm{n}}
 \newcommand{\Identity}{\bm{I}}
 
-\newtcolorbox{punchbox}{
-  enhanced,
-  colback=blue!4,
-  colframe=blue!55!black,
-  boxrule=0.6pt,
-  arc=2pt,
-  left=4pt,right=4pt,top=3pt,bottom=3pt
-}
-
 \title[IBFE motivation]{Why combine immersed boundary and finite element methods?}
 \subtitle{The mechanics, coupling, and tradeoffs of IBFE}
 \author[Miller]{Laura A. Miller}
 \institute[UArizona]{Department of Mathematics, University of Arizona}
-\date{}
+\date{IBFE Tutorials \textbullet\ Module 4}
 
 \begin{document}
 
 % ----- 1. Title -----
 \begin{frame}[plain]
-  \begin{beamercolorbox}[sep=10pt,center]{title}
-    {\bfseries\Large Why combine immersed boundary and finite element methods?}\\[3pt]
-    {\normalsize The mechanics, coupling, and tradeoffs of IBFE}
-  \end{beamercolorbox}
-  \vspace{0.8em}
-  \begin{columns}[c,onlytextwidth]
-  \begin{column}{0.38\textwidth}
-    \textbf{\large Laura A. Miller}\\[4pt]
-    Department of Mathematics\\
-    University of Arizona\\[13pt]
-    {\small IBFE Tutorials}
-  \end{column}
-  \begin{column}{0.62\textwidth}
-    \centering
-    \includegraphics[width=0.95\linewidth]{pictures/4-3/IBFE-sketch.png}
-  \end{column}
-  \end{columns}
-  \vfill
-  \centering{\tiny\color{black!55}AI tools were used to assist with formatting, organization, and clarification of the instructor's original notes.}
+% Title-slide image with its credit line (same layout as \maketutorialtitle[...]).
+\maketutorialtitlepanel{%
+  \includegraphics[width=\linewidth,height=0.66\textheight,keepaspectratio]{pictures/4-3/IBFE-sketch.png}\par
+  \vspace{2pt}{\tiny\color{DarkGray}Schematic: instructor's course notes.\par}}
 \end{frame}
 
 % ----- 2. Roadmap -----
@@ -104,6 +63,9 @@
 \centering
 IBFE keeps the immersed interface treatment and uses a variational finite element model for solid mechanics.
 \end{punchbox}
+
+\vfill
+{\scriptsize\color{DarkGray}Unless noted otherwise, the formulation and terminology in this deck are adapted from Griffith \& Luo (2017), which builds on the continuous IB formulation of Boffi, Gastaldi, Heltai \& Peskin (2008); full references are on the final slide.\par}
 \end{frame}
 
 % ----- 3. FSI challenge -----
@@ -138,9 +100,9 @@ The numerical method must enforce no slip and transmit elastic force without req
 \begin{columns}[c,onlytextwidth]
 \begin{column}{0.59\textwidth}
   \centering
-  \includegraphics[width=0.98\linewidth]{pictures/lagrangian-eulerian-coordinate.png}
+  \includegraphics[width=0.92\linewidth]{pictures/lagrangian-eulerian-coordinate.png}
 
-  {\scriptsize Reference configuration \(B_0\), current configuration \(B_t\), and the motion \(\bm{\chi}\). Figure 1 of Griffith \& Luo (2017), \emph{Int. J. Numer. Methods Biomed. Eng.} 33:e2888. NB: the figure labels the reference domain \(U\); in this course it is \(B_0\).}
+  {\scriptsize Reference configuration \(B_0\), current configuration \(B_t\), and the motion \(\bm{\chi}\). Figure 1 of Griffith \& Luo (2017), \emph{Int. J. Numer. Methods Biomed. Eng.} 33:e2888. NB: the figure labels the reference domain \(U\); in this course it is \(B_0\) (and their material point \(\bm{s}\) is our \(\Xvec\)). The title-slide schematic shows the same picture in course notation.}
 \end{column}
 \begin{column}{0.39\textwidth}
   \[
@@ -163,6 +125,34 @@ The numerical method must enforce no slip and transmit elastic force without req
 \begin{punchbox}
 \scriptsize
 Notation change from Module 1: there the current position of material point \(q\) was written \(\bm{X}(q,t)\). From here on we follow Griffith \& Luo: \(\bm{X}\) is the reference point in \(B_0\) and \(\bm{\chi}(\bm{X},t)\) is its current position in \(B_t\); \(\Omega\) is the Eulerian computational domain.
+\end{punchbox}
+\end{frame}
+
+% ----- 4b. Notation dictionary (added for clarity) -----
+\begin{frame}{Notation dictionary across sources}
+\footnotesize
+\renewcommand{\arraystretch}{1.22}
+\begin{tabularx}{\textwidth}{
+  >{\raggedright\arraybackslash}p{0.27\textwidth}
+  >{\centering\arraybackslash}p{0.17\textwidth}
+  >{\centering\arraybackslash}p{0.19\textwidth}
+  >{\centering\arraybackslash}X}
+\toprule
+Object & Module 1 (Peskin) & Griffith \& Luo (2017) & Module 4 (this course) \\
+\midrule
+material label / reference point & \(q\in\mathcal{U}\) & \(\bm{s}\in U\) & \(\Xvec\in B_0\) \\
+current position & \(\bm{X}(q,t)\) & \(\bm{\chi}(\bm{s},t)\) & \(\xvec=\bm{\chi}(\Xvec,t)\) \\
+region occupied by the solid & \(\bm{X}(\mathcal{U},t)\) & \(\bm{\chi}(U,t)\) & \(B_t=\bm{\chi}(B_0,t)\) \\
+Eulerian domain & \(\Omega\) & \(\Omega\) & \(\Omega\) \\
+Lagrangian force density & \(\bm{F}(q,t)\) & \(\bm{F}(\bm{s},t)\) & \(\lforce(\Xvec,t)\) \\
+deformation gradient & -- & \(\partial\bm{\chi}/\partial\bm{s}\) (distinct typeface) & \(\Ften=\nabla_{\!X}\bm{\chi}\) \\
+\bottomrule
+\end{tabularx}
+
+\medskip
+\begin{punchbox}
+\scriptsize
+Two points from Griffith \& Luo (2017, \S2) worth keeping in mind: the reference coordinates need \emph{not} be the initial positions (\(\bm{\chi}(\Xvec,0)\neq\Xvec\) is allowed), and the reference domain need not lie inside \(\Omega\) --- which is why their Fig.~1 draws \(U\) outside the box. The calligraphic \(\lforce\) keeps the force density distinct from the deformation gradient \(\Ften\).
 \end{punchbox}
 \end{frame}
 
@@ -365,6 +355,7 @@ The fluid traction on a physical interface and the elastic transmission force us
   \item \(\Ften\) maps material line elements to the current configuration.
   \item \(J\) gives the local volume ratio.
   \item \(\Pten\) need not be symmetric because it links reference normals to current forces.
+  \item Symmetry of \(\estress\) appears instead as \(\Pten\Ften^{T}=\Ften(\Pten)^{T}\).
 \end{itemize}
 \end{column}
 \end{columns}
@@ -373,6 +364,9 @@ The fluid traction on a physical interface and the elastic transmission force us
 \begin{punchbox}
 The Piola transformation makes the reference-domain and current-domain traction resultants agree.
 \end{punchbox}
+
+\vfill
+{\scriptsize\color{DarkGray}Griffith \& Luo (2017) define \(\Pten\) by \(\int_{\partial V}\Pten\normal\,dA=\int_{\bm{\chi}(\partial V,t)}\estress\currentnormal\,da\) for every subregion \(V\) (their Eq.~(3)); Nanson's formula \(\currentnormal\,da=J\Ften^{-T}\normal\,dA\) turns this into the boxed relation (derived in deck 4-2).\par}
 \end{frame}
 
 % ----- 12. Strong force -----
@@ -389,6 +383,7 @@ The Piola transformation makes the reference-domain and current-domain traction 
 \end{aligned}}
 \]
 
+\medskip
 \begin{columns}[T,onlytextwidth]
 \begin{column}{0.47\textwidth}
 \hi{Internal force}
@@ -497,6 +492,7 @@ For each finite element \(B_0^e\), evaluate the FE force density at quadrature p
 \delta_h\!\left(\xvec-\bm{\chi}_h(\Xvec_Q^e,t)\right)\,w_Q^e.}
 \]
 
+\medskip
 \begin{columns}[T,onlytextwidth]
 \begin{column}{0.47\textwidth}
 \hi{Classical nodal coupling}
@@ -511,7 +507,8 @@ The element mesh may be coarser than the fluid grid if the quadrature-point net 
 \end{columns}
 
 \vfill
-{\scriptsize Structural resolution still depends on the FE mesh. Denser quadrature improves coupling resolution, not the constitutive approximation.}
+{\scriptsize Structural resolution still depends on the FE mesh. Denser quadrature improves coupling resolution, not the constitutive approximation.\par
+\color{DarkGray}In Griffith \& Luo (2017, \S3.3 and \S7) the 2D tests use adaptive Gaussian rules giving on average at least a \(3\times3\) net of quadrature points per Cartesian cell, and leak-free results with Lagrangian meshes at least four times coarser than the Eulerian grid (classical nodal IB needs roughly twice as fine). Here \(w_Q^e\) are the quadrature weights and \(N_e\) the number of points in element \(B_0^e\).\par}
 \end{frame}
 
 % ----- 17. Adjoint coupling -----
@@ -533,6 +530,9 @@ Choose \(\mathcal{R}=\mathcal{S}^{*}\) with respect to the Eulerian and FE inner
 \begin{punchbox}
 The Eulerian and Lagrangian descriptions assign the same instantaneous power to the coupling force. This property alone does not guarantee stability of the full time integrator.
 \end{punchbox}
+
+\vfill
+{\scriptsize\color{DarkGray}In matrix form (2D grid spacing \(h\), FE mass matrix \(\bm{M}\)): \([\mathcal{R}]=\bm{M}^{-1}[\mathcal{S}]^{T}h^{2}\), so \(d\bm{\chi}_h/dt\) is the \(L^2\) projection of the kernel-interpolated velocity onto the FE space. Source: Griffith \& Luo (2017), Eqs.~(35)--(40). The partitioned form does not satisfy this identity (\S7 there).\par}
 \end{frame}
 
 % ----- 18. Computational cycle -----
@@ -605,6 +605,37 @@ For a passive material with an active fiber response, decompose
 \medskip
 \begin{punchbox}
 A stress-based activation law makes material-frame invariance and local momentum balance explicit.
+\end{punchbox}
+\end{frame}
+
+% ----- 20b. Active stress: the pull-back step (added for clarity) -----
+\begin{frame}{Active tension: checking the pull-back}
+\small
+The only identity needed is \((\bm{a}\otimes\bm{b})\bm{C}=\bm{a}\otimes(\bm{C}^{T}\bm{b})\). With \(\bm{a}=\Ften\bm{f}_0\),
+\[
+\Pten_{\mathrm{act}}
+=J\,T\,(\bm{a}\otimes\bm{a})\Ften^{-T}
+=J\,T\,\bm{a}\otimes(\Ften^{-1}\bm{a})
+=J\,T\,\bm{a}\otimes\bm{f}_0
+=J\,T\,\Ften\bm{f}_0\bm{f}_0^{T}.
+\]
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.48\textwidth}
+\hi{Stretch factors}
+
+Because \(|\bm{a}|=\lambda_f\) (the fiber stretch), \(\estress_{\mathrm{act}}=T\lambda_f^{2}\,\hat{\bm{a}}\otimes\hat{\bm{a}}\) with \(\hat{\bm{a}}=\bm{a}/\lambda_f\). The physical Cauchy fiber stress is therefore \(T\lambda_f^{2}\), not \(T\).
+\end{column}
+\begin{column}{0.48\textwidth}
+\hi{Unit-direction convention}
+
+If instead \(\estress_{\mathrm{act}}=\widehat{T}\,\hat{\bm{a}}\otimes\hat{\bm{a}}\), then \(\Pten_{\mathrm{act}}=(J\widehat{T}/\lambda_f^{2})\,\bm{a}\otimes\bm{f}_0\). The two scalars are related by \(\widehat{T}=T\lambda_f^{2}\).
+\end{column}
+\end{columns}
+
+\medskip
+\begin{punchbox}
+\scriptsize
+Symbol check: the scalar active tension \(T\) is unrelated to the bold transmission force \(\bm{T}=-\Pten\normal\) and to the final time in \([0,T]\). Always report which convention calibrates \(T\).
 \end{punchbox}
 \end{frame}
 
@@ -717,7 +748,8 @@ Method choice should follow the required observables: bulk motion and deformatio
 \end{columns}
 
 \vfill
-{\scriptsize See Griffith and Luo (2017) and Griffith and Patankar, \emph{Annu. Rev. Fluid Mech.} 2020.}
+{\scriptsize See Griffith and Luo (2017) and Griffith and Patankar, \emph{Annu. Rev. Fluid Mech.} 2020.\par
+\color{DarkGray}Benchmarks: Griffith \& Luo (2017) \S6.1 (anisotropic and orthotropic thick elliptical shells), \S6.2 (soft neo-Hookean disc in a lid-driven cavity), \S6.3 (collapsible channel), \S6.4 (Turek--Hron). Application areas: Griffith \& Patankar (2020) \S5 (aquatic locomotion, esophageal transport, cardiovascular dynamics).\par}
 \end{frame}
 
 % ----- 26. Resources -----
@@ -744,6 +776,22 @@ Method choice should follow the required observables: bulk motion and deformatio
 \begin{beamercolorbox}[wd=\textwidth,sep=10pt,center,rounded=true]{title}
 {\Large Questions?}
 \end{beamercolorbox}
+\end{frame}
+
+% ----- 28. References (added) -----
+\begin{frame}{References}
+\scriptsize
+\begin{itemize}\itemsep3pt
+  \item B.~E. Griffith and X. Luo, Hybrid finite difference/finite element immersed boundary method, \emph{Int. J. Numer. Methods Biomed. Eng.} 33 (2017) e2888. \href{https://doi.org/10.1002/cnm.2888}{doi:10.1002/cnm.2888}. (Primary source for this deck: Eqs.~(1)--(40), \S\S2--3, \S6, \S7; Fig.~1 reproduced on slide~4.)
+  \item D. Boffi, L. Gastaldi, L. Heltai, and C.~S. Peskin, On the hyper-elastic formulation of the immersed boundary method, \emph{Comput. Methods Appl. Mech. Engrg.} 197 (2008) 2210--2231. \href{https://doi.org/10.1016/j.cma.2007.09.015}{doi:10.1016/j.cma.2007.09.015}. (Continuous formulation used by Griffith \& Luo.)
+  \item B.~E. Griffith and N.~A. Patankar, Immersed methods for fluid--structure interaction, \emph{Annu. Rev. Fluid Mech.} 52 (2020) 421--448. \href{https://doi.org/10.1146/annurev-fluid-010719-060228}{doi:10.1146/annurev-fluid-010719-060228}.
+  \item C.~S. Peskin, The immersed boundary method, \emph{Acta Numerica} 11 (2002) 479--517. \href{https://doi.org/10.1017/S0962492902000077}{doi:10.1017/S0962492902000077}. (Module 1 notation; nodal-coupling rule of thumb.)
+  \item A.~P. Hoover, B.~E. Griffith, and L.~A. Miller, Quantifying performance in the medusan mechanospace with an actively swimming three-dimensional jellyfish model, \emph{J. Fluid Mech.} 813 (2017) 1112--1155. \href{https://doi.org/10.1017/jfm.2017.3}{doi:10.1017/jfm.2017.3}. (Active-stress example developed in deck 4-3.)
+  \item G.~A. Holzapfel, \emph{Nonlinear Solid Mechanics: A Continuum Approach for Engineering}, Wiley, 2000. (Piola transformation, Nanson's formula, hyperelasticity.)
+  \item IBAMR: an adaptive and distributed-memory parallel implementation of the immersed boundary method, \href{https://ibamr.github.io/}{ibamr.github.io}.
+\end{itemize}
+\medskip
+{\tiny\color{DarkGray}Title-slide schematic: instructor's course notes. \aidisclosure\par}
 \end{frame}
 
 \end{document}

@@ -3,24 +3,11 @@
 % =====================================================================
 \documentclass[aspectratio=169,11pt]{beamer}
 
-% Match the visual language of the SIAM Waves talk.
-\usetheme{Boadilla}
-\usecolortheme{seahorse}
-\useinnertheme{rectangles}
-\useoutertheme{infolines}
+% Shared style, ported from the UF Animal Sciences 2026 talk (ibfe-tutorials.sty at the repo root).
+\makeatletter\def\input@path{{./}{../}}\makeatother
+\usepackage{ibfe-tutorials}
 
-\setbeamercolor{structure}{fg=blue!55!black}
-\setbeamercolor{title}{fg=white,bg=blue!55!black}
-\setbeamercolor{frametitle}{fg=blue!55!black}
-\setbeamercolor{block title}{bg=blue!12,fg=blue!55!black}
-\setbeamercolor{block body}{bg=blue!4}
-\setbeamertemplate{navigation symbols}{}
-\setbeamerfont{frametitle}{series=\bfseries,size=\large}
-\setbeamerfont{title}{series=\bfseries,size=\Large}
-
-\usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
-\DeclareFontShape{T1}{cmss}{b}{n}{<->ssub*cmss/bx/n}{}
 \usepackage{amsmath,amssymb,bm,mathtools}
 \usepackage{booktabs}
 \usepackage{array}
@@ -31,15 +18,12 @@
 \tcbuselibrary{skins}
 \usepackage{hyperref}
 
-\hypersetup{colorlinks=true,urlcolor=blue!55!black}
+% Figure hues, mapped onto the muted talk palette.
+\colorlet{pipeblue}{NavyBlue!70}
+\colorlet{pipeorange}{orange!80!black}
+\colorlet{pipegreen}{OliveGreen}
+\colorlet{pipegray}{DarkGray}
 
-\definecolor{pipeblue}{RGB}{38,86,145}
-\definecolor{pipeorange}{RGB}{208,112,44}
-\definecolor{pipegreen}{RGB}{53,128,95}
-\definecolor{pipegray}{RGB}{92,101,112}
-
-\newcommand{\hi}[1]{\textcolor{blue!55!black}{\textbf{#1}}}
-\newcommand{\soft}[1]{\textcolor{gray!55!black}{#1}}
 \newcommand{\Rey}{\mathrm{Re}}
 \newcommand{\De}{\mathrm{De}}
 \newcommand{\uu}{\bm{u}}
@@ -47,55 +31,33 @@
 \newcommand{\xvec}{\bm{x}}
 \newcommand{\mean}[1]{\overline{#1}}
 \newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
-
-\newtcolorbox{punchbox}{
-  enhanced,
-  colback=blue!4,
-  colframe=blue!55!black,
-  boxrule=0.6pt,
-  arc=2pt,
-  left=4pt,right=4pt,top=3pt,bottom=3pt
-}
+% The title slide uses \maketutorialtitlepanel{...} from ibfe-tutorials.sty,
+% which places arbitrary content (here a TikZ sketch) in the right-hand column.
 
 \title[Pipe transition]{Pipe flow and transition to turbulence}
 \subtitle{A controlled baseline for thinking about aortic flow}
 \author[Miller]{Laura A. Miller}
 \institute[UArizona]{Department of Mathematics, University of Arizona}
-\date{}
+\date{IBFE Tutorials \textbullet\ Module 5}
 
 \begin{document}
 
 % ----- 1. Title -----
 \begin{frame}[plain]
-  \begin{beamercolorbox}[sep=10pt,center]{title}
-    {\bfseries\Large Pipe flow and transition to turbulence}\\[3pt]
-    {\normalsize A controlled baseline for thinking about aortic flow}
-  \end{beamercolorbox}
-  \vspace{1.0em}
-  \begin{columns}[T,onlytextwidth]
-  \begin{column}{0.54\textwidth}
-    \textbf{\large Laura A. Miller}\\[4pt]
-    Department of Mathematics\\
-    University of Arizona\\[10pt]
-    {\small IBFE Tutorials}\\[9pt]
-    \parbox{0.96\linewidth}{\tiny AI tools were used to assist with formatting, organization, and clarification of the instructor's original notes.}
-  \end{column}
-  \begin{column}{0.43\textwidth}
+\maketutorialtitlepanel{%
     \begin{punchbox}
     \centering
-    \begin{tikzpicture}[x=0.73cm,y=0.73cm]
-      \fill[blue!6] (0,0) rectangle (5.4,3.2);
+    \begin{tikzpicture}[x=0.98cm,y=0.98cm]
+      \fill[LightGray!40] (0,0) rectangle (5.4,3.2);
       \draw[very thick,pipegray] (0,0.3)--(5.4,0.3);
       \draw[very thick,pipegray] (0,2.9)--(5.4,2.9);
       \draw[pipeblue,very thick,->] (0.3,1.6)--(4.9,1.6);
       \draw[pipeblue,thick] (4.55,0.45) parabola bend (5.0,1.6) (4.55,2.75);
       \draw[decorate,decoration={snake,amplitude=2pt,segment length=7pt},pipeorange,very thick] (2.1,0.65)--(3.4,2.55);
-      \node[pipeblue] at (1.55,1.92){\scriptsize laminar baseline};
-      \node[pipeorange] at (3.05,0.55){\scriptsize transition};
+      \node[pipeblue,anchor=west] at (0.15,2.3){\scriptsize laminar baseline};
+      \node[pipeorange,anchor=west] at (2.35,0.6){\scriptsize transition};
     \end{tikzpicture}
-    \end{punchbox}
-  \end{column}
-  \end{columns}
+    \end{punchbox}}
 \end{frame}
 
 % ----- 2. Roadmap -----
@@ -135,8 +97,8 @@ Pipe-transition references also use radius, centerline velocity, or friction vel
 \end{column}
 \begin{column}{0.49\textwidth}
 \centering
-\begin{tikzpicture}[x=0.76cm,y=0.76cm,>=Latex]
-  \fill[blue!6] (0,0) rectangle (6.2,3.6);
+\begin{tikzpicture}[x=0.92cm,y=0.92cm,>=Latex]
+  \fill[LightGray!40] (0,0) rectangle (6.2,3.6);
   \draw[very thick] (0.25,0.45)--(5.35,0.45);
   \draw[very thick] (0.25,3.15)--(5.35,3.15);
   \draw[pipegray,thick] (0.25,0.45) arc[start angle=270,end angle=90,x radius=0.36,y radius=1.35];
@@ -146,7 +108,7 @@ Pipe-transition references also use radius, centerline velocity, or friction vel
   \draw[pipeblue,very thick] (4.92,0.55) parabola bend (5.35,1.8) (4.92,3.05);
   \node[pipeblue] at (3.7,2.35){\scriptsize $u_z(r)\bm e_z$};
   \node at (2.8,0.18){\scriptsize diameter $D=2R$};
-  \draw[->,pipeorange,very thick] (0.0,2.55)--(1.05,2.55) node[midway,above]{\scriptsize $-\mathrm dp/\mathrm dz$};
+  \draw[->,pipeorange,very thick] (0.0,2.55)--(1.05,2.55) node[midway,below]{\scriptsize $-\mathrm dp/\mathrm dz$};
 \end{tikzpicture}
 \end{column}
 \end{columns}
@@ -201,6 +163,7 @@ $-\nabla p$ drives the flow; $\mu\nabla^2\uu$ diffuses momentum.
 \end{block}
 \end{column}
 \end{columns}
+\vspace{0.5em}
 
 Density is constant here, and no body force is included. Gravity can be absorbed into a modified pressure when appropriate.
 \end{frame}
@@ -270,15 +233,15 @@ Checks:
 \end{column}
 \begin{column}{0.44\textwidth}
 \centering
-\begin{tikzpicture}[x=0.78cm,y=0.78cm,>=Latex]
-  \fill[blue!6] (0,0) rectangle (5.1,4.1);
+\begin{tikzpicture}[x=0.92cm,y=0.92cm,>=Latex]
+  \fill[LightGray!40] (0,0) rectangle (5.1,4.1);
   \draw[very thick] (0.6,0.35)--(0.6,3.75);
   \draw[->,pipegray] (0.6,2.05)--(4.75,2.05) node[right]{$u_z$};
   \draw[pipeblue,very thick] (0.6,0.42) parabola bend (4.35,2.05) (0.6,3.68);
   \draw[dashed,pipeorange] (4.35,0.25)--(4.35,3.85);
   \node[pipeorange] at (4.35,0.08){\scriptsize $u_{\max}$};
   \draw[<->,pipegray] (0.25,2.05)--(0.25,3.68) node[midway,left]{$R$};
-  \node[pipeblue] at (2.45,3.25){\scriptsize parabolic profile};
+  \node[pipeblue] at (2.05,2.65){\scriptsize parabolic profile};
 \end{tikzpicture}
 \end{column}
 \end{columns}
@@ -333,6 +296,7 @@ For a pipe segment of length $L$,
   \underbrace{\Delta p\,\pi R^2}_{\text{pressure force downstream}}
   =\underbrace{\tau_w(2\pi RL)}_{\text{wall drag upstream}}.
 \]
+{\scriptsize The labels give force \emph{directions} on the fluid in the segment: the net pressure force $(p_{\rm in}-p_{\rm out})\pi R^2=\Delta p\,\pi R^2$ points downstream ($+z$), and the wall traction on the fluid points upstream ($-z$); with no acceleration their magnitudes balance. Here $\Delta p:=p_{\rm in}-p_{\rm out}>0$.\par}
 Hence
 \[
   \tau_w=\frac{\Delta p\,R}{2L}
@@ -348,7 +312,7 @@ Combining with $U_b=gR^2/(8\mu)$ gives
 \begin{column}{0.44\textwidth}
 \centering
 \begin{tikzpicture}[x=0.78cm,y=0.78cm,>=Latex]
-  \fill[blue!7] (0,0.6) rectangle (5.5,3.25);
+  \fill[LightGray!40] (0,0.6) rectangle (5.5,3.25);
   \draw[very thick] (0,0.6)--(5.5,0.6);
   \draw[very thick] (0,3.25)--(5.5,3.25);
   \draw[->,very thick,pipeblue] (0.2,1.93)--(1.8,1.93) node[midway,above]{\scriptsize $p_{\rm in}\pi R^2$};
@@ -439,6 +403,53 @@ For pulsatile flow, a phase average and a long-time mean answer different questi
 \end{punchbox}
 \end{frame}
 
+% ----- 14b. Turbulent friction laws (new) -----
+\begin{frame}{Turbulent friction laws and the Moody chart}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.52\textwidth}
+\small
+\begin{itemize}\itemsep3pt
+  \item \hi{Laminar:} $f_D=64/\Rey_D$ (exact, Hagen--Poiseuille).
+  \item \hi{Blasius} (smooth, $4\times10^3\lesssim\Rey_D\lesssim10^5$): $f_D\approx0.316\,\Rey_D^{-1/4}$, equivalent to $\Delta p\propto U_b^{7/4}$.
+  \item \hi{Colebrook} (roughness height $\epsilon$, implicit in $f_D$):
+  \[
+    \frac1{\sqrt{f_D}}=-2.0\log_{10}\!\left(\frac{\epsilon/D}{3.7}+\frac{2.51}{\Rey_D\sqrt{f_D}}\right).
+  \]
+  $\epsilon=0$ gives Prandtl's smooth-pipe law; large $\Rey_D$ gives a constant, roughness-set $f_D$.
+  \item \hi{Haaland} (explicit, within $\approx2\%$): $\dfrac1{\sqrt{f_D}}\approx-1.8\log_{10}\!\left[\left(\dfrac{\epsilon/D}{3.7}\right)^{1.11}+\dfrac{6.9}{\Rey_D}\right]$.
+\end{itemize}
+\end{column}
+\begin{column}{0.45\textwidth}
+\centering
+% x = log10(Re_D), y = log10(f_D); curves computed from the formulas at left.
+\begin{tikzpicture}[x=1.15cm,y=2.6cm]
+  \draw[->,thick] (2.7,-2.15)--(7.15,-2.15) node[below left=1pt and 0pt]{\scriptsize $\Rey_D$};
+  \draw[->,thick] (2.7,-2.15)--(2.7,-0.85) node[above]{\scriptsize $f_D$};
+  \foreach \e in {3,4,5,6,7}{\draw (\e,-2.15)--(\e,-2.19) node[below]{\tiny $10^{\e}$};}
+  \foreach \f/\lab in {0.01/0.01,0.02/0.02,0.05/0.05,0.1/0.1}{\draw (2.7,{log10(\f)})--(2.66,{log10(\f)}) node[left]{\tiny \lab};}
+  \fill[LightGray!60] ({log10(2040)},-2.15) rectangle ({log10(4000)},-0.88);
+  \draw[pipeblue,very thick,domain=2.75:{log10(2300)},samples=2] plot (\x,{log10(64)-\x});
+  \draw[pipeorange,very thick,domain={log10(4000)}:5,samples=2] plot (\x,{log10(0.316)-\x/4});
+  \draw[pipegray,thick,dashed,domain=5:7,samples=30] plot (\x,{-2*log10(1.8*(\x-log10(6.9)))});
+  % Haaland, eps/D = 0.01: points precomputed in double precision (pgfmath is too coarse here)
+  \draw[pipegreen,very thick] plot[smooth] coordinates {(3.60,-1.3073) (3.80,-1.3410) (4.00,-1.3661)
+    (4.20,-1.3841) (4.40,-1.3966) (4.60,-1.4050) (4.80,-1.4105) (5.00,-1.4141) (5.40,-1.4179)
+    (5.80,-1.4194) (6.20,-1.4200) (6.60,-1.4203) (7.00,-1.4204)};
+  \node[pipeblue,anchor=west] at (2.98,-0.97){\scriptsize $64/\Rey_D$};
+  \node[pipeorange,anchor=north east] at (4.75,-1.78){\scriptsize Blasius};
+  \node[pipegray,anchor=north] at (6.2,-2.0){\scriptsize smooth};
+  \node[pipegreen,anchor=south] at (6.2,-1.38){\scriptsize $\epsilon/D=0.01$};
+  \node[rotate=90,anchor=west] at ({0.5*(log10(2040)+log10(4000))},-2.12){\tiny transitional};
+\end{tikzpicture}
+
+{\tiny\color{DarkGray} Schematic: instructor's course notes; curves computed from the formulas shown (Haaland form for the smooth and $\epsilon/D=0.01$ curves). After L. F. Moody (1944).\par}
+
+\vspace{0.3em}
+{\scriptsize\raggedright In the shaded transitional band ($\Rey_D\approx2\times10^3$--$4\times10^3$) $f_D$ is not single-valued: it depends on the intermittency (puff/slug fraction) and so on the inlet disturbances.\par}
+\end{column}
+\end{columns}
+\end{frame}
+
 % ----- 15. DNS resolution -----
 \begin{frame}{DNS cost grows after turbulence creates small scales}
 \begin{columns}[T,onlytextwidth]
@@ -456,7 +467,7 @@ Once it does,
 \end{column}
 \begin{column}{0.45\textwidth}
 \centering
-\begin{tikzpicture}[x=0.72cm,y=0.72cm]
+\begin{tikzpicture}[x=0.85cm,y=0.85cm]
   \draw[very thick] (0,0)--(5.6,0);
   \fill[pipeorange!18] (0,0) rectangle (5.6,0.48);
   \fill[pipeblue!10] (0,0.48) rectangle (5.6,3.9);
@@ -466,8 +477,9 @@ Once it does,
     \draw[pipeorange,thick] (\x,\y) circle (0.12);
   }
   \draw[<->,pipegray] (0.15,3.5)--(1.5,3.5) node[midway,above]{\scriptsize outer $O(D)$};
-  \draw[<->,pipeorange] (3.1,0.25)--(3.95,0.25) node[midway,below]{\scriptsize wall scale};
-  \node[pipeorange] at (4.35,2.45){\scriptsize shrinking resolved scales};
+  \draw[<->,pipeorange] (3.1,0.25)--(3.95,0.25);
+  \node[pipeorange,anchor=north] at (3.525,-0.05){\scriptsize wall scale};
+  \node[pipeorange,anchor=east] at (5.6,3.05){\scriptsize shrinking resolved scales};
 \end{tikzpicture}
 \end{column}
 \end{columns}
@@ -496,13 +508,16 @@ Infinitesimal eigenmodes decay, but finite-amplitude perturbations, transient am
   \foreach \x/\y in {-2.25/1.55,-1.95/0.75,-1.55/1.1,-1.3/0.25,-1.9/-0.55,-1.45/-1.25,-0.75/0.55,-0.65/-0.45,-1.05/-1.75}{
     \fill[pipeblue] (\x,\y) circle (0.07);
   }
-  \draw[red!70!black,dashed,thick] (0,-2.2)--(0,2.2);
-  \node[pipeblue] at (-1.45,2.0){\scriptsize decaying eigenmodes};
-  \node[red!70!black,rotate=90] at (0.22,1.4){\scriptsize neutral line};
+  \draw[RubineRed,dashed,thick] (0,-2.2)--(0,2.2);
+  \node[pipeblue,anchor=east] at (-0.12,2.0){\scriptsize decaying eigenmodes};
+  \node[RubineRed,anchor=west] at (0.1,-1.3){\scriptsize neutral line};
 \end{tikzpicture}
 
 \vspace{0.3em}
-{\scriptsize \href{https://doi.org/10.1016/S0021-9991(03)00029-9}{Meseguer \& Trefethen (2003)}}
+{\scriptsize \href{https://doi.org/10.1016/S0021-9991(03)00029-9}{Meseguer \& Trefethen (2003)}\par}
+
+\vspace{0.3em}
+{\scriptsize\raggedright Reynolds-number convention: Meseguer \& Trefethen use the centerline speed $u_{\max}$ and radius $R$. Since $u_{\max}=2U_b$ and $D=2R$, $u_{\max}R/\nu=U_bD/\nu=\Rey_D$, so their $10^7$ is also $\Rey_D=10^7$.\par}
 \end{column}
 \end{columns}
 \end{frame}
@@ -522,11 +537,12 @@ Let $\uu=U(r)\bm e_z+\widetilde{\uu}$. The nondimensional perturbation equation 
 \begin{itemize}\itemsep3pt
   \item Linear dynamics include base advection, shear coupling, pressure, and viscosity.
   \item The quadratic term redistributes energy among perturbation modes.
-  \item Use $\widetilde{\uu}=0$ at $r=R$ and periodic or suitably decaying conditions in $z$.
+  \item Use $\widetilde{\uu}=0$ at $r=R$ ($R=\tfrac12$ in units of $D$) and periodic or suitably decaying conditions in $z$.
 \end{itemize}
 
 \begin{alertblock}{Three different tildes and primes}
 Here $\widetilde{\uu}$ is a \emph{deterministic} perturbation about a specified base state, not the turbulent fluctuation $\uu'$ of the Reynolds decomposition (a statistical deviation from an average, as on the turbulence slide), and not the LES filtered field $\widetilde{\uu}$ of deck 5-3 (a spatially coarse-grained field). Same symbols, three different meanings.
+{\footnotesize Precisely: the tilde is reused (perturbation here, filtered field in 5-3), and the prime marks the Reynolds fluctuation; the perturbation $\widetilde{\uu}$ need not have zero mean, while $\mean{\uu'}=0$ by construction.\par}
 \end{alertblock}
 \end{frame}
 
@@ -554,11 +570,12 @@ For the optimal streamwise-constant, azimuthal-$n=1$ mechanism, velocity amplifi
   \draw[->,thick] (0,0)--(0,3.3) node[above]{\scriptsize $E/E_0$};
   \draw[pipegray,thick] plot[smooth] coordinates{(0,1)(1,0.72)(2,0.5)(3,0.35)(4.4,0.2)};
   \draw[pipeblue,very thick] plot[smooth] coordinates{(0,1)(0.7,1.45)(1.5,2.7)(2.3,2.15)(3.2,1.05)(4.4,0.35)};
-  \node[pipegray] at (3.5,0.65){\scriptsize monotone decay};
+  \node[pipegray,anchor=south west] at (4.45,0.22){\scriptsize monotone decay};
   \node[pipeblue] at (2.5,2.85){\scriptsize transient growth};
 \end{tikzpicture}
 \end{column}
 \end{columns}
+\vspace{0.4em}
 \soft{Transient growth is an amplification mechanism, not by itself a transition criterion.}
 \end{frame}
 
@@ -577,7 +594,7 @@ Weak streamwise vortices move low-speed fluid away from the wall and high-speed 
 \begin{column}{0.47\textwidth}
 \centering
 \begin{tikzpicture}[x=0.78cm,y=0.78cm,>=Latex]
-  \fill[blue!6] (0,0) rectangle (5.7,4.0);
+  \fill[LightGray!40] (0,0) rectangle (5.7,4.0);
   \draw[very thick] (0,0.3)--(5.7,0.3);
   \foreach \x in {0.8,1.7,2.6,3.5,4.4}{
     \draw[->,pipeblue,thick] (\x,0.7)--(\x+0.3+0.12*\x,0.7);
@@ -587,7 +604,7 @@ Weak streamwise vortices move low-speed fluid away from the wall and high-speed 
   \draw[pipeorange,very thick,->] (3.65,1.15) arc[start angle=0,end angle=330,radius=0.7];
   \draw[pipegreen,line width=7pt,opacity=0.35] (0.4,1.55) .. controls (2.0,1.8) and (3.8,1.25) .. (5.4,1.55);
   \node[pipeorange] at (2.85,3.55){\scriptsize counter-rotating rolls};
-  \node[pipegreen] at (3.0,1.05){\scriptsize streamwise streak};
+  \node[pipegreen,anchor=west,align=left] at (5.75,1.55){\scriptsize streamwise\\[-2pt]\scriptsize streak};
   \node[pipeblue] at (1.0,2.55){\scriptsize $U'(r)$};
 \end{tikzpicture}
 \end{column}
@@ -645,10 +662,10 @@ In a finite or open pipe, ``sustained'' depends on domain length, forcing, and o
   \draw[->,pipeblue,thick] (1.9,2.7) .. controls (1.5,2.0) and (1.0,1.45) .. (0.72,0.8);
   \draw[->,pipeorange,thick] (3.1,1.0) .. controls (4.5,1.4) and (4.2,3.4) .. (5.15,3.75);
   \draw[pipeorange,thick] (5.05,3.75) circle (0.42);
-  \node[pipeorange,align=center] at (4.55,4.35){\scriptsize long-lived\\[-2pt]\scriptsize turbulent region};
+  \node[pipeorange,align=center,anchor=south] at (4.75,4.2){\scriptsize long-lived\\[-2pt]\scriptsize turbulent region};
   \fill[pipegreen] (2.63,2.28) circle (0.10);
   \node[pipegreen,anchor=west] at (2.85,2.28){\scriptsize edge trajectory};
-  \node[pipegreen,rotate=79] at (2.35,3.65){\scriptsize state-space boundary};
+  \node[pipegreen,rotate=79] at (2.22,2.85){\scriptsize state-space boundary};
 \end{tikzpicture}
 \end{column}
 \end{columns}
@@ -668,8 +685,8 @@ At low $\Rey_D$, a carefully introduced filament can remain coherent. With large
 \end{column}
 \begin{column}{0.49\textwidth}
 \centering
-\begin{tikzpicture}[x=0.70cm,y=0.70cm]
-  \fill[blue!6] (0,0) rectangle (7.0,4.1);
+\begin{tikzpicture}[x=0.80cm,y=0.80cm]
+  \fill[LightGray!40] (0,0) rectangle (7.0,4.1);
   \draw[very thick] (0,0.35)--(7,0.35);
   \draw[very thick] (0,3.75)--(7,3.75);
   \draw[pipegreen,very thick] (0.2,2.7)--(6.75,2.7);
@@ -678,12 +695,12 @@ At low $\Rey_D$, a carefully introduced filament can remain coherent. With large
   \foreach \x/\y in {2.4/1.2,2.7/1.55,2.95/1.0,3.3/1.65,3.65/0.85,4.0/1.5,4.35/1.05,4.7/1.7,5.05/0.9,5.45/1.4,5.8/1.0,6.2/1.55,6.55/1.15}{
     \fill[pipegreen!75] (\x,\y) circle (0.10);
   }
-  \node[pipegreen,anchor=west] at (0.25,0.7){\scriptsize disturbed filament mixes};
+  \node[pipegreen,anchor=north west] at (0.25,0.32){\scriptsize disturbed filament mixes};
   \draw[->,pipeblue,very thick] (5.6,2.05)--(6.8,2.05) node[midway,above]{\scriptsize flow};
 \end{tikzpicture}
 
 \vspace{0.3em}
-{\scriptsize \href{https://doi.org/10.1098/rstl.1883.0029}{Reynolds (1883)}}
+{\scriptsize \href{https://doi.org/10.1098/rstl.1883.0029}{Reynolds (1883)}\par}
 \end{column}
 \end{columns}
 \end{frame}
@@ -705,7 +722,7 @@ An individual puff can decay stochastically; ``persistent'' should not mean infi
 \begin{column}{0.49\textwidth}
 \centering
 \begin{tikzpicture}[x=0.72cm,y=0.72cm,>=Latex]
-  \fill[blue!6] (0,0) rectangle (7,3.6);
+  \fill[LightGray!40] (0,0) rectangle (7,3.6);
   \draw[very thick] (0,0.35)--(7,0.35);
   \draw[very thick] (0,3.25)--(7,3.25);
   \fill[pipeorange!55] (2.2,0.5) -- (2.2,3.1) -- (4.5,2.85) -- (5.3,2.35) -- (5.7,1.8) -- (5.3,1.25) -- (4.5,0.75) -- cycle;
@@ -714,8 +731,8 @@ An individual puff can decay stochastically; ``persistent'' should not mean infi
     \draw[pipegray,thick] (\x,\y) circle (0.10);
   }
   \draw[->,pipeblue,very thick] (5.6,3.45)--(6.75,3.45) node[midway,above]{\scriptsize flow};
-  \node[pipeorange,rotate=90] at (1.88,1.8){\scriptsize sharp trailing edge};
-  \node[pipeorange,align=center] at (5.55,0.72){\scriptsize diffuse leading\\[-2pt]\scriptsize recovery};
+  \node[pipeorange,rotate=90] at (1.72,1.8){\scriptsize sharp trailing edge};
+  \node[pipeorange,align=left,anchor=west] at (5.75,1.8){\scriptsize diffuse leading\\[-2pt]\scriptsize recovery};
   \node at (3.65,1.78){\textbf{puff}};
 \end{tikzpicture}
 \end{column}
@@ -741,7 +758,7 @@ Puffs and slugs describe different transitional regimes, not merely different dr
 \begin{column}{0.48\textwidth}
 \centering
 \begin{tikzpicture}[x=0.72cm,y=0.72cm,>=Latex]
-  \fill[blue!6] (0,0) rectangle (7,3.6);
+  \fill[LightGray!40] (0,0) rectangle (7,3.6);
   \draw[very thick] (0,0.35)--(7,0.35);
   \draw[very thick] (0,3.25)--(7,3.25);
   \fill[pipeorange!45] (1.55,0.5) rectangle (5.55,3.1);
@@ -755,7 +772,7 @@ Puffs and slugs describe different transitional regimes, not merely different dr
 \end{tikzpicture}
 
 \vspace{0.25em}
-{\scriptsize Anatomy and front behavior: \href{https://doi.org/10.1017/S0022112073001576}{Wygnanski \& Champagne (1973)}.}
+{\scriptsize Anatomy and front behavior: \href{https://doi.org/10.1017/S0022112073001576}{Wygnanski \& Champagne (1973)}.\par}
 \end{column}
 \end{columns}
 \end{frame}
@@ -788,6 +805,7 @@ Avila et al. measured a balance at
 \]
 This is a statistical onset of sustained turbulence, not an immortality threshold for one puff.
 The textbook value $\Rey_D\approx2300$ marks practical onset of transition; $2040$ is the statistically defined point where puff splitting balances decay.
+{\footnotesize Both lifetimes are memoryless (exponentially distributed) and vary super-exponentially with $\Rey_D$, so the crossing is sharp. At somewhat higher $\Rey_D$ puffs give way to expanding slugs (Barkley et al.\ 2015).\par}
 \end{frame}
 
 % ----- 26. Spacetime -----
@@ -806,7 +824,7 @@ Horizontal position is $z$; time increases upward. The slope of each interface e
 \begin{column}{0.50\textwidth}
 \centering
 \begin{tikzpicture}[x=0.68cm,y=0.62cm,>=Latex]
-  \fill[blue!4] (0,0) rectangle (7.2,5.1);
+  \fill[LightGray!40] (0,0) rectangle (7.2,5.1);
   \draw[->,thick] (0.3,0.35)--(7.0,0.35) node[right]{$z$};
   \draw[->,thick] (0.3,0.35)--(0.3,4.85) node[above]{$t$};
   \draw[pipeorange,line width=7pt,opacity=0.55] (0.9,0.55)--(3.2,2.55);
@@ -814,12 +832,12 @@ Horizontal position is $z$; time increases upward. The slope of each interface e
   \draw[pipeblue,line width=7pt,opacity=0.50] (2.15,0.55)--(4.4,2.55);
   \draw[pipeblue,line width=7pt,opacity=0.50] (4.4,2.55)--(6.4,4.45);
   \draw[pipeblue,line width=7pt,opacity=0.50] (4.4,2.55)--(3.7,4.45);
-  \node[pipeblue] at (5.2,2.85){\scriptsize splitting};
+  \node[pipeblue,anchor=east] at (3.65,3.7){\scriptsize splitting};
   \fill[pipegreen!45] (4.85,0.55)--(5.25,0.55)--(7.0,4.5)--(5.85,4.5)--cycle;
-  \node[pipegreen,rotate=64] at (6.1,2.25){\scriptsize expanding fronts};
+  \node[pipegreen,anchor=south east] at (7.15,4.65){\scriptsize expanding fronts};
 \end{tikzpicture}
 
-{\scriptsize Critical balance: \href{https://doi.org/10.1126/science.1203223}{Avila et al. (2011)}.}
+{\scriptsize Critical balance: \href{https://doi.org/10.1126/science.1203223}{Avila et al. (2011)}.\par}
 \end{column}
 \end{columns}
 \end{frame}
@@ -840,6 +858,7 @@ For smooth turbulent pipes the Blasius correlation $f_D\approx0.316\,\Rey_D^{-1/
 \begin{punchbox}
 Report $\Rey_D$, pipe length, inlet/disturbance protocol, boundary conditions, and observation time. One finite run cannot establish ``sustained forever.''
 \end{punchbox}
+\vspace{0.4em}
 
 For cardiovascular flow, connect each statistic to pressure loss, wall loading, mixing, or another biomechanical quantity of interest.
 \end{frame}
@@ -908,7 +927,7 @@ If $\mathrm{St}_\omega=\omega D/U_b$, then
 \end{tikzpicture}
 
 \vspace{0.25em}
-{\scriptsize \href{https://doi.org/10.1113/jphysiol.1955.sp005276}{Womersley (1955)}}
+{\scriptsize \href{https://doi.org/10.1113/jphysiol.1955.sp005276}{Womersley (1955)}\par}
 \end{column}
 \end{columns}
 \end{frame}
@@ -948,7 +967,7 @@ With centerline radius of curvature $R_c$, define
   \qquad
   \De=\Rey_D\sqrt{\delta_c}.
 \]
-The curvature ratio is written $\delta_c$, not $\kappa$, because $\kappa$ is reserved for the von K\'arm\'an constant. This diameter-based convention for $\delta_c$ must be stated because alternatives exist.
+The curvature ratio is written $\delta_c$, not $\kappa$, because $\kappa$ is reserved for the von K\'arm\'an constant. This convention for $\delta_c$ (radius ratio, diameter-based $\Rey_D$) must be stated because alternatives exist.
 
 In a simple steady laminar curved pipe, centrifugal effects can drive a counter-rotating Dean-vortex pair. Finite curvature, torsion, pulsatility, and wall motion add parameters.
 
@@ -970,7 +989,10 @@ A branch-induced jet or separation zone is not a Dean vortex.
 \end{tikzpicture}
 
 \vspace{0.2em}
-{\scriptsize \href{https://doi.org/10.1080/14786440708564324}{Dean (1927)}}
+{\scriptsize \href{https://doi.org/10.1080/14786440708564324}{Dean (1927)}\par}
+
+\vspace{0.3em}
+{\scriptsize\raggedright Precisely: $\delta_c$ is the pipe \emph{radius} over the curvature radius, while $\Rey_D$ in $\De$ uses the diameter. Other authors use $D/R_c$ or a radius-based Reynolds number, which changes $\De$ by a factor of $\sqrt2$ or $2$.\par}
 \end{column}
 \end{columns}
 \end{frame}
@@ -1056,6 +1078,24 @@ The pipe is the clean control problem; the aorta is a time-dependent fluid--stru
   \item J. C. Bramwell and A. V. Hill, ``The velocity of the pulse wave in man,'' \emph{Proc.\ R. Soc.\ B} 93 (1922), 298--306.
   \item A. I. Moens, \emph{Die Pulscurve} (1878); D. J. Korteweg, ``\"Uber die Fortpflanzungsgeschwindigkeit des Schalles in elastischen R\"ohren,'' \emph{Ann.\ Phys.} 241 (1878), 525--542.
   \item W. R. Dean, ``Note on the motion of fluid in a curved pipe,'' \emph{Philosophical Magazine} 4 (1927), 208--223. \href{https://doi.org/10.1080/14786440708564324}{doi:10.1080/14786440708564324}.
+\end{itemize}
+\end{frame}
+
+% ----- 35b. References, continued -----
+\begin{frame}{Primary references (continued)}
+\scriptsize
+\begin{itemize}\itemsep3pt
+  \item G. Hagen, \emph{Ann. Phys. Chem.} 46 (1839), 423--442; J. L. M. Poiseuille, \emph{C. R. Acad. Sci. Paris} 11 (1840), 961--967, 1041--1048 (laminar pipe-flow law).
+  \item H. Blasius, ``Das \"Ahnlichkeitsgesetz bei Reibungsvorg\"angen in Fl\"ussigkeiten,'' \emph{Forschungsheft VDI} 131 (1913).
+  \item C. F. Colebrook, ``Turbulent flow in pipes, with particular reference to the transition region between the smooth and rough pipe laws,'' \emph{J. Inst. Civil Eng.} 11 (1939), 133--156.
+  \item L. F. Moody, ``Friction factors for pipe flow,'' \emph{Trans. ASME} 66 (1944), 671--684.
+  \item S. E. Haaland, ``Simple and explicit formulas for the friction factor in turbulent pipe flow,'' \emph{J. Fluids Eng.} 105 (1983), 89--90. \href{https://doi.org/10.1115/1.3240948}{doi:10.1115/1.3240948}.
+  \item L. N. Trefethen, A. E. Trefethen, S. C. Reddy, and T. A. Driscoll, ``Hydrodynamic stability without eigenvalues,'' \emph{Science} 261 (1993), 578--584. \href{https://doi.org/10.1126/science.261.5121.578}{doi:10.1126/science.261.5121.578}.
+  \item P. J. Schmid and D. S. Henningson, ``Optimal energy density growth in Hagen--Poiseuille flow,'' \emph{J. Fluid Mech.} 277 (1994), 197--225. \href{https://doi.org/10.1017/S0022112094002739}{doi:10.1017/S0022112094002739}.
+  \item D. Barkley, B. Song, V. Mukund, G. Lemoult, M. Avila, and B. Hof, ``The rise of fully turbulent flow,'' \emph{Nature} 526 (2015), 550--553. \href{https://doi.org/10.1038/nature15701}{doi:10.1038/nature15701}.
+  \item K. Avila, D. Moxey, A. de Lozar, M. Avila, D. Barkley, and B. Hof (full author list of the 2011 \emph{Science} paper above).
+  \item S. B. Pope, \emph{Turbulent Flows}, Cambridge University Press (2000), Ch.~7 (friction velocity, wall units, pipe-flow friction laws).
+  \item All schematics in this deck: instructor's course notes.
 \end{itemize}
 \end{frame}
 

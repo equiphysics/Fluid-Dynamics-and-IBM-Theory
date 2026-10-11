@@ -3,24 +3,11 @@
 % =====================================================================
 \documentclass[aspectratio=169,11pt]{beamer}
 
-% Match the visual language of the SIAM Waves talk.
-\usetheme{Boadilla}
-\usecolortheme{seahorse}
-\useinnertheme{rectangles}
-\useoutertheme{infolines}
+% Shared style, ported from the UF Animal Sciences 2026 talk (ibfe-tutorials.sty at the repo root).
+\makeatletter\def\input@path{{./}{../}}\makeatother
+\usepackage{ibfe-tutorials}
 
-\setbeamercolor{structure}{fg=blue!55!black}
-\setbeamercolor{title}{fg=white,bg=blue!55!black}
-\setbeamercolor{frametitle}{fg=blue!55!black}
-\setbeamercolor{block title}{bg=blue!12,fg=blue!55!black}
-\setbeamercolor{block body}{bg=blue!4}
-\setbeamertemplate{navigation symbols}{}
-\setbeamerfont{frametitle}{series=\bfseries,size=\large}
-\setbeamerfont{title}{series=\bfseries,size=\Large}
-
-\usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
-\DeclareFontShape{T1}{cmss}{b}{n}{<->ssub*cmss/bx/n}{}
 \usepackage{graphicx}
 \usepackage{amsmath,amssymb,bm,mathtools}
 \usepackage{booktabs}
@@ -30,11 +17,7 @@
 \usepackage{hyperref}
 
 \graphicspath{{../pictures/1-2/}{pictures/1-2/}}
-\hypersetup{colorlinks=true,urlcolor=blue!55!black}
 
-\newcommand{\hi}[1]{\textcolor{blue!55!black}{\textbf{#1}}}
-\newcommand{\warn}[1]{\textcolor{red!70!black}{\textbf{#1}}}
-\newcommand{\soft}[1]{\textcolor{gray!50!black}{#1}}
 \newcommand{\xvec}{\bm{x}}
 % Module 1 uses the Peskin convention throughout:
 %   \Xvec   = the material (Lagrangian) label  q
@@ -51,38 +34,20 @@
 \newcommand{\Nvec}{\bm{N}}
 \newcommand{\testvec}{\bm{\varphi}}
 
-\newtcolorbox{punchbox}{
-  enhanced,
-  colback=blue!4,
-  colframe=blue!55!black,
-  boxrule=0.6pt,
-  arc=2pt,
-  left=4pt,right=4pt,top=3pt,bottom=3pt
-}
-
 \title[IB coupling and kernels]{Integral transforms and regularized delta functions}
 \subtitle{Force transfer, material measures, and discrete power consistency}
 \author[Miller]{Laura A. Miller}
 \institute[UArizona]{Department of Mathematics, University of Arizona}
-\date{}
+\date{IBFE Tutorials \textbullet\ Module 1}
 
 \begin{document}
 
 % ----- 1. Title -----
+% The title slide uses the shared \maketutorialtitlepanel macro from
+% ibfe-tutorials.sty: same layout as \maketutorialtitle, with the right column
+% holding this deck's formula panel instead of an image.
 \begin{frame}[plain]
-  \begin{beamercolorbox}[sep=10pt,center]{title}
-    {\bfseries\Large Integral transforms and regularized delta functions}\\[3pt]
-    {\normalsize Force transfer, material measures, and discrete power consistency}
-  \end{beamercolorbox}
-  \vspace{1.2em}
-  \begin{columns}[T,onlytextwidth]
-  \begin{column}{0.53\textwidth}
-    \textbf{\large Laura A. Miller}\\[4pt]
-    Department of Mathematics\\
-    University of Arizona\\[12pt]
-    {\small IBFE Tutorials}
-  \end{column}
-  \begin{column}{0.47\textwidth}
+\maketutorialtitlepanel{%
     \begin{punchbox}
     \centering
     \[
@@ -92,11 +57,7 @@
       \end{aligned}
     \]
     \small One kernel links two coordinate descriptions.
-    \end{punchbox}
-  \end{column}
-  \end{columns}
-  \vfill
-  \centering{\tiny\color{black!55}AI tools were used to assist with formatting, organization, and clarification of the instructor's original notes.}
+    \end{punchbox}}
 \end{frame}
 
 % ----- 2. Roadmap -----
@@ -131,7 +92,7 @@ The central modeling choice is the \hi{measure with respect to which a force den
 % ----- 3. Coordinates -----
 \begin{frame}{Two coordinate descriptions of one system}
 \begin{columns}[T,onlytextwidth]
-  \begin{column}{0.49\textwidth}
+  \begin{column}{0.48\textwidth}
     \begin{block}{Eulerian description}
       \[
         \xvec\in\Omega\subset\mathbb{R}^{d},
@@ -141,7 +102,7 @@ The central modeling choice is the \hi{measure with respect to which a force den
       The fluid variables live on a fixed spatial domain.
     \end{block}
   \end{column}
-  \begin{column}{0.49\textwidth}
+  \begin{column}{0.48\textwidth}
     \begin{block}{Lagrangian description}
       \[
         \Xvec\in\mathcal U\subset\mathbb{R}^{k},
@@ -155,7 +116,7 @@ The central modeling choice is the \hi{measure with respect to which a force den
 
 \medskip
 \begin{punchbox}
-\(\mathcal U\) is a \hi{fixed material-coordinate domain}. It may be chosen as a reference configuration, but it need not equal the initial spatial configuration: \(\chivec(\Xvec,0)=\Xvec\) is not required.
+\(\mathcal U\) is a \hi{fixed material-coordinate domain}. It may be chosen as a reference configuration, but it need not equal the initial spatial configuration: \(\chivec(\Xvec,0)=\Xvec\) is not required (for a fiber or surface, \(k<d\), it is not even dimensionally possible).
 \end{punchbox}
 
 \smallskip
@@ -212,21 +173,23 @@ Calling \(\mathcal U\) a ``reference domain'' does not require \(\chivec(\Xvec,0
 % ----- 4. Visual coupling -----
 \begin{frame}{Coupling goes in both directions}
 \begin{columns}[T,onlytextwidth]
-  \begin{column}{0.49\textwidth}
+  \begin{column}{0.48\textwidth}
     \centering
     \includegraphics[height=0.50\textheight]{force-spread2.png}
 
     \hi{Spread force:} structure \(\longrightarrow\) fluid grid
 
-    {\scriptsize Figure from deck 1-2.}
+    {\scriptsize Figure from deck 1-2.}\\
+    {\tiny\color{DarkGray}Schematic: instructor's course notes.}
   \end{column}
-  \begin{column}{0.49\textwidth}
+  \begin{column}{0.48\textwidth}
     \centering
     \includegraphics[height=0.50\textheight]{vel-spread2.png}
 
     \hi{Interpolate velocity:} fluid grid \(\longrightarrow\) structure
 
-    {\scriptsize Figure from deck 1-2.}
+    {\scriptsize Figure from deck 1-2.}\\
+    {\tiny\color{DarkGray}Schematic: instructor's course notes.}
   \end{column}
 \end{columns}
 
@@ -430,9 +393,9 @@ This statement explains force spreading without imagining a point force at every
   \end{block}
   \end{column}
 \end{columns}
-
+\vspace{4pt}
 \begin{punchbox}
-The rigorous continuum starting point is the smooth-test-field identity on the previous summary slide.
+The rigorous continuum starting point is the smooth-test-field identity on the slide ``What the force-spreading formula means'' (four slides back), not the region identity on the previous slide.
 \end{punchbox}
 \end{frame}
 
@@ -441,7 +404,7 @@ The rigorous continuum starting point is the smooth-test-field identity on the p
 % ----- 7. Jacobian -----
 \begin{frame}{Where did the Jacobian go?}
 \begin{columns}[T,onlytextwidth]
-  \begin{column}{0.49\textwidth}
+  \begin{column}{0.48\textwidth}
   \begin{block}{Reference-measure density}
   If \(\Fvec_{\mathrm{ref}}\) is force per \(d\Xvec\), then
   \[
@@ -452,7 +415,7 @@ The rigorous continuum starting point is the smooth-test-field identity on the p
   No variable substitution is being made.
   \end{block}
   \end{column}
-  \begin{column}{0.49\textwidth}
+  \begin{column}{0.48\textwidth}
   \begin{block}{Current-measure density}
   For a volumetric map, \(d\xvec=J\,d\Xvec\), so the same force satisfies
   \[
@@ -646,10 +609,11 @@ Then spread the two contributions separately:
 \end{frame}
 
 % ----- 10. Unified versus partitioned -----
-\begin{frame}{Unified and partitioned weak formulations}
+\begin{frame}{Unified and partitioned weak formulations (side-by-side recap)}
 \small
+\soft{The previous two slides, placed side by side for comparison; the formulas are the same.}\par\smallskip
 \begin{columns}[T,onlytextwidth]
-  \begin{column}{0.49\textwidth}
+  \begin{column}{0.48\textwidth}
   \begin{block}{Unified force}
   Define one density \(\Fvec\) weakly by
   \[
@@ -663,7 +627,7 @@ Then spread the two contributions separately:
   Integration by parts shows that \(\Fvec\) packages both contributions.
   \end{block}
   \end{column}
-  \begin{column}{0.49\textwidth}
+  \begin{column}{0.48\textwidth}
   \begin{block}{Partitioned force}
   Keep \(\bm{G}\) and \(\bm{T}\) separate:
   \[
@@ -685,7 +649,7 @@ Then spread the two contributions separately:
 
 % ----- Units example -----
 \begin{frame}{Units check: an immersed curve in a 2-D fluid}
-Let the material label \(q\) be arclength along a one-dimensional structure, so that \(\bm X(q)\) is the current position of that material point, and let the two-dimensional fluid force density be
+Let the material label \(q\) be arclength along a one-dimensional structure, measured in its reference configuration so that the label is fixed in time, so that \(\bm X(q)\) is the current position of that material point, and let the two-dimensional fluid force density be
 \[
   \fvec(\xvec)=\int\Fvec(q)\,\delta\!\left(\xvec-\bm X(q)\right)\,dq .
 \]
@@ -705,7 +669,7 @@ and therefore
 \]
 
 \begin{punchbox}
-In a 2-D model this is force per unit area, equivalently force per unit out-of-plane depth in the associated 3-D interpretation.
+In a 2-D model this is force per unit area. If the 2-D model is read as a slice of an extruded 3-D problem, every force is additionally per unit out-of-plane depth: \([\Fvec]=\mathrm N/\mathrm m^2\) and \([\fvec]=\mathrm N/\mathrm m^3\), the familiar 3-D body-force density.
 \end{punchbox}
 \end{frame}
 
@@ -721,8 +685,8 @@ Assume first that the material coordinates have units of length. For a \(k\)-dim
 \]
 so \([\fvec]=\mathrm{N}/\mathrm{m}^{d}\).
 
-\medskip
-\begin{center}
+\vspace{2pt}
+{\centering
 \begin{tabular}{@{}llll@{}}
 \toprule
 Structure & \(k\) & Reference measure & Force-density units \\
@@ -731,9 +695,8 @@ Fiber & 1 & length & \(\mathrm{N}/\mathrm{m}\) \\
 Surface & 2 & area & \(\mathrm{N}/\mathrm{m}^{2}\) \\
 Volumetric solid & \(d\) & \(d\)-volume & \(\mathrm{N}/\mathrm{m}^{d}\) \\
 \bottomrule
-\end{tabular}
-\end{center}
-
+\end{tabular}\par}
+\vspace{4pt}
 \begin{punchbox}
 If the material labels are dimensionless, \(\Fvec\) instead has units of force per unit \hi{parameter measure}; any geometric scale factors are already part of that density or of the quadrature weight.
 \end{punchbox}
@@ -811,7 +774,7 @@ Let \(\xvec_{\bm{i}}\) be Eulerian grid points, \(\chivec_m=\chivec(\Xvec_m)\), 
 \begin{punchbox}
 The same kernel is necessary but not, by itself, the whole consistency statement. The Eulerian cell-volume factors and Lagrangian quadrature weights determine the two discrete inner products.
 \end{punchbox}
-
+\vspace{3pt}
 \small A finite-element IB method may evaluate \(\chivec\) and \(\Fvec\) at element quadrature points rather than only at structural nodes.
 \end{frame}
 
@@ -954,7 +917,9 @@ Together these identities give \(O(h^2)\) interpolation error for sufficiently s
 \end{frame}
 
 % ----- 15. Other kernel properties -----
-\begin{frame}{Keep the other kernel properties distinct}
+\begin{frame}{Keep the other kernel properties distinct (recap)}
+\small
+\soft{Recap of Properties 1 and 4, collected with smoothness so the four non-moment properties can be compared in one place.}
 \begin{description}
   \item[Compact support] Localizes the \emph{coupling stencil}. The support radius is a kernel choice (for example, two mesh widths for a four-point kernel).
   \item[Even symmetry] \(\phi(r)=\phi(-r)\) gives reflection symmetry. It does not make a tensor-product kernel exactly rotationally invariant.
@@ -1009,7 +974,7 @@ All of the following start from
 but their one-dimensional functions \(\phi\) make different compromises.
 
 \begin{itemize}\itemsep7pt
-  \item Three-point kernels use a smaller stencil.
+  \item Three-point kernels use a smaller stencil. \soft{(The Roma--Peskin--Berger kernel drops Peskin's even--odd condition and is meant for staggered MAC grids.)}
   \item Four-point kernels can combine exact low moments with greater smoothness.
   \item Simple analytic kernels may satisfy only a subset of Peskin's conditions.
   \item Wider kernels can target additional moments, smoother derivatives, or improved grid invariance.
@@ -1025,16 +990,17 @@ Compare kernels property by property; labels such as ``higher order'' or ``smoot
 \small
 Write \(M_0\) and \(M_1\) for the exact zeroth- and first-moment conditions.
 \begin{center}
-\begin{tabular}{@{}lccccc@{}}
+\begin{tabular}{@{}lcccccc@{}}
 \toprule
-Kernel & Support & \(M_0\) & \(M_1\) & \(C\) in \(\sum\phi^2=C\) & Class \\
+Kernel & Support & \(M_0\) & \(M_1\) & Even--odd & \(C\) in \(\sum\phi^2=C\) & Class \\
 \midrule
-Roma--Peskin--Berger 3-point & 3 & yes & yes & \(C=1/2\) & \(C^1\) \\
-Peskin 4-point & 4 & yes & yes & \(C=3/8\) & \(C^1\) \\
-Cosine 4-point & 4 & yes & \warn{no} & \(C=3/8\) & \(C^1\) \\
+Roma--Peskin--Berger 3-point & 3 & yes & yes & \warn{no} & \(C=1/2\) & \(C^1\) \\
+Peskin 4-point & 4 & yes & yes & yes & \(C=3/8\) & \(C^1\) \\
+Cosine 4-point & 4 & yes & \warn{no} & yes & \(C=3/8\) & \(C^1\) \\
 \bottomrule
 \end{tabular}
 \end{center}
+{\scriptsize Even--odd: \(\sum_{j\,\mathrm{even}}\phi(r-j)=\sum_{j\,\mathrm{odd}}\phi(r-j)=\tfrac12\) (deck 1-2). The three-point kernel drops it and is intended for staggered (MAC) grids (Peskin 2002, Sec.~6; Roma et al.\ 1999).\par}
 
 \medskip
 For the cosine kernel,
@@ -1053,7 +1019,7 @@ The cosine kernel \hi{does satisfy} the constant sum-of-squares identity, but it
 
 % ----- Wider and higher-order kernels -----
 \begin{frame}{Higher-order and wider-support kernels}
-Examples include six-point IB kernels and B-spline-based families.
+Examples include six-point IB kernels (e.g.\ Bao, Kaye, and Peskin 2016) and B-spline-based families.
 
 \begin{columns}[T,onlytextwidth]
   \begin{column}{0.48\textwidth}
@@ -1181,6 +1147,8 @@ A.~M. Roma, C.~S. Peskin, and M.~J. Berger,
 \emph{J. Comput. Phys.} 153 (1999), 509--534.
 \href{https://doi.org/10.1006/jcph.1999.6293}{doi:10.1006/jcph.1999.6293}.
 \end{thebibliography}
+\vspace{2pt}
+\soft{\scriptsize Adapted from: spreading/interpolation and kernel postulates after Peskin (2002), Secs.~5--6; the strong and weak elastic-force forms (\(\operatorname{Div}\Pten\) and \(-\Pten\Nvec\)) after Griffith and Luo (2017). Additional references at the end of the deck.}
 \end{frame}
 
 % =====================================================================
@@ -1251,9 +1219,11 @@ With a regularized \(\delta_h\), classical Fubini applies under ordinary integra
 \begin{punchbox}
 This \(C^1\), nonnegative kernel satisfies the zeroth and first moment conditions and \(\sum_j\phi_3(r-j)^2=1/2\), with support across three grid points for generic offsets.
 \end{punchbox}
+\soft{\small It does \emph{not} satisfy the even--odd condition (at \(r=0\) the even sum is \(\phi_3(0)=2/3\)); Peskin (2002, Sec.~6) obtains it by dropping that condition and recommends it only with schemes, such as the staggered MAC scheme, that lack the \(D^0\) null-space problem.}
 \end{frame}
 
 \begin{frame}{Appendix: checking the cosine kernel}
+\setlength{\abovedisplayskip}{5pt}\setlength{\belowdisplayskip}{5pt}%
 For
 \[
   \phi_{\cos}(r)=
@@ -1272,24 +1242,55 @@ However,
 \[
   \sum_j(r-j)\phi_{\cos}(r-j)\ne0
 \]
-for a generic offset \(r\).
+for a generic offset \(r\) (computed explicitly on the next slide).
 
 \begin{punchbox}
 The example shows why zeroth moment, first moment, and constant sum of squares must be checked separately.
 \end{punchbox}
 \end{frame}
 
+\begin{frame}{Appendix: the cosine kernel's first moment, explicitly}
+For \(0\le r<1\) the four contributing offsets are \(s=r+1,\ r,\ r-1,\ r-2\). With \(\theta=\pi r/2\), the cosines are \(-\sin\theta,\ \cos\theta,\ \sin\theta,\ -\cos\theta\), so
+\[
+  \sum_s s=4r-2,\qquad \sum_s s\cos\frac{\pi s}{2}=2\cos\theta-2\sin\theta,
+\]
+and therefore
+\[
+  \boxed{M_1(r)=\sum_j(r-j)\phi_{\cos}(r-j)=r-\tfrac12+\tfrac12\Bigl(\cos\tfrac{\pi r}{2}-\sin\tfrac{\pi r}{2}\Bigr).}
+\]
+\begin{itemize}\itemsep4pt
+  \item \(M_1\) vanishes only at \(r=0,\ \tfrac12,\ 1\) and is odd about \(r=\tfrac12\).
+  \item Its extremes are \(|M_1|\approx0.021\) (in units of \(h\)) at \(r\approx0.21\) and \(0.79\), where \(\sin\theta+\cos\theta=4/\pi\).
+  \item The same bookkeeping with the squares gives \(\tfrac1{16}(4+2)=\tfrac38\), confirming the sum-of-squares value.
+\end{itemize}
+\end{frame}
+
 \begin{frame}[plain]
 \centering
 \vfill
-{\Large\bfseries Questions?}
+{\heading{Questions?}\par}
 
 \medskip
-{\color{blue!55!black}\rule{0.34\textwidth}{0.8pt}}
+{\color{DarkGray}\rule{0.34\textwidth}{0.8pt}}
 
 \medskip
 {\small Integral transforms and regularized delta functions}
 \vfill
+\end{frame}
+
+% ----- Final references (appendix, kernel catalog, figures) -----
+\begin{frame}{References (continued)}
+\small
+\begin{itemize}\itemsep5pt
+  \item C.~S. Peskin, ``Numerical analysis of blood flow in the heart,'' \emph{J. Comput. Phys.} 25 (1977), 220--252.
+  \href{https://doi.org/10.1016/0021-9991(77)90100-0}{doi:10.1016/0021-9991(77)90100-0}.
+  \item C.~S. Peskin (2002), \emph{Acta Numerica} 11, Sec.~6: four-point kernel (eq.~6.27), cosine approximation (eq.~6.28), and the three-point variant; full entry under ``Primary references.''
+  \item A.~M. Roma, C.~S. Peskin, and M.~J. Berger (1999): three-point kernel used with the staggered MAC scheme; full entry under ``Primary references.''
+  \item F.~H. Harlow and J.~E. Welch, ``Numerical calculation of time-dependent viscous incompressible flow of fluid with free surface,'' \emph{Phys. Fluids} 8 (1965), 2182--2189 (MAC grid).
+  \href{https://doi.org/10.1063/1.1761178}{doi:10.1063/1.1761178}.
+  \item Y. Bao, J. Kaye, and C.~S. Peskin, ``A Gaussian-like immersed-boundary kernel with three continuous derivatives and improved translational invariance,'' \emph{J. Comput. Phys.} 316 (2016), 139--144 (six-point kernel).
+  \item Figures: spreading and interpolation schematics from deck 1-2 (instructor's course notes).
+\end{itemize}
 \end{frame}
 
 \end{document}

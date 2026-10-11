@@ -20,7 +20,7 @@
 \item \textbf{What is the order of convergence of the immersed boundary method?}
 
 \textit{Sample answer:}  
-There is no single order for every IB formulation, solution variable, or error norm. For a classical regularized-delta method with a smooth enough solution away from the interface, velocity is often first-order accurate globally and may recover the underlying solver's second-order pointwise accuracy away from the interface. Pressure, stress, and traction can converge more slowly near an interface because their continuum limits may be discontinuous. State the quantity, norm, kernel, and refinement path when reporting an order.
+There is no single order for every IB formulation, solution variable, or error norm. For a classical regularized-delta method with a smooth enough solution away from the interface, velocity is often first-order accurate globally and may recover the underlying solver's second-order pointwise accuracy away from the interface. Pressure, stress, and traction can converge more slowly near an interface because their continuum limits may be discontinuous. State the quantity, norm, kernel, and refinement path when reporting an order. (Griffith and Peskin, J. Comput. Phys. 208 (2005) 75--105, show that formally second-order IB schemes attain higher-order rates only for problems whose solutions are sufficiently smooth; with singular interfacial forces, first-order convergence of the velocity in the maximum norm is the typical observation.)
 
 \item \textbf{What is the order of convergence of the fluid solver you are using?}
 
@@ -161,5 +161,17 @@ Other approaches include body-fitted arbitrary Lagrangian--Eulerian (ALE) method
 IBM keeps a fixed Eulerian grid, avoids repeated body-fitted remeshing, and couples naturally to moving or highly deformable structures. It also supports efficient Cartesian-grid solvers and mature software. The tradeoff is a regularized interface and often lower accuracy for pressure, traction, or wall quantities; a sharp-interface or body-fitted method may be preferable when those quantities dominate the application.
 
 \end{enumerate}
+
+\section*{Sources}
+\small
+These model answers draw on C.~S. Peskin, The immersed boundary method, \emph{Acta Numerica} 11 (2002) 479--517
+(kernel properties, the $\Delta q\approx h/2$ rule of thumb, adjoint spreading and interpolation);
+B.~E. Griffith and C.~S. Peskin, On the order of accuracy of the immersed boundary method,
+\emph{J. Comput. Phys.} 208 (2005) 75--105 (convergence rates);
+B.~E. Griffith and X. Luo, \emph{Int. J. Numer. Methods Biomed. Eng.} 33 (2017) e2888 (quadrature-based coupling in IBFE);
+R. Mittal and G. Iaccarino, Immersed boundary methods, \emph{Annu. Rev. Fluid Mech.} 37 (2005) 239--261
+(sharp-interface and turbulent-flow variants); and
+B.~E. Griffith and N.~A. Patankar, Immersed methods for fluid--structure interaction,
+\emph{Annu. Rev. Fluid Mech.} 52 (2020) 421--448 (implicit coupling, volume conservation, alternatives).
 
 \end{document}

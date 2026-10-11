@@ -1,28 +1,16 @@
 \documentclass[aspectratio=169,11pt]{beamer}
 
-% Match the visual language of the SIAM Waves talk.
-\usetheme{Boadilla}
-\usecolortheme{seahorse}
-\useinnertheme{rectangles}
-\useoutertheme{infolines}
+% Shared style, ported from the UF Animal Sciences 2026 talk (ibfe-tutorials.sty at the repo root).
+\makeatletter\def\input@path{{./}{../}}\makeatother
+\usepackage{ibfe-tutorials}
 
-\setbeamercolor{structure}{fg=blue!55!black}
-\setbeamercolor{title}{fg=white,bg=blue!55!black}
-\setbeamercolor{frametitle}{fg=blue!55!black}
-\setbeamercolor{block title}{bg=blue!12,fg=blue!55!black}
-\setbeamercolor{block body}{bg=blue!4}
-\setbeamertemplate{navigation symbols}{}
-\setbeamerfont{frametitle}{series=\bfseries,size=\large}
-\setbeamerfont{title}{series=\bfseries,size=\Large}
-
-\usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
-\DeclareFontShape{T1}{cmss}{b}{n}{<->ssub*cmss/bx/n}{}
 \usepackage{amsmath, amssymb, bm}
 \usepackage{graphicx}
+% These prefixes allow compilation from either the repository root or this folder.
+\graphicspath{{./}{../}{}}
 \usepackage{xcolor}
 \usepackage{hyperref}
-\hypersetup{colorlinks=true,urlcolor=blue!55!black}
 
 % ---------- Macros ----------
 \newcommand{\R}{\mathbb{R}}
@@ -31,6 +19,8 @@
 \newcommand{\Rey}{\mathrm{Re}}
 \newcommand{\nuu}{\nu}
 \newcommand{\tmark}[1]{\hfill{\scriptsize\textcolor{gray}{#1}}}
+% The title slide uses \maketutorialtitlepanel{...} from ibfe-tutorials.sty,
+% which places arbitrary content (here a block) in the right-hand column.
 
 % Uncomment if you want speaker notes:
 % \usepackage{pgfpages}
@@ -40,32 +30,16 @@
 \subtitle{Transition, spectra, examples, data, and computation}
 \author[Miller]{Laura A. Miller}
 \institute[UArizona]{Department of Mathematics, University of Arizona}
-\date{}
+\date{IBFE Tutorials \textbullet\ Module 5\\[3pt]
+  Adapted from a \href{https://cassyni.com/events/HsafxyMiJvA1JVCU9eef3T/seminar}{lecture by Steven L. Brunton}.}
 
 \begin{document}
 % -------------------------
 \begin{frame}[plain]
-  \begin{beamercolorbox}[sep=10pt,center]{title}
-    {\bfseries\Large Turbulence through canonical flows}\\[3pt]
-    {\normalsize Transition, spectra, examples, data, and computation}
-  \end{beamercolorbox}
-  \vspace{1.35em}
-  \begin{columns}[T,onlytextwidth]
-  \begin{column}{0.55\textwidth}
-    \textbf{\large Laura A. Miller}\\[4pt]
-    Department of Mathematics\\
-    University of Arizona\\[12pt]
-    {\small IBFE Tutorials}
-  \end{column}
-  \begin{column}{0.45\textwidth}
-    \begin{block}{Guiding idea}
-    Canonical flows isolate mechanisms that recur in more complicated systems.
-    \end{block}
-  \end{column}
-  \end{columns}
-  \vfill
-  {\scriptsize Adapted from a \href{https://cassyni.com/events/HsafxyMiJvA1JVCU9eef3T/seminar}{lecture by Steven L. Brunton}.}
-  \\[2pt]{\tiny AI tools were used to assist with formatting, organization, and clarification of the instructor's original notes.}
+\maketutorialtitlepanel{%
+  \begin{block}{Guiding idea}
+  Canonical flows isolate mechanisms that recur in more complicated systems.
+  \end{block}}
 \end{frame}
 
 % -------------------------
@@ -83,7 +57,7 @@
 % -------------------------
 \begin{frame}{Why turbulence is hard}
 \begin{columns}[T,onlytextwidth]
-\column{0.56\textwidth}
+\column{0.54\textwidth}
 \begin{itemize}
   \item Turbulence is a \emph{multiscale}, nonlinear dynamics problem whose observed state can depend on disturbance history.
   \item Small perturbations can grow, interact, and reorganize the flow.
@@ -91,13 +65,13 @@
   \item Predicting transition and statistics (drag, mixing, heat transfer, intermittency) is still challenging.
 \end{itemize}
 
-\column{0.44\textwidth}
+\column{0.43\textwidth}
 \includegraphics[width=\textwidth]{pictures/5-1/turbulence.png}
 
 \vspace{0.35em}
-{\scriptsize Source: to be confirmed.}
+{\scriptsize Quotation graphic (stock ``quote image''; originating website to be confirmed). The wording is a popular paraphrase attributed to R.~P. Feynman; his own text says turbulence is an old, unsolved problem common to many fields (\emph{Feynman Lectures on Physics}, Vol.~I, Ch.~3).\par}
 
-{\footnotesize The \emph{Feynman Lectures} (Vol.\ II, Ch.~41) give a classic discussion of why real viscous flows are difficult to predict.}
+{\footnotesize The \emph{Feynman Lectures} (Vol.\ II, Ch.~41) give a classic discussion of why real viscous flows are difficult to predict.\par}
 \end{columns}
 \end{frame}
 
@@ -116,7 +90,7 @@ A small set of ``canonical'' configurations show up \emph{everywhere}.  Learn th
 \column{0.4\textwidth}
 \includegraphics[width=0.75\textwidth]{pictures/5-1/album.png}
 
-{\scriptsize M. Van Dyke, \emph{An Album of Fluid Motion} (Parabolic Press, 1982), cover.}
+{\scriptsize M. Van Dyke, \emph{An Album of Fluid Motion} (Parabolic Press, 1982), cover.\par}
 \end{columns}
 \end{frame}
 
@@ -143,16 +117,17 @@ A small set of ``canonical'' configurations show up \emph{everywhere}.  Learn th
 \begin{frame}{Pipe flow}
 \begin{columns}[T,onlytextwidth]
 \column{0.5\textwidth}
+\small
 \begin{itemize}
   \item Classic internal flow: long straight pipe, pressure-driven.
-  \item The Hagen--Poiseuille solution exists for every \(\mathrm{Re}\) and is linearly stable (proved for axisymmetric disturbances; computed stable to \(\mathrm{Re}=10^{7}\), Meseguer \& Trefethen 2003), yet finite-amplitude disturbances can trigger turbulence.
+  \item The Hagen--Poiseuille solution exists for every \(\mathrm{Re}\) and is linearly stable (proved for axisymmetric disturbances; computed stable to \(\mathrm{Re}=10^{7}\), Meseguer \& Trefethen 2003), yet finite-amplitude disturbances can trigger turbulence. (Their $\mathrm{Re}$ uses centerline speed and radius, which for the parabolic profile equals $U_bD/\nu$.)
   \item Transition often involves localized ``puffs'' and ``slugs'' (intermittency).
   \item Active control is possible: carefully designed perturbations can suppress turbulence (drag reduction).
 \end{itemize}
 \column{0.45\textwidth}
 \includegraphics[width=\textwidth]{pictures/5-1/t_0300.jpg}
 
-{\scriptsize Source: to be confirmed.}
+{\tiny Still from S.~L. Brunton's canonical-flows lecture (linked on the title slide); the embedded pipe-flow dye visualization is credited on screen to an APS Physics video on YouTube (full URL to be confirmed).\par}
 \end{columns}
 \end{frame}
 
@@ -172,7 +147,8 @@ A small set of ``canonical'' configurations show up \emph{everywhere}.  Learn th
 \includegraphics[width=0.7\textwidth]{pictures/5-1/turbulence-pipe.png}
 
 \vspace{0.35em}
-{\footnotesize Source: Graham, M. Turbulence spreads like wildfire. Nature 526, 508–509 (2015).}
+{\footnotesize Source: Graham, M. Turbulence spreads like wildfire. Nature 526, 508–509 (2015).\par}
+{\tiny\color{DarkGray} M.~D. Graham's News \& Views commentary (\href{https://doi.org/10.1038/526508a}{doi:10.1038/526508a}) on D. Barkley et al., ``The rise of fully turbulent flow,'' \emph{Nature} \textbf{526}, 550--553 (2015).\par}
 \end{frame}
 
 %-------------------
@@ -193,7 +169,8 @@ E(k)=C_K\varepsilon^{2/3}k^{-5/3}.
 \includegraphics[width=\textwidth]{pictures/5-1/1-goingwiththe.jpg}
 
 \vspace{0.25em}
-{\scriptsize Source image: \href{https://phys.org/news/2020-01-insights-mysterious-fluid-motions.html}{Phys.org (2020)}.}
+{\scriptsize Source image: \href{https://phys.org/news/2020-01-insights-mysterious-fluid-motions.html}{Phys.org (2020)}.\par}
+{\tiny\color{DarkGray} The news item reports work of the Chakraborty group (OIST) on spectra of puffs and slugs; see also R.~T. Cerbus, C.-C. Liu, G. Gioia \& P. Chakraborty, \emph{Phys.\ Rev.\ Lett.}\ \textbf{120}, 054502 (2018). Original figure credit as given in the news item (to be confirmed).\par}
 \end{columns}
 
 \end{frame}
@@ -215,7 +192,7 @@ E(k)=C_K\varepsilon^{2/3}k^{-5/3}.
 \column{0.45\textwidth}
 \includegraphics[width=\textwidth]{pictures/5-1/t_0360.jpg}
 
-{\scriptsize Source: to be confirmed.}
+{\tiny Still from S.~L. Brunton's canonical-flows lecture (linked on the title slide); embedded wake images credited on screen to B. Herrmann, P. Oswald, R. Semaan \& S.~L. Brunton, \emph{Commun.\ Phys.}\ (2020) (``Modeling synchronization in forced turbulent oscillator flows''; open access, CC BY 4.0; details to be confirmed).\par}
 \end{columns}
 \end{frame}
 
@@ -223,7 +200,7 @@ E(k)=C_K\varepsilon^{2/3}k^{-5/3}.
 % -------------------------
 \begin{frame}{Boundary layer}
 \begin{columns}[T,onlytextwidth]
-\column{0.56\textwidth}
+\column{0.54\textwidth}
 \begin{itemize}
   \item Near a wall, no-slip forces a thin region of strong shear: the boundary layer.
   \item Key questions:
@@ -234,26 +211,30 @@ E(k)=C_K\varepsilon^{2/3}k^{-5/3}.
   \end{itemize}
   \item Boundary layers dominate drag and heat transfer on vehicles, buildings, and animals.
 \end{itemize}
-\column{0.44\textwidth}
+\column{0.43\textwidth}
 \includegraphics[width=\textwidth]{pictures/5-1/turbulent-boundary.png}
 
-{\scriptsize Smoke visualization of a turbulent boundary layer; Van Dyke, \emph{An Album of Fluid Motion} (turbulent boundary layer plate; also reproduced in Dou 2018).}
+{\scriptsize Smoke visualization of a turbulent boundary layer; Van Dyke, \emph{An Album of Fluid Motion} (turbulent boundary layer plate; also reproduced in Dou 2018).\par}
+{\tiny\color{DarkGray} Photographer (likely R.~E. Falco) and plate number to be confirmed. Note the sharp, convoluted edge between turbulent (smoke-filled) and irrotational outer fluid: boundary-layer intermittency.\par}
 \end{columns}
 \end{frame}
 
 % -------------------------
 \begin{frame}{Boundary layer: spatial development}
 \centering
-\includegraphics[width=0.92\textwidth]{pictures/5-1/boundary-layer.png}
+\includegraphics[width=0.84\textwidth]{pictures/5-1/boundary-layer.png}
 \vspace{0.35em}
 
-{\scriptsize Boundary-layer schematic after GRAS Sound \& Vibration, \emph{The boundary layer---laminar and turbulent flows} (blog; source to confirm), \url{https://www.grasacoustics.com/blog/aerodynamic-measurements-components-of-the-boundary-layer}.}
+{\scriptsize Boundary-layer schematic after GRAS Sound \& Vibration, \emph{The boundary layer---laminar and turbulent flows} (blog; source to confirm), \url{https://www.grasacoustics.com/blog/aerodynamic-measurements-components-of-the-boundary-layer}.\par}
+
+\vspace{0.3em}
+{\footnotesize Reading the figure: the boundary-layer thickness $\delta$ grows as $\delta\propto x/\Rey_x^{1/2}$ in the laminar region (Blasius) and faster, roughly $\delta\propto x/\Rey_x^{1/5}$, once turbulent; on a smooth flat plate transition typically occurs for $\Rey_x=U_0x/\nu\sim3\times10^5$--$3\times10^6$, depending on free-stream disturbances. The ``no aerodynamic noise'' label is a simplification: laminar layers radiate far less, not nothing.\par}
 \end{frame}
 
 % -------------------------
 \begin{frame}{Cavity flow}
 \begin{columns}[T,onlytextwidth]
-\column{0.58\textwidth}
+\column{0.56\textwidth}
 \begin{itemize}
   \item In an \textbf{open engineering cavity}, a shear layer spans the opening; pressure/acoustic feedback can create resonant oscillations.
   \item An intracranial aneurysm is instead a \textbf{cavity-like recirculating flow}: pulsatility, geometry, and vessel-wall conditions shape its hemodynamics.
@@ -264,9 +245,9 @@ E(k)=C_K\varepsilon^{2/3}k^{-5/3}.
     \item flow-induced vibration.
   \end{itemize}
 \end{itemize}
-\column{0.42\textwidth}
+\column{0.41\textwidth}
 \includegraphics[width=\textwidth]{pictures/5-1/aneurysm.png}
-{\footnotesize Source: Boniforti MA, Magini R, Orosco Salinas T. Hemodynamic Investigation of the Flow Diverter Treatment of Intracranial Aneurysm. Fluids. 2023; 8(7):189. }
+{\footnotesize Source: Boniforti MA, Magini R, Orosco Salinas T. Hemodynamic Investigation of the Flow Diverter Treatment of Intracranial Aneurysm. Fluids. 2023; 8(7):189.\par}
 \end{columns}
 \end{frame}
 
@@ -279,9 +260,19 @@ E(k)=C_K\varepsilon^{2/3}k^{-5/3}.
 % -------------------------
 \begin{frame}{Jets, mixing layers, and separated flows (overview)}
 \begin{itemize}\itemsep4pt
-  \item \textbf{Round jet:} downstream of the potential core the mean profile becomes \emph{self-similar}, the half-width grows roughly linearly with a spreading angle of order $10$--$12^\circ$, and Kelvin--Helmholtz roll-up of the annular shear layer seeds the initial vortex rings.
-  \item \textbf{Plane mixing layer:} two streams of different speed produce the Brown--Roshko coherent spanwise rollers, which pair and merge; the growth rate scales with the velocity ratio $(U_1-U_2)/(U_1+U_2)$ rather than with $\mathrm{Re}$.
-  \item \textbf{Separated flows:} a backward-facing step separates at a fixed geometric edge; at high $\mathrm{Re}$ the mean reattachment length is about $6$--$7$ step heights, and the shear layer, recirculation bubble, and reattachment zone each have their own statistics.
+  \item \textbf{Round jet:} downstream of the potential core the mean profile becomes \emph{self-similar}, the half-width grows roughly linearly, and Kelvin--Helmholtz roll-up of the annular shear layer seeds the initial vortex rings. The half-velocity radius grows as $\mathrm dr_{1/2}/\mathrm dx\approx0.09$--$0.10$ (about $5$--$6^\circ$; Pope 2000, \S5.1); the visible turbulent edge spreads at a half-angle of order $10$--$12^\circ$.
+  \item \textbf{Plane mixing layer:} two streams of different speed produce the Brown--Roshko coherent spanwise rollers, which pair and merge; at high $\mathrm{Re}$ the thickness grows linearly, $\mathrm d\delta/\mathrm dx\propto\lambda=(U_1-U_2)/(U_1+U_2)$, and is essentially independent of $\mathrm{Re}$ (and only weakly dependent on the density ratio).
+\end{itemize}
+
+\begin{punchbox}
+\textbf{Self-similar} means one profile shape after rescaling: for the round jet $\bar U(r,x)/U_0(x)=f\big(r/r_{1/2}(x)\big)$, with centreline velocity $U_0(x)\propto 1/x$ and $r_{1/2}\propto x$, so the momentum flux $\propto U_0^2r_{1/2}^2$ stays constant (Pope 2000, \S5.1).
+\end{punchbox}
+\end{frame}
+
+% ------------------------- (split from the previous frame)
+\begin{frame}{Overview, continued: separated and combined flows}
+\begin{itemize}\itemsep4pt
+  \item \textbf{Separated flows:} a backward-facing step separates at a fixed geometric edge; at high $\mathrm{Re}$ the mean reattachment length is about $6$--$7$ step heights ($7\pm1$ in the review of Eaton \& Johnston 1981, varying with expansion ratio and the incoming boundary layer; laminar steps reattach at an $\mathrm{Re}$-dependent distance), and the shear layer, recirculation bubble, and reattachment zone each have their own statistics.
   \item \textbf{Combinations:} real configurations superpose these---a jet issuing into a cavity, a wake feeding a mixing layer, a step downstream of a boundary layer.
   \item \textbf{Multi-scale physics:} geometry sets the large scales; viscosity sets the small ones. The gap between them is what makes prediction expensive.
 \end{itemize}
@@ -290,7 +281,7 @@ E(k)=C_K\varepsilon^{2/3}k^{-5/3}.
 % -------------------------
 \begin{frame}{Open data: turbulence databases}
 \begin{columns}[T,onlytextwidth]
-\column{0.57\textwidth}
+\column{0.55\textwidth}
 \begin{itemize}
   \item Public datasets let you test ideas without running a massive DNS yourself.
   \item \href{https://turbulence.pha.jhu.edu/}{Example: Johns Hopkins Turbulence Databases (JHTDB)}
@@ -300,10 +291,10 @@ E(k)=C_K\varepsilon^{2/3}k^{-5/3}.
     \item great for teaching statistics, structure functions, spectra, and coherent-structure detection
   \end{itemize}
 \end{itemize}
-\column{0.43\textwidth}
+\column{0.42\textwidth}
 \includegraphics[width=\textwidth]{pictures/5-1/JHU-dataset.png}
 
-{\scriptsize Johns Hopkins Turbulence Databases, \href{https://turbulence.pha.jhu.edu/}{turbulence.pha.jhu.edu}.}
+{\scriptsize Johns Hopkins Turbulence Databases, \href{https://turbulence.pha.jhu.edu/}{turbulence.pha.jhu.edu}.\par}
 \end{columns}
 \end{frame}
 
@@ -323,7 +314,7 @@ E(k)=C_K\varepsilon^{2/3}k^{-5/3}.
 \column{0.44\textwidth}
 \includegraphics[width=\textwidth]{pictures/5-1/nek5000-1000x500.jpg}
 
-{\scriptsize Nek5000 project banner image, Argonne National Laboratory, \href{https://nek5000.mcs.anl.gov/}{nek5000.mcs.anl.gov}.}
+{\scriptsize Nek5000 project banner image, Argonne National Laboratory, \href{https://nek5000.mcs.anl.gov/}{nek5000.mcs.anl.gov}.\par}
 \end{columns}
 \end{frame}
 
@@ -348,6 +339,23 @@ E(k)=C_K\varepsilon^{2/3}k^{-5/3}.
   \item R. H. Kraichnan, ``Inertial ranges in two-dimensional turbulence,'' \emph{Phys. Fluids} \textbf{10} (1967), 1417--1423. \href{https://doi.org/10.1063/1.1762301}{doi:10.1063/1.1762301}.
   \item H. Schlichting and K. Gersten, \emph{Boundary-Layer Theory}, 9th ed., Springer (2017).
   \item Official resources: \href{https://turbulence.pha.jhu.edu/}{JHTDB}, \href{https://openfoam.org/}{OpenFOAM Foundation}, and \href{https://nek5000.mcs.anl.gov/}{Nek5000}.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Selected references and source notes (continued)}
+\scriptsize
+\begin{itemize}
+  \item S. L. Brunton, lecture on canonical turbulent flows (source of the slide sequence and of the two lecture stills), \href{https://cassyni.com/events/HsafxyMiJvA1JVCU9eef3T/seminar}{Cassyni seminar page}.
+  \item M. Van Dyke, \emph{An Album of Fluid Motion}, Parabolic Press (1982).
+  \item S. B. Pope, \emph{Turbulent Flows}, Cambridge University Press (2000), Ch.~5 (jets and mixing layers) and Ch.~7 (wall flows).
+  \item A. Meseguer and L. N. Trefethen, ``Linearized pipe flow to Reynolds number $10^7$,'' \emph{J. Comput. Phys.} \textbf{186} (2003), 178--197. \href{https://doi.org/10.1016/S0021-9991(03)00029-9}{doi:10.1016/S0021-9991(03)00029-9}.
+  \item D. Barkley, B. Song, V. Mukund, G. Lemoult, M. Avila, and B. Hof, ``The rise of fully turbulent flow,'' \emph{Nature} \textbf{526} (2015), 550--553. \href{https://doi.org/10.1038/nature15701}{doi:10.1038/nature15701}; commentary: M. D. Graham, \emph{Nature} \textbf{526} (2015), 508--509.
+  \item G. L. Brown and A. Roshko, ``On density effects and large structure in turbulent mixing layers,'' \emph{J. Fluid Mech.} \textbf{64} (1974), 775--816. \href{https://doi.org/10.1017/S002211207400190X}{doi:10.1017/S002211207400190X}.
+  \item J. K. Eaton and J. P. Johnston, ``A review of research on subsonic turbulent flow reattachment,'' \emph{AIAA J.} \textbf{19} (1981), 1093--1100. \href{https://doi.org/10.2514/3.60048}{doi:10.2514/3.60048}.
+  \item B. Herrmann, P. Oswald, R. Semaan, and S. L. Brunton, ``Modeling synchronization in forced turbulent oscillator flows,'' \emph{Commun. Phys.} \textbf{3} (2020), 195 (wake images in the lecture still).
+  \item R. T. Cerbus, C.-C. Liu, G. Gioia, and P. Chakraborty, ``Kolmogorovian turbulence in transitional pipe flows,'' \emph{Phys. Rev. Lett.} \textbf{120} (2018), 054502.
+  \item M. A. Boniforti, R. Magini, and T. Orosco Salinas, ``Hemodynamic investigation of the flow diverter treatment of intracranial aneurysm,'' \emph{Fluids} \textbf{8} (2023), 189 (open access).
+  \item Remaining image credits (Phys.org, GRAS, JHTDB, Nek5000) are on the slides where they appear.
 \end{itemize}
 \end{frame}
 \end{document}

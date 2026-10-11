@@ -55,11 +55,12 @@ a mixed (spatial $\times$ material) tensor.
 \item \textbf{Reference momentum balance: State and interpret the strong form on $B_0$.}\\
 \textbf{Sample answer:} For a stand-alone solid, the reference strong form is
 \[
-\rho_0(X)\,\ddot{\chi}(X,t)=\operatorname{Div}_X P(X,t) + B(X,t)
+\rho_0(X)\,\ddot{\chi}(X,t)=\operatorname{Div}_X P(X,t) + G(X,t)
 \qquad\text{in }B_0.
 \]
-Here $\rho_0$ is reference density, $\operatorname{Div}_X P$ is internal force per reference volume, and $B$ is a body force per
-reference volume (e.g.\ gravity or other prescribed forcing). In the common neutrally buoyant IBFE formulation,
+Here $\rho_0$ is reference density, $\operatorname{Div}_X P$ is internal force per reference volume, and $G$ is a body force per
+reference volume (e.g.\ gravity or other prescribed forcing; written $G$ as in deck 4-3 so that $B_0$ stays the reference
+domain and $B$ the left Cauchy--Green tensor, and called $b_0$ in the 4-2 solids questions). In the common neutrally buoyant IBFE formulation,
 the Eulerian momentum equation carries the inertia, so this separate solid-inertia equation is a useful balance-law bridge,
 not an additional equation solved for the same material.
 
@@ -70,7 +71,7 @@ $\int_{\partial V_0} PN\, dA = \int_{V_0} \nabla_X\cdot P \, dV$. This shows $\n
 
 \item \textbf{Weak form derivation: Starting from strong form, derive the weak form (structure side).}\\
 \textbf{Sample answer:} Multiply the strong form by a smooth test function $\psi(X)$ and integrate over $B_0$:
-$\int_{B_0}\rho_0 \ddot{\chi}\cdot \psi\, dV = \int_{B_0} (\nabla_X\cdot P)\cdot \psi\, dV + \int_{B_0} B\cdot \psi\, dV$.
+$\int_{B_0}\rho_0 \ddot{\chi}\cdot \psi\, dV = \int_{B_0} (\nabla_X\cdot P)\cdot \psi\, dV + \int_{B_0} G\cdot \psi\, dV$.
 Then use the identity $\nabla_X\cdot(P^T\psi)=(\nabla_X\cdot P)\cdot\psi + P:\nabla_X\psi$ and integrate by parts to obtain
 \[
 \int_{B_0} (\nabla_X\cdot P)\cdot \psi\, dV
@@ -83,16 +84,19 @@ Substitute back to get the weak form, including any boundary traction term.
 ($PN=0$ on $\partial B_0$), or if the material domain has no boundary. For an immersed volumetric solid, however,
 $PN$ generally represents elastic transmission to the surrounding fluid and should not simply be discarded.
 The unified IBFE weak force packages the associated surface force $-PN$ together with the interior force.
+In Eulerian terms, $-PN$ is the reference-configuration form of the surface layer in
+$\nabla\cdot(\sigma\,\mathbf{1}_{B_t})=(\nabla\cdot\sigma)\,\mathbf{1}_{B_t}-(\sigma n)\,\delta_{\partial B_t}$,
+where $\mathbf{1}_{B_t}$ is the indicator of the solid and $n$ the outward normal; it is not a Newton's-third-law reaction.
 
 \item \textbf{Defining the Lagrangian force density $F$: What does ``define by duality'' mean here?}\\
 \textbf{Sample answer:} Instead of computing $\operatorname{Div}_X P$ pointwise, define a force density $\mathcal F(X,t)$ so that for all
 test functions $\psi$,
 \[
 \int_{B_0} \mathcal F\cdot \psi\, dV
-= -\int_{B_0} P:\nabla_X\psi\, dV + \int_{B_0} B\cdot \psi\, dV
+= -\int_{B_0} P:\nabla_X\psi\, dV + \int_{B_0} G\cdot \psi\, dV
 \]
 This unified identity is equivalent, in the distributional sense, to combining the interior density
-$\operatorname{Div}_X P+B$ with the boundary transmission force $-PN$; no extra $PN$ term is added to this
+$\operatorname{Div}_X P+G$ with the boundary transmission force $-PN$; no extra $PN$ term is added to this
 particular definition. Independently prescribed external tractions would add their own boundary work.
 The symbol $\mathcal F$ distinguishes this force density from the deformation gradient $F_\chi$.
 
@@ -117,7 +121,7 @@ $P_a=J\sigma_aF_\chi^{-T}=J\,T\,a\otimes f_0$. This represents tension along the
 into the weak form. A model using the unit current direction $a/\lVert a\rVert$ has different stretch factors, so the
 meaning and calibration of $T$ must be stated with the chosen convention.
 
-\item \textbf{Worked example: uniaxial stretch (prescribed axial deformation). Given $\chi(X)=(\lambda X_1, X_2, X_3)$, compute $F_\chi$, $J$, $C$, $E$.}\\
+\item \textbf{Worked example: uniaxial stretch (prescribed axial deformation).\newline Given $\chi(X)=(\lambda X_1, X_2, X_3)$, compute $F_\chi$, $J$, $C$, $E$.}\\
 \textbf{Sample answer:} $F_\chi=\mathrm{diag}(\lambda,1,1)$, $J=\lambda$.
 $C=F_\chi^T F_\chi=\mathrm{diag}(\lambda^2,1,1)$.
 $E=\tfrac12(C-I)=\tfrac12\,\mathrm{diag}(\lambda^2-1,0,0)$.
@@ -128,7 +132,15 @@ what is a standard closed form for $P$?}\\
 $P=\mu\left(F_\chi - F_\chi^{-T}\right) + \lambda_{\mathrm L}(\ln J)\,F_\chi^{-T}$,
 where $\lambda_{\mathrm L}$ is the first Lam\'e parameter (not the volumetric stabilization coefficient $\kappa_{\mathrm{stab}}$).
 For $F_\chi=\mathrm{diag}(\lambda,1,1)$, $F_\chi^{-T}=\mathrm{diag}(1/\lambda,1,1)$ and $\ln J=\ln\lambda$, so you can write
-$P$ componentwise and see that lateral components generally are nonzero under a prescribed kinematic stretch.
+$P$ componentwise and see that lateral components generally are nonzero under a prescribed kinematic stretch:
+\[
+P=\mathrm{diag}\Bigl(\mu(\lambda-\lambda^{-1})+\lambda_{\mathrm L}\frac{\ln\lambda}{\lambda},\;
+\lambda_{\mathrm L}\ln\lambda,\;\lambda_{\mathrm L}\ln\lambda\Bigr),
+\]
+\[
+\sigma=\frac{1}{J}PF_\chi^T=\mathrm{diag}\Bigl(P_{11},\frac{P_{22}}{\lambda},\frac{P_{33}}{\lambda}\Bigr).
+\]
+Here $\lambda$ is the prescribed stretch and $\lambda_{\mathrm L}$ the Lam\'e parameter; do not confuse them.
 
 \enlargethispage{2\baselineskip}
 \item \textbf{Concept check: Why does a prescribed uniaxial \emph{stretch} generally produce nonzero lateral stresses?}\\
@@ -139,4 +151,13 @@ lateral contraction (via Poisson-type response).
 
 
 \end{enumerate}
+
+\section*{Sources}
+\small
+The IBFE formulation in these answers (strong form, unified weak force, quadrature coupling) follows
+B.~E. Griffith and X. Luo, Hybrid finite difference/finite element immersed boundary method,
+\emph{Int. J. Numer. Methods Biomed. Eng.} 33 (2017) e2888, doi:10.1002/cnm.2888, which builds on
+D. Boffi, L. Gastaldi, L. Heltai, and C.~S. Peskin, \emph{Comput. Methods Appl. Mech. Engrg.} 197 (2008) 2210--2231.
+The active-stress convention is the one used in deck 4-3 (cf.\ A.~P. Hoover, B.~E. Griffith, and L.~A. Miller,
+\emph{J. Fluid Mech.} 813 (2017) 1112--1155). Continuum mechanics: G.~A. Holzapfel, \emph{Nonlinear Solid Mechanics} (Wiley, 2000).
 \end{document}

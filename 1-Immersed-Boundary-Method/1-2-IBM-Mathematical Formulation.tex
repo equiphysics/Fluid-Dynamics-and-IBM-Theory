@@ -3,24 +3,11 @@
 % =====================================================================
 \documentclass[aspectratio=169,11pt]{beamer}
 
-% Match the visual language of the SIAM Waves talk.
-\usetheme{Boadilla}
-\usecolortheme{seahorse}
-\useinnertheme{rectangles}
-\useoutertheme{infolines}
+% Shared style, ported from the UF Animal Sciences 2026 talk (ibfe-tutorials.sty at the repo root).
+\makeatletter\def\input@path{{./}{../}}\makeatother
+\usepackage{ibfe-tutorials}
 
-\setbeamercolor{structure}{fg=blue!55!black}
-\setbeamercolor{title}{fg=white,bg=blue!55!black}
-\setbeamercolor{frametitle}{fg=blue!55!black}
-\setbeamercolor{block title}{bg=blue!12,fg=blue!55!black}
-\setbeamercolor{block body}{bg=blue!4}
-\setbeamertemplate{navigation symbols}{}
-\setbeamerfont{frametitle}{series=\bfseries,size=\large}
-\setbeamerfont{title}{series=\bfseries,size=\Large}
-
-\usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
-\DeclareFontShape{T1}{cmss}{b}{n}{<->ssub*cmss/bx/n}{}
 \usepackage{graphicx}
 \graphicspath{{./}{../}}
 \usepackage{amsmath,amssymb,bm,mathtools}
@@ -31,11 +18,7 @@
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta}
 \usepackage{hyperref}
-\hypersetup{colorlinks=true,urlcolor=blue!55!black}
 
-\newcommand{\hi}[1]{\textcolor{blue!55!black}{\textbf{#1}}}
-\newcommand{\warn}[1]{\textcolor{red!70!black}{\textbf{#1}}}
-\newcommand{\soft}[1]{\textcolor{gray!50!black}{#1}}
 \newcommand{\uvec}{\bm{u}}
 \newcommand{\xvec}{\bm{x}}
 \newcommand{\Xvec}{\bm{X}}
@@ -46,49 +29,27 @@
 \newcommand{\etavec}{\bm{\eta}}
 \newcommand{\ivec}{\bm{i}}
 
-\newtcolorbox{punchbox}{
-  enhanced,
-  colback=blue!4,
-  colframe=blue!55!black,
-  boxrule=0.6pt,
-  arc=2pt,
-  left=4pt,right=4pt,top=3pt,bottom=3pt
-}
-
 \title[Classical IB formulation]{The classical immersed boundary method}
 \subtitle{Mathematical formulation and numerical considerations}
 \author[Miller]{Laura A. Miller}
 \institute[UArizona]{Department of Mathematics, University of Arizona}
-\date{}
+\date{IBFE Tutorials \textbullet\ Module 1}
 
 \begin{document}
 
 % ----- 1. Title -----
+% The title slide uses the shared \maketutorialtitlepanel macro from
+% ibfe-tutorials.sty: same layout as \maketutorialtitle, with the right column
+% holding this deck's Eulerian/Lagrangian variable panel instead of an image.
 \begin{frame}[plain]
-  \begin{beamercolorbox}[sep=10pt,center]{title}
-    {\bfseries\Large The classical immersed boundary method}\\[3pt]
-    {\normalsize Mathematical formulation and numerical considerations}
-  \end{beamercolorbox}
-  \vspace{1.3em}
-  \begin{columns}[T,onlytextwidth]
-  \begin{column}{0.55\textwidth}
-    \textbf{\large Laura A. Miller}\\[4pt]
-    Department of Mathematics\\
-    University of Arizona\\[14pt]
-    {\small IBFE Tutorials}
-  \end{column}
-  \begin{column}{0.45\textwidth}
+\maketutorialtitlepanel{%
     \begin{punchbox}
     \centering
     Eulerian fluid\\[2pt]
     \(\uvec(\xvec,t),\ p(\xvec,t),\ \fvec(\xvec,t)\)\\[8pt]
     Lagrangian structure\\[2pt]
     \(\Xvec(q,t),\ \Uvec(q,t),\ \Fvec(q,t)\)
-    \end{punchbox}
-  \end{column}
-  \end{columns}
-  \vfill
-  \centering{\tiny\color{black!55}AI tools were used to assist with formatting, organization, and clarification of the instructor's original notes.}
+    \end{punchbox}}
 \end{frame}
 
 \section{Fluid--structure interaction}
@@ -96,15 +57,16 @@
 % ----- 2. Biological regimes -----
 \begin{frame}{Fluid--structure interaction spans many scales}
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.32\textwidth}
+\begin{column}{0.28\textwidth}
+\small
 \textbf{Higher Reynolds number}
-\begin{itemize}\itemsep5pt
+\begin{itemize}\itemsep3pt
   \item whale heart: chambered pumping
   \item stingray: flapping locomotion
 \end{itemize}
 \medskip
 \textbf{Lower Reynolds number}
-\begin{itemize}\itemsep5pt
+\begin{itemize}\itemsep3pt
   \item respiratory cilia: microscopic pumping
   \item \emph{E. coli}: flagellar locomotion
 \end{itemize}
@@ -118,64 +80,69 @@
   lead/.style={draw=black!30,dotted,line width=0.4pt}
 ]
 % --- logarithmic Re axis -------------------------------------------------
-\draw[-{Stealth[length=4pt]},line width=0.7pt,black!65] (-5.55,0) -- (6.6,0);
-\node[anchor=west,black!65,inner sep=2pt] at (6.6,0) {$\mathrm{Re}$};
+\draw[-{Stealth[length=4pt]},line width=0.7pt,DarkGray] (-5.55,0) -- (6.6,0);
+\node[anchor=west,DarkGray,inner sep=2pt] at (6.6,0) {$\mathrm{Re}$};
 \foreach \e in {-5,-4,-3,-2,-1,0,1,2,3,4,5,6}{%
-  \draw[black!65,line width=0.5pt] (\e,0) -- (\e,-0.08);
-  \node[anchor=north,font=\tiny,black!65,inner sep=1.5pt] at (\e,-0.08) {$10^{\e}$};
+  \draw[DarkGray,line width=0.5pt] (\e,0) -- (\e,-0.08);
+  \node[anchor=north,font=\tiny,DarkGray,inner sep=1.5pt] at (\e,-0.08) {$10^{\e}$};
 }
 % --- viscous end: bacterial flagellum ------------------------------------
 \draw[lead] (-5,0.03) -- (-5,0.40);  \draw[lead] (-4,0.03) -- (-4,0.40);
-\draw[teal!65!black,brk] (-5,0.40) -- (-4,0.40);
-\draw[teal!65!black,brk] (-5,0.40) -- (-5,0.31);
-\draw[teal!65!black,brk] (-4,0.40) -- (-4,0.31);
-\fill[teal!65!black] (-4.5,0) circle (1.1pt);
-\node[anchor=south,align=center,text=teal!65!black,inner sep=1.5pt] at (-4.5,0.42)
+\draw[OliveGreen,brk] (-5,0.40) -- (-4,0.40);
+\draw[OliveGreen,brk] (-5,0.40) -- (-5,0.31);
+\draw[OliveGreen,brk] (-4,0.40) -- (-4,0.31);
+\fill[OliveGreen] (-4.5,0) circle (1.1pt);
+\node[anchor=south,align=center,text=OliveGreen,inner sep=1.5pt] at (-4.5,0.42)
   {\emph{E.\,coli} flagellum\\[-2pt]{\tiny $\sim\!10^{-5}$--$10^{-4}$}};
 % --- cilia ---------------------------------------------------------------
 \draw[lead] (-3,0.03) -- (-3,1.22);  \draw[lead] (-2,0.03) -- (-2,1.22);
-\draw[teal!65!black,brk] (-3,1.22) -- (-2,1.22);
-\draw[teal!65!black,brk] (-3,1.22) -- (-3,1.13);
-\draw[teal!65!black,brk] (-2,1.22) -- (-2,1.13);
-\fill[teal!65!black] (-2.5,0) circle (1.1pt);
-\node[anchor=south,align=center,text=teal!65!black,inner sep=1.5pt] at (-2.5,1.24)
+\draw[OliveGreen,brk] (-3,1.22) -- (-2,1.22);
+\draw[OliveGreen,brk] (-3,1.22) -- (-3,1.13);
+\draw[OliveGreen,brk] (-2,1.22) -- (-2,1.13);
+\fill[OliveGreen] (-2.5,0) circle (1.1pt);
+\node[anchor=south,align=center,text=OliveGreen,inner sep=1.5pt] at (-2.5,1.24)
   {cilia / ciliary flow\\[-2pt]{\tiny $\sim\!10^{-3}$--$10^{-2}$}};
 % --- copepods and larval fish -------------------------------------------
 \draw[lead] (0,0.03) -- (0,0.40);  \draw[lead] (2,0.03) -- (2,0.40);
-\draw[blue!55!black,brk] (0,0.40) -- (2,0.40);
-\draw[blue!55!black,brk] (0,0.40) -- (0,0.31);
-\draw[blue!55!black,brk] (2,0.40) -- (2,0.31);
-\fill[blue!55!black] (1,0) circle (1.1pt);
-\node[anchor=south,align=center,text=blue!55!black,inner sep=1.5pt] at (1,0.42)
+\draw[NavyBlue!70,brk] (0,0.40) -- (2,0.40);
+\draw[NavyBlue!70,brk] (0,0.40) -- (0,0.31);
+\draw[NavyBlue!70,brk] (2,0.40) -- (2,0.31);
+\fill[NavyBlue!70] (1,0) circle (1.1pt);
+\node[anchor=south,align=center,text=NavyBlue!70,inner sep=1.5pt] at (1,0.42)
   {copepod, larval fish\\[-2pt]{\tiny $\sim\!1$--$10^{2}$}};
 % --- jellyfish -----------------------------------------------------------
 \draw[lead] (2,0.03) -- (2,1.22);  \draw[lead] (3,0.03) -- (3,1.22);
-\draw[blue!55!black,brk] (2,1.22) -- (3,1.22);
-\draw[blue!55!black,brk] (2,1.22) -- (2,1.13);
-\draw[blue!55!black,brk] (3,1.22) -- (3,1.13);
-\fill[blue!55!black] (2.5,0) circle (1.1pt);
-\node[anchor=south,align=center,text=blue!55!black,inner sep=1.5pt] at (2.5,1.24)
+\draw[NavyBlue!70,brk] (2,1.22) -- (3,1.22);
+\draw[NavyBlue!70,brk] (2,1.22) -- (2,1.13);
+\draw[NavyBlue!70,brk] (3,1.22) -- (3,1.13);
+\fill[NavyBlue!70] (2.5,0) circle (1.1pt);
+\node[anchor=south,align=center,text=NavyBlue!70,inner sep=1.5pt] at (2.5,1.24)
   {jellyfish\\[-2pt]{\tiny $\sim\!10^{2}$--$10^{3}$}};
-% --- blue-whale heart ----------------------------------------------------
-\draw[lead] (3,0.03) -- (3,2.04);  \draw[lead] (4,0.03) -- (4,2.04);
-\draw[violet!60!black,brk] (3,2.04) -- (4,2.04);
-\draw[violet!60!black,brk] (3,2.04) -- (3,1.95);
-\draw[violet!60!black,brk] (4,2.04) -- (4,1.95);
-\fill[violet!60!black] (3.5,0) circle (1.1pt);
-\node[anchor=south,align=center,text=violet!60!black,inner sep=1.5pt] at (3.5,2.06)
-  {blue-whale heart\\[-2pt]{\tiny valve flow $\sim\!10^{3}$--$10^{4}$; chamber $\sim\!10^{4}$}};
+% --- large-whale heart ---------------------------------------------------
+% Re = U D / nu with aortic/valve diameter D ~ 0.1-0.3 m, U ~ 0.2-1 m/s and
+% blood nu ~ 3.5e-6 m^2/s gives ~1e4-1e5 (the human heart sits at ~1e3-1e4).
+\draw[lead] (4,0.03) -- (4,2.04);  \draw[lead] (5,0.03) -- (5,2.04);
+\draw[RubineRed,brk] (4,2.04) -- (5,2.04);
+\draw[RubineRed,brk] (4,2.04) -- (4,1.95);
+\draw[RubineRed,brk] (5,2.04) -- (5,1.95);
+\fill[RubineRed] (4.5,0) circle (1.1pt);
+\node[anchor=south,align=center,text=RubineRed,inner sep=1.5pt] at (4.5,2.06)
+  {large-whale heart (e.g.\ blue whale)\\[-2pt]{\tiny valve, chamber and aortic flow $\sim\!10^{4}$--$10^{5}$}\\[-2pt]{\tiny (human heart: valve flow $\sim\!10^{3}$--$10^{4}$; chamber $\sim\!10^{3}$--$10^{4}$)}};
 % --- stingray ------------------------------------------------------------
-\draw[lead] (4.7,0.03) -- (4.7,0.40);  \draw[lead] (5.3,0.03) -- (5.3,0.40);
-\draw[violet!60!black,brk] (4.7,0.40) -- (5.3,0.40);
-\draw[violet!60!black,brk] (4.7,0.40) -- (4.7,0.31);
-\draw[violet!60!black,brk] (5.3,0.40) -- (5.3,0.31);
-\fill[violet!60!black] (5,0) circle (1.1pt);
-\node[anchor=south,align=center,text=violet!60!black,inner sep=1.5pt] at (5,0.42)
-  {stingray\\[-2pt]{\tiny $\sim\!10^{5}$}};
+% Disc width ~0.5-1.5 m, swimming speed ~0.3-1 m/s in water: ~1e5-1e6.
+\draw[lead] (5,0.03) -- (5,0.40);  \draw[lead] (6,0.03) -- (6,0.40);
+\draw[RubineRed,brk] (5,0.40) -- (6,0.40);
+\draw[RubineRed,brk] (5,0.40) -- (5,0.31);
+\draw[RubineRed,brk] (6,0.40) -- (6,0.31);
+\fill[RubineRed] (5.5,0) circle (1.1pt);
+\node[anchor=south,align=center,text=RubineRed,inner sep=1.5pt] at (5.5,0.42)
+  {stingray\\[-2pt]{\tiny $\sim\!10^{5}$--$10^{6}$}};
 \end{tikzpicture}}\\[2pt]
-{\scriptsize Schematic: orders of magnitude, instructor's course notes.}
+{\scriptsize Schematic: orders of magnitude, instructor's course notes.}\\[1pt]
+{\tiny\color{DarkGray}\(\mathrm{Re}=UL/\nu\) with \(L\) the cell, appendage, valve, or body length and \(U\) a typical speed; brackets show routine motion. Copepod escape jumps and late larval fish reach \(\sim\!10^{3}\); jellyfish span \(\sim\!10\) (ephyrae) to \(\sim\!10^{4}\) (large medusae). Compare the table in S.~Vogel, \emph{Life in Moving Fluids}, 2nd ed.\ (Princeton, 1994).\par}
 \end{column}
 \end{columns}
+\vspace{4pt}
 \begin{punchbox}
 \small The same conservation laws apply across these examples; the Reynolds number identifies the balance between inertia and viscosity.
 \end{punchbox}
@@ -195,7 +162,7 @@ Let \(\uvec(\xvec,t)\) be velocity and \(p(\xvec,t)\) pressure. For constant den
   \nabla\cdot\uvec=0.
 \]
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.49\textwidth}
+\begin{column}{0.48\textwidth}
 \textbf{Momentum balance}
 \begin{itemize}\itemsep5pt
   \item local and advective acceleration
@@ -203,7 +170,7 @@ Let \(\uvec(\xvec,t)\) be velocity and \(p(\xvec,t)\) pressure. For constant den
   \item immersed-structure force \(\fvec\)
 \end{itemize}
 \end{column}
-\begin{column}{0.49\textwidth}
+\begin{column}{0.48\textwidth}
 \textbf{Incompressibility}
 \begin{itemize}\itemsep5pt
   \item velocity is divergence free
@@ -226,7 +193,7 @@ Choose characteristic length \(L\) and speed \(U\):
   \qquad
   p=\rho U^2p^*.
 \]
-With \(\fvec=(\rho U^2/L)\fvec^*\),
+With \(\fvec=(\rho U^2/L)\fvec^*\) and \(\nabla=L^{-1}\nabla^*\), every term of the dimensional momentum equation carries a factor \(\rho U^2/L\) except the viscous term, which carries \(\mu U/L^2\). Dividing by \(\rho U^2/L\):
 \[
   \frac{\partial\uvec^*}{\partial t^*}
   +(\uvec^*\cdot\nabla^*)\uvec^*
@@ -241,12 +208,13 @@ With \(\fvec=(\rho U^2/L)\fvec^*\),
   \boxed{\mathrm{Re}=\frac{\rho UL}{\mu}=\frac{UL}{\nu}},
   \qquad \nu=\frac{\mu}{\rho}.
 \]
+\soft{\scriptsize The ratio of the viscous to the inertial coefficient is \((\mu U/L^2)/(\rho U^2/L)=\mu/(\rho UL)=1/\mathrm{Re}\). The pressure scale \(\rho U^2\) is the inertial choice; for \(\mathrm{Re}\ll1\) the viscous scale \(p=(\mu U/L)p^*\) is the natural one.}
 \end{frame}
 
 % ----- 5. Reynolds number -----
 \begin{frame}{Reynolds number and dynamic similarity}
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.52\textwidth}
+\begin{column}{0.50\textwidth}
 \[
   \mathrm{Re}
   =
@@ -260,7 +228,7 @@ With \(\fvec=(\rho U^2/L)\fvec^*\),
   \item Changing size, speed, density, or viscosity changes the regime.
 \end{itemize}
 \end{column}
-\begin{column}{0.48\textwidth}
+\begin{column}{0.46\textwidth}
 \begin{punchbox}
 \textbf{Similarity needs more than one number.}\\[3pt]
 Matching \(\mathrm{Re}\) supports dynamic similarity only when the nondimensional geometry, boundary motion, constitutive laws, and other relevant parameters also match.
@@ -272,7 +240,7 @@ Matching \(\mathrm{Re}\) supports dynamic similarity only when the nondimensiona
 % ----- 6. Boundary model -----
 \begin{frame}{Describing the immersed boundary}
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.52\textwidth}
+\begin{column}{0.50\textwidth}
 \textbf{Classical interfacial model}
 \begin{itemize}\itemsep6pt
   \item A material coordinate \(q\in\mathcal U\subset\mathbb R\) labels a massless curve.
@@ -281,7 +249,7 @@ Matching \(\mathrm{Re}\) supports dynamic similarity only when the nondimensiona
   \item Constitutive parameters may vary in space or time.
 \end{itemize}
 \end{column}
-\begin{column}{0.48\textwidth}
+\begin{column}{0.46\textwidth}
 \textbf{Rigid or prescribed motion}
 \begin{itemize}\itemsep6pt
   \item Stiff elasticity can approximate rigidity, but creates a stiff numerical problem.
@@ -298,7 +266,7 @@ Matching \(\mathrm{Re}\) supports dynamic similarity only when the nondimensiona
 % ----- 7. Two descriptions -----
 \begin{frame}{Eulerian fluid, Lagrangian structure}
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.49\textwidth}
+\begin{column}{0.48\textwidth}
 \begin{block}{Eulerian description}
 The fixed Cartesian grid carries
 \[
@@ -307,7 +275,7 @@ The fixed Cartesian grid carries
 The fluid equations are solved at spatial locations \(\xvec\in\Omega\).
 \end{block}
 \end{column}
-\begin{column}{0.49\textwidth}
+\begin{column}{0.48\textwidth}
 \begin{block}{Lagrangian description}
 The moving curvilinear mesh carries
 \[
@@ -347,6 +315,7 @@ The grids do not conform to one another.
 \centering
 These equations require compatible initial data and fluid boundary conditions. The scope here is a two-dimensional, massless elastic curve with no slip.
 \end{punchbox}
+\vspace{3pt}
 \soft{\scriptsize Sources: Peskin (2002); Griffith and Patankar (2020).}
 \end{frame}
 
@@ -361,7 +330,7 @@ The variational definition fixes the sign:
   \boxed{\Fvec=-\frac{\delta E}{\delta\Xvec}}.
 \]
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.51\textwidth}
+\begin{column}{0.49\textwidth}
 \textbf{Typical contributions}
 \begin{itemize}\itemsep6pt
   \item stretching: depends on \(\lvert\partial_q\Xvec\rvert\)
@@ -369,7 +338,7 @@ The variational definition fixes the sign:
   \item active terms: prescribe a preferred configuration or tension
 \end{itemize}
 \end{column}
-\begin{column}{0.49\textwidth}
+\begin{column}{0.47\textwidth}
 \begin{punchbox}
 \small \(\Fvec(q,t)\,dq\) is the force that material segment \(dq\) applies to the fluid. Explicit time dependence permits prescribed changes in the constitutive model.
 \end{punchbox}
@@ -417,7 +386,7 @@ Given \(\Xvec^n\) and \(\uvec^n\):
 % ----- 12. Continuum spreading -----
 \begin{frame}{Force spreading: continuum picture}
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.58\textwidth}
+\begin{column}{0.56\textwidth}
 \[
   \boxed{
   \fvec(\xvec,t)
@@ -433,10 +402,11 @@ Given \(\Xvec^n\) and \(\uvec^n\):
   \item Integrating \(\fvec\) over \(\Omega\) recovers the total structural force.
 \end{itemize}
 \end{column}
-\begin{column}{0.42\textwidth}
+\begin{column}{0.40\textwidth}
 \centering
 \includegraphics[width=0.72\linewidth]{pictures/1-2/force-spread1.png}\\[4pt]
-\soft{\footnotesize Force carried by a Lagrangian point}
+\soft{\footnotesize Force carried by a Lagrangian point}\\[2pt]
+{\tiny\color{DarkGray}Schematic: instructor's course notes.}
 \end{column}
 \end{columns}
 \end{frame}
@@ -444,7 +414,7 @@ Given \(\Xvec^n\) and \(\uvec^n\):
 % ----- 13. Discrete spreading -----
 \begin{frame}{Force spreading: discrete picture}
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.58\textwidth}
+\begin{column}{0.56\textwidth}
 At Eulerian locations \(\xvec_{\ivec}\), use Lagrangian quadrature points \(q_m\) with weights \(w_m\):
 \[
   \boxed{
@@ -461,10 +431,11 @@ At Eulerian locations \(\xvec_{\ivec}\), use Lagrangian quadrature points \(q_m\
   \item On a staggered grid, each force component uses its own face-centered locations.
 \end{itemize}
 \end{column}
-\begin{column}{0.42\textwidth}
+\begin{column}{0.40\textwidth}
 \centering
 \includegraphics[width=0.82\linewidth]{pictures/1-2/force-spread2.png}\\[4pt]
-\soft{\footnotesize A regularized kernel distributes the force locally}
+\soft{\footnotesize A regularized kernel distributes the force locally}\\[2pt]
+{\tiny\color{DarkGray}Schematic: instructor's course notes.}
 \end{column}
 \end{columns}
 \end{frame}
@@ -472,7 +443,7 @@ At Eulerian locations \(\xvec_{\ivec}\), use Lagrangian quadrature points \(q_m\
 % ----- 14. Continuum interpolation -----
 \begin{frame}{Velocity interpolation: continuum picture}
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.58\textwidth}
+\begin{column}{0.56\textwidth}
 \[
   \boxed{
   \Uvec(q,t)
@@ -494,10 +465,11 @@ For a continuous velocity field,
 \small This is the immersed-boundary form of no slip: every material point moves at the local fluid velocity.
 \end{punchbox}
 \end{column}
-\begin{column}{0.42\textwidth}
+\begin{column}{0.40\textwidth}
 \centering
 \includegraphics[width=0.80\linewidth]{pictures/1-2/vel-spread1.png}\\[4pt]
-\soft{\footnotesize Velocity data on the Cartesian grid}
+\soft{\footnotesize Velocity data on the Cartesian grid}\\[2pt]
+{\tiny\color{DarkGray}Schematic: instructor's course notes.}
 \end{column}
 \end{columns}
 \end{frame}
@@ -505,7 +477,7 @@ For a continuous velocity field,
 % ----- 15. Discrete interpolation -----
 \begin{frame}{Velocity interpolation: discrete picture}
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.58\textwidth}
+\begin{column}{0.56\textwidth}
 For uniform two-dimensional spacing \(h\),
 \[
   \boxed{
@@ -522,10 +494,11 @@ For uniform two-dimensional spacing \(h\),
   \item Interpolated marker velocities update the structure.
 \end{itemize}
 \end{column}
-\begin{column}{0.42\textwidth}
+\begin{column}{0.40\textwidth}
 \centering
 \includegraphics[width=0.82\linewidth]{pictures/1-2/vel-spread2.png}\\[4pt]
-\soft{\footnotesize Eulerian velocity sampled at IB points}
+\soft{\footnotesize Eulerian velocity sampled at IB points}\\[2pt]
+{\tiny\color{DarkGray}Schematic: instructor's course notes.}
 \end{column}
 \end{columns}
 \end{frame}
@@ -533,7 +506,7 @@ For uniform two-dimensional spacing \(h\),
 % ----- 16. Quadrature bookkeeping -----
 \begin{frame}{Quadrature weights carry the material measure}
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.52\textwidth}
+\begin{column}{0.50\textwidth}
 \textbf{Eulerian sum}
 \[
   \sum_{\ivec}(\cdot)\,h^2
@@ -547,7 +520,7 @@ approximates an integral over physical space.
 \]
 approximates an integral over material coordinate \(q\).
 \end{column}
-\begin{column}{0.48\textwidth}
+\begin{column}{0.46\textwidth}
 \begin{punchbox}
 \textbf{Why the distinction matters}\\[3pt]
 The weights \(w_m\) need not be equal and do not have to equal \(h\). In IBFE, interaction quadrature can be refined independently of finite-element nodes and of the Eulerian grid.
@@ -575,14 +548,14 @@ Write \(\fvec=S[\Xvec]\Fvec\) and \(\Uvec=J[\Xvec]\uvec\). With the same kernel 
   J[\Xvec]=S[\Xvec]^*.
 \]
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.50\textwidth}
+\begin{column}{0.48\textwidth}
 \textbf{Physical meaning}
 \begin{itemize}\itemsep5pt
   \item Both grids compute the same instantaneous power transfer.
   \item The interaction operators add no artificial power source.
 \end{itemize}
 \end{column}
-\begin{column}{0.50\textwidth}
+\begin{column}{0.48\textwidth}
 \begin{punchbox}
 \small This identity does not by itself guarantee stability of the complete spatial and temporal discretization.
 \end{punchbox}
@@ -615,7 +588,7 @@ On a uniform two-dimensional grid,
 % ----- 19. Kernel conditions -----
 \begin{frame}{What properties should \(\phi\) possess?}
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.54\textwidth}
+\begin{column}{0.52\textwidth}
 \textbf{Core discrete moments}
 \[
   \sum_{j\in\mathbb Z}\phi(r-j)=1,
@@ -627,17 +600,17 @@ On a uniform two-dimensional grid,
   \item first moment: total-torque conservation and exact interpolation of linear fields
 \end{itemize}
 \end{column}
-\begin{column}{0.46\textwidth}
+\begin{column}{0.44\textwidth}
 \textbf{Desirable additional properties}
 \begin{itemize}\itemsep6pt
   \item continuity and compact support
-  \item even--odd balance for some kernels
+  \item even--odd balance for some kernels (Peskin's four-point kernel, built for a collocated grid with centered differences)
   \item constant sum of squares to improve approximate grid-translation invariance
   \item adequate regularity for the solver
 \end{itemize}
 \end{column}
 \end{columns}
-\soft{\scriptsize Source: Peskin (2002), Secs.~5--6.}
+\soft{\scriptsize Source: Peskin (2002), Secs.~5--6; Peskin's postulates are his eqs.~(6.2)--(6.6).}
 \end{frame}
 
 % ----- 19b. Even--odd condition -----
@@ -648,27 +621,40 @@ On a uniform two-dimensional grid,
   \boxed{\ \sum_{j\ \mathrm{even}}\phi(r-j)
   =\sum_{j\ \mathrm{odd}}\phi(r-j)=\tfrac12\ }
 \]
-\vspace{-12pt}
-\begin{columns}[T,onlytextwidth]
-\begin{column}{0.52\textwidth}
-\textbf{Why it is imposed}
+\vspace{-6pt}
+\textbf{Why it is imposed} \soft{(Peskin 2002, Sec.~6)}
 \begin{itemize}\itemsep2pt
   \item It stops the even and odd grid points from \hi{decoupling} in the spread and interpolate operators.
-  \item Decoupled subgrids support \hi{checkerboard} modes the interaction cannot see or damp.
+  \item Peskin's fluid solver uses the collocated centered difference \(D^0\), whose stencil skips the centre point. The null space of the \(D^0\) gradient contains every function that is constant on each of the \(2^d\) even/odd ``chains'' of grid points (4 in 2D, 8 in 3D), not only the constants.
+  \item Decoupled subgrids support \hi{checkerboard} modes the interaction cannot see or damp. The even--odd condition gives every chain the same share of each marker's force and the same weight in its interpolated velocity, which suppresses point-to-point oscillations, especially under localized forces.
   \item The two sums add to \(\sum_j\phi(r-j)=1\): this is the split, stronger zeroth moment.
 \end{itemize}
-\end{column}
-\begin{column}{0.48\textwidth}
+\end{frame}
+
+% ----- 19c. Even--odd condition (continued) -----
+\begin{frame}{The even--odd condition (continued)}
+\footnotesize
+\setlength{\abovedisplayskip}{3pt}\setlength{\belowdisplayskip}{3pt}%
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.50\textwidth}
 \textbf{Not the sum-of-squares condition}
 \[
   \sum_{j\in\mathbb Z}\phi(r-j)^2=C\ \text{(const.\ in \(r\))}
 \]
-controls approximate \hi{translation invariance}: coupling strength should not depend on where the marker sits in a cell. Neither condition implies the other.
+controls approximate \hi{translation invariance}: coupling strength should not depend on where the marker sits in a cell. Neither condition implies the other: the cosine kernel satisfies both, the three-point kernel below satisfies only the sum of squares (\(C=1/2\)), and a piecewise-linear three-point kernel can satisfy even--odd and first moment without a constant sum of squares.
+\end{column}
+\begin{column}{0.46\textwidth}
+\textbf{Check at \(r=0\)}
+\begin{itemize}\itemsep3pt
+  \item Peskin four-point: \(\phi(0)=\tfrac12\), \(\phi(\pm1)=\tfrac14\), \(\phi(\pm2)=0\). Even sum \(\tfrac12+0+0=\tfrac12\); odd sum \(\tfrac14+\tfrac14=\tfrac12\). \(\checkmark\)
+  \item Roma--Peskin--Berger three-point: \(\phi_3(0)=\tfrac23\), \(\phi_3(\pm1)=\tfrac16\). Even sum \(\tfrac23\neq\tfrac12\): the condition fails.
+\end{itemize}
 \end{column}
 \end{columns}
 \begin{punchbox}
-\scriptsize Peskin's four-point kernel satisfies the even--odd condition. The three-point Roma--Peskin--Berger kernel does not need it: with support only three cells wide, every stencil couples adjacent---hence both even and odd---grid points.
+\scriptsize Peskin's four-point kernel satisfies the even--odd condition. The three-point Roma--Peskin--Berger kernel is obtained by \hi{dropping} it and keeping only \(\sum_j\phi(r-j)=1\), which narrows the support from four to three meshwidths (27 instead of 64 cells per marker in 3D). Peskin recommends it only with a fluid scheme that does not have the \(D^0\) null-space problem, such as the staggered MAC scheme used by Roma, Peskin, and Berger (1999). On a staggered grid the even--odd condition is unnecessary; it is not true that a narrow stencil satisfies it automatically.
 \end{punchbox}
+\soft{\tiny Sources: C.~S. Peskin, \emph{Acta Numerica} 11 (2002), Sec.~6, eqs.~(6.4), (6.8) and the discussion of the three-point function; A.~M. Roma, C.~S. Peskin, M.~J. Berger, \emph{J. Comput. Phys.} 153 (1999) 509--534.}
 \end{frame}
 
 \section{Stability and convergence}
@@ -718,7 +704,7 @@ Thus \(g=1-15\Delta t\), and absolute stability requires
   0\le\Delta t\le\frac{2}{15}}.
 \]
 \begin{itemize}\itemsep5pt
-  \item \(0<\Delta t\le1/15\): monotone decay.
+  \item \(0<\Delta t\le1/15\): monotone decay \soft{(\(0\le g<1\); at \(\Delta t=1/15\), \(g=0\) and the numerical solution is zero after one step)}.
   \item \(1/15<\Delta t<2/15\): decaying sign oscillations \soft{(\(\Delta t=2/15\) is neutrally stable: \(g=-1\), so the amplitude never decays)}.
   \item \(\Delta t>2/15\): growing instability.
 \end{itemize}
@@ -727,7 +713,7 @@ Thus \(g=1-15\Delta t\), and absolute stability requires
 % ----- 22. ODE experiment -----
 \begin{frame}{Stability experiment: what the plot shows}
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.40\textwidth}
+\begin{column}{0.38\textwidth}
 \begin{itemize}\itemsep7pt
   \item Forward Euler with \(\Delta t=1/4\) is unstable: \(g=-2.75\).
   \item With \(\Delta t=1/8\), it is stable but oscillatory: \(g=-0.875\).
@@ -737,9 +723,12 @@ Thus \(g=1-15\Delta t\), and absolute stability requires
 \small Try \(\Delta t=0.2,\ 0.1,\ 0.01\). Predict each behavior from \(g=1-15\Delta t\) before computing.
 \end{punchbox}
 \end{column}
-\begin{column}{0.60\textwidth}
+\begin{column}{0.58\textwidth}
 \centering
-\includegraphics[width=\linewidth]{pictures/1-2/instability.png}
+\includegraphics[width=\linewidth]{pictures/1-2/instability.png}\\[2pt]
+{\scriptsize The plot solves \(y'=-15y\), \(y(0)=1\); horizontal axis is \(t\). The ``Adams--Moulton, \(h=1/8\)'' curve is the trapezoidal rule (the two-stage Adams--Moulton method), with \(g=(1-15h/2)/(1+15h/2)\approx0.032\) at \(h=1/8\).\par}
+\vspace{2pt}
+{\tiny\color{DarkGray}Figure: Wikimedia Commons, ``StiffEquationNumericalSolvers.svg'', by Berland (English Wikipedia), public domain.\par}
 \end{column}
 \end{columns}
 \end{frame}
@@ -747,7 +736,7 @@ Thus \(g=1-15\Delta t\), and absolute stability requires
 % ----- 23. IB stiffness -----
 \begin{frame}{Why explicit immersed-boundary updates become stiff}
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.50\textwidth}
+\begin{column}{0.48\textwidth}
 \textbf{Sources of stiffness}
 \begin{itemize}\itemsep6pt
   \item large spring or target-point penalties
@@ -756,7 +745,7 @@ Thus \(g=1-15\Delta t\), and absolute stability requires
   \item rapidly varying active forcing
 \end{itemize}
 \end{column}
-\begin{column}{0.50\textwidth}
+\begin{column}{0.48\textwidth}
 \textbf{What controls the restriction}
 \begin{itemize}\itemsep6pt
   \item the derivative of the structural force
@@ -774,7 +763,7 @@ Thus \(g=1-15\Delta t\), and absolute stability requires
 % ----- 24. CFL and diffusion -----
 \begin{frame}{Advection, diffusion, and coupling impose different limits}
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.49\textwidth}
+\begin{column}{0.48\textwidth}
 \textbf{Representative multidimensional CFL}
 \[
   \Delta t
@@ -784,7 +773,7 @@ Thus \(g=1-15\Delta t\), and absolute stability requires
 \]
 \small The admissible \(C_{\mathrm{CFL}}\) depends on the advection discretization and integrator.
 \end{column}
-\begin{column}{0.49\textwidth}
+\begin{column}{0.48\textwidth}
 \textbf{Explicit viscous restriction}
 \[
   \Delta t
@@ -806,7 +795,7 @@ For an error measured in a stated norm,
   E(h)=\lVert u_h-u_{\mathrm{ref}}\rVert.
 \]
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.50\textwidth}
+\begin{column}{0.48\textwidth}
 \textbf{Refine separately}
 \begin{itemize}\itemsep5pt
   \item Eulerian spacing \(h\)
@@ -815,7 +804,7 @@ For an error measured in a stated norm,
   \item AMR hierarchy and domain size
 \end{itemize}
 \end{column}
-\begin{column}{0.50\textwidth}
+\begin{column}{0.48\textwidth}
 \textbf{Measure relevant outputs}
 \begin{itemize}\itemsep5pt
   \item velocity, pressure, and deformation
@@ -835,7 +824,7 @@ For an error measured in a stated norm,
 % ----- 26. Heat equation model -----
 \begin{frame}{Heat equation: one laboratory for space and time error}
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.56\textwidth}
+\begin{column}{0.54\textwidth}
 For \(0<x<1\),
 \[
   u_t=D\,u_{xx}.
@@ -848,19 +837,21 @@ Forward time, centered space gives
   =
   u_j^n
   +r\left(u_{j+1}^n-2u_j^n+u_{j-1}^n\right),
-  \qquad
-  r=\frac{D\Delta t}{\Delta x^2}.
 \]
+with mesh ratio \(r=D\Delta t/\Delta x^2\).
 For this one-dimensional scheme,
 \[
   \boxed{0\le r\le\frac12}
 \]
 is the von Neumann stability condition.
 \end{column}
-\begin{column}{0.44\textwidth}
+\begin{column}{0.42\textwidth}
 \centering
 \includegraphics[width=0.92\linewidth]{pictures/1-2/heat-eqm.png}\\[4pt]
-\soft{\footnotesize Diffusion smooths spatial temperature variation}
+\soft{\footnotesize Diffusion smooths spatial temperature variation}\\[2pt]
+{\tiny This illustration (``Example 2'') has end values that rise from \(0\): it corresponds to insulated (zero-flux) ends, so the triangular profile relaxes to its mean \(\approx0.22\); the laboratory itself uses \(u=0\) at both ends, so its solution decays to zero.\par}
+\vspace{1pt}
+{\tiny\color{DarkGray}Instructor's course materials (MATLAB heat-equation lab output).\par}
 \end{column}
 \end{columns}
 \end{frame}
@@ -868,7 +859,7 @@ is the von Neumann stability condition.
 % ----- 27. Spatial experiment -----
 \begin{frame}{Heat equation: spatial-refinement experiment}
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.38\textwidth}
+\begin{column}{0.36\textwidth}
 Using your own script, with \(D=1\) in code units:
 \begin{enumerate}\itemsep6pt
   \item hold the final time at \(0.1\);
@@ -880,9 +871,12 @@ Using your own script, with \(D=1\) in code units:
 \small Check \(r=D\Delta t/\Delta x^2\) for every run. A refinement study is interpretable only while time error is stable and sufficiently small.
 \end{punchbox}
 \end{column}
-\begin{column}{0.62\textwidth}
+\begin{column}{0.60\textwidth}
 \centering
-\includegraphics[width=\linewidth]{pictures/1-2/heat2.png}
+\includegraphics[width=\linewidth]{pictures/1-2/heat2.png}\\[2pt]
+{\scriptsize Here \(n\) counts interior points, so \(\Delta x=1/(n+1)\) and \(\Delta t=0.1/100=10^{-3}\): \(r=10^{-3}(n+1)^2\). The panels show \(n=3\) (\(\Delta x=0.25\), \(r=0.016\)) and \(n=5\) (\(\Delta x\approx0.167\), \(r=0.036\)); even \(n=20\) gives \(r=0.441\le\tfrac12\), so every run in this study is stable. Solid: exact solution \(e^{-4\pi^2t}\sin(2\pi x)\) at \(t=0.1\); circles: FTCS.\par}
+\vspace{1pt}
+{\tiny\color{DarkGray}Instructor's course materials (MATLAB heat-equation lab output).\par}
 \end{column}
 \end{columns}
 \end{frame}
@@ -890,7 +884,7 @@ Using your own script, with \(D=1\) in code units:
 % ----- 28. Temporal experiment -----
 \begin{frame}{Heat equation: time-step stability and convergence}
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.38\textwidth}
+\begin{column}{0.36\textwidth}
 Fix \(n=10\) and run to time \(0.1\):
 \[
   T\in\{2,4,8,16,32,64\},
@@ -904,12 +898,46 @@ Fix \(n=10\) and run to time \(0.1\):
   \item Do not estimate an order from unstable runs.
 \end{itemize}
 \end{column}
-\begin{column}{0.62\textwidth}
+\begin{column}{0.60\textwidth}
 \centering
 \includegraphics[width=\linewidth]{pictures/1-2/heat3.png}\\[4pt]
-\soft{\footnotesize Large \(r\) can create amplification rather than diffusion}
+\soft{\footnotesize Large \(r\) can create amplification rather than diffusion}\\[2pt]
+{\scriptsize Panels: \(T=2\) (\(r=6.05\)) and \(T=16\) (\(r\approx0.76\)); read them with the next slide.\par}
+\vspace{1pt}
+{\tiny\color{DarkGray}Instructor's course materials (MATLAB heat-equation lab output).\par}
 \end{column}
 \end{columns}
+\end{frame}
+
+% ----- 28b. Reading the time-step plots -----
+\begin{frame}{Heat equation: reading the time-step plots}
+\footnotesize
+\setlength{\abovedisplayskip}{4pt}\setlength{\belowdisplayskip}{4pt}%
+With \(n=10\) interior points, \(\Delta x=1/11\) and \(\Delta t=0.1/T\), so \(r=12.1/T\). FTCS multiplies the discrete mode \(\sin(k\pi x_j)\) by
+\[
+  g_k=1-4r\sin^2\!\Bigl(\frac{k\pi\Delta x}{2}\Bigr)\quad\text{per step},\qquad k=1,\dots,n .
+\]
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.48\textwidth}
+\textbf{Left panel: \(T=2\), \(r=6.05\)}
+\begin{itemize}\itemsep3pt
+  \item The initial sine \(\sin(2\pi x)\) is the single mode \(k=2\): \(g_2\approx-0.92\).
+  \item Two steps leave amplitude \(0.92^2\approx0.85\); the exact amplitude is \(e^{-4\pi^2(0.1)}\approx0.019\).
+  \item Higher modes have \(|g_k|\) up to \(\approx23\) and would amplify any perturbation.
+\end{itemize}
+\end{column}
+\begin{column}{0.48\textwidth}
+\textbf{Right panel: \(T=16\), \(r\approx0.76\)}
+\begin{itemize}\itemsep3pt
+  \item \(r>\tfrac12\): formally unstable.
+  \item Only the stable smooth mode is excited (\(g_2\approx0.76\), giving amplitude \(\approx0.012\)), so the visible error is excess damping.
+  \item Round-off in the highest mode (\(g_{10}\approx-1.96\)) grows, but from \(\sim10^{-16}\) it stays invisible over 16 steps.
+\end{itemize}
+\end{column}
+\end{columns}
+\begin{punchbox}
+\small Stability is about \emph{all} modes. A smooth initial condition can hide an instability for a while; a longer run, a rougher initial condition, or round-off will expose it. Only \(T=32\) (\(r\approx0.38\)) and \(T=64\) (\(r\approx0.19\)) in this list satisfy \(r\le\tfrac12\).
+\end{punchbox}
 \end{frame}
 
 % ----- 29. Sequence convergence -----
@@ -959,7 +987,7 @@ then \(p\) is the asymptotic discretization order. With refinement ratio two,
 \begin{frame}{Resolution and interface accuracy}
 \small
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.50\textwidth}
+\begin{column}{0.48\textwidth}
 \textbf{Interaction resolution}
 \begin{itemize}\itemsep4pt
   \item For nodal IB, current marker spacing of roughly \(h/2\) is a common empirical watertightness choice, not a theorem.
@@ -967,7 +995,7 @@ then \(p\) is the asymptotic discretization order. With refinement ratio two,
   \item In IBFE, adequately resolved interaction quadrature helps prevent leakage and need not coincide with structural nodes.
 \end{itemize}
 \end{column}
-\begin{column}{0.50\textwidth}
+\begin{column}{0.48\textwidth}
 \textbf{Expected accuracy}
 \begin{itemize}\itemsep4pt
   \item Singular interface forces generally yield first-order global behavior for classical regularized-delta IB schemes.
@@ -986,7 +1014,7 @@ then \(p\) is the asymptotic discretization order. With refinement ratio two,
 % ----- 32. IBAMR -----
 \begin{frame}{What IBAMR provides}
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.56\textwidth}
+\begin{column}{0.54\textwidth}
 \textbf{IBAMR is an open-source C++ research framework}
 \begin{itemize}\itemsep5pt
   \item parallel solvers for incompressible flow
@@ -995,7 +1023,7 @@ then \(p\) is the asymptotic discretization order. With refinement ratio two,
   \item data transfer and synchronization across refinement levels
 \end{itemize}
 \end{column}
-\begin{column}{0.44\textwidth}
+\begin{column}{0.42\textwidth}
 \begin{punchbox}
 \small AMR accelerates a calculation only when hierarchy overhead is outweighed by avoiding a uniformly fine grid. It does not replace stability and convergence studies.
 \end{punchbox}
@@ -1009,7 +1037,7 @@ then \(p\) is the asymptotic discretization order. With refinement ratio two,
 % ----- 33. IBAMR coupling -----
 \begin{frame}{IBAMR: nonconforming structure on an adaptive grid}
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.56\textwidth}
+\begin{column}{0.54\textwidth}
 \begin{itemize}\itemsep7pt
   \item Eulerian variables live on locally refined Cartesian patches.
   \item The Lagrangian structure moves independently of patch boundaries.
@@ -1020,10 +1048,11 @@ then \(p\) is the asymptotic discretization order. With refinement ratio two,
 \small The Lagrangian mesh does not acquire the Eulerian hierarchy's coarse--fine levels.
 \end{punchbox}
 \end{column}
-\begin{column}{0.44\textwidth}
+\begin{column}{0.42\textwidth}
 \centering
 \includegraphics[width=0.72\linewidth]{pictures/1-2/IBAMR.png}\\[4pt]
-\soft{\footnotesize Fine Eulerian cells track an immersed curve}
+\soft{\footnotesize Fine Eulerian cells track an immersed curve}\\[2pt]
+{\tiny\color{DarkGray}Adaptive refinement around an immersed boundary, after IBAMR documentation (B.~E. Griffith); compare Griffith et al., \emph{J. Comput. Phys.} 223 (2007). Source to be confirmed.\par}
 \end{column}
 \end{columns}
 \end{frame}
@@ -1031,12 +1060,13 @@ then \(p\) is the asymptotic discretization order. With refinement ratio two,
 % ----- 34. AMR practice -----
 \begin{frame}{Adaptive mesh refinement in practice}
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.46\textwidth}
+\begin{column}{0.44\textwidth}
 \centering
 \includegraphics[width=0.84\linewidth]{pictures/1-2/AMR.png}\\[4pt]
-\soft{\footnotesize Nested Cartesian patches at several resolutions}
+\soft{\footnotesize Nested Cartesian patches at several resolutions}\\[2pt]
+{\tiny\color{DarkGray}Block-structured AMR schematic after M.~J. Berger and P. Colella, \emph{J. Comput. Phys.} 82 (1989) 64--84. Source to be confirmed.\par}
 \end{column}
-\begin{column}{0.54\textwidth}
+\begin{column}{0.52\textwidth}
 \begin{itemize}\itemsep6pt
   \item Tag cells using problem-relevant indicators: structure location, vorticity, or solution gradients.
   \item Synchronize fluxes and data across coarse--fine interfaces.
@@ -1074,7 +1104,7 @@ then \(p\) is the asymptotic discretization order. With refinement ratio two,
 % ----- 36. Appendix notation -----
 \begin{frame}{Mathematical formulation: notation and assumptions}
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.54\textwidth}
+\begin{column}{0.52\textwidth}
 \begin{itemize}\itemsep5pt
   \item \(\xvec=(x_1,x_2)\): fixed spatial coordinate
   \item \(q\): material coordinate on \(\mathcal U\)
@@ -1084,7 +1114,7 @@ then \(p\) is the asymptotic discretization order. With refinement ratio two,
   \item \(\fvec(\xvec,t)\): Eulerian force density
 \end{itemize}
 \end{column}
-\begin{column}{0.46\textwidth}
+\begin{column}{0.44\textwidth}
 \textbf{Scope}
 \begin{itemize}\itemsep5pt
   \item incompressible Newtonian fluid
@@ -1102,7 +1132,6 @@ then \(p\) is the asymptotic discretization order. With refinement ratio two,
 
 % ----- 37. Conservation from interaction -----
 \begin{frame}{Lagrangian--Eulerian interaction conserves force and torque}
-\small
 The statement has content only for the \emph{regularized} kernel: spread with
 \(\fvec_{\ivec}=\sum_m\Fvec_m\,\delta_h(\xvec_{\ivec}-\Xvec_m)\,w_m\). Then
 \begin{align*}
@@ -1116,12 +1145,26 @@ The statement has content only for the \emph{regularized} kernel: spread with
   \sum_m\Fvec_m\,w_m ,
 \end{align*}
 where \(r^m_\alpha=(X_{m,\alpha})/h\). The bracket collapses to \(1\) \hi{because} \(\phi\) satisfies the zeroth moment \(\sum_j\phi(r-j)=1\) for all \(r\); nothing else forces it.
+
+\medskip
+\soft{\small Here the grid nodes are \(\xvec_{\ivec}=\ivec h\) and \(\phi\) is even, so \(h^2\delta_h(\xvec_{\ivec}-\Xvec_m)=\phi(r^m_1-i_1)\,\phi(r^m_2-i_2)\). On a staggered or cell-centred grid, shift \(r\) by the half-cell offset of that component's nodes; the argument is unchanged. The sums are over the whole (unbounded or periodic) grid.}
+\end{frame}
+
+% ----- 37b. Conservation from interaction (torque) -----
+\begin{frame}{Interaction conserves force and torque (continued: torque)}
 With the first moment \(\sum_j(r-j)\phi(r-j)=0\), the same computation gives \(\sum_{\ivec}\xvec_{\ivec}\,\delta_h(\xvec_{\ivec}-\Xvec_m)h^2=\Xvec_m\), so the torques also agree:
 \[
   \sum_{\ivec}\xvec_{\ivec}\times\fvec_{\ivec}\,h^2
   =
   \sum_m\Xvec_m\times\Fvec_m\,w_m .
 \]
+\textbf{The missing step.} Subtracting the first moment from \(r\) times the zeroth moment gives
+\[
+  \sum_{j}j\,\phi(r-j)=r\sum_j\phi(r-j)-\sum_j(r-j)\phi(r-j)=r ,
+\]
+so in each coordinate \(\sum_{i_\alpha}(i_\alpha h)\,\phi(r^m_\alpha-i_\alpha)=h\,r^m_\alpha=X_{m,\alpha}\), while the other factor sums to \(1\). Then
+\(\sum_{\ivec}\xvec_{\ivec}\times\fvec_{\ivec}h^2=\sum_m\bigl[\sum_{\ivec}\xvec_{\ivec}\delta_h(\xvec_{\ivec}-\Xvec_m)h^2\bigr]\times\Fvec_m w_m\).
+In 2D the torque is the scalar \(x_1f_2-x_2f_1\). \soft{(Peskin 2002, eqs.~(5.5), (5.8), (6.7).)}
 \begin{punchbox}
 \small For the exact Dirac delta both identities are automatic; the moment conditions are what recover them at finite \(h\).
 \end{punchbox}
@@ -1159,11 +1202,27 @@ For \(\delta_h(\xvec)=h^{-2}\phi(x_1/h)\phi(x_2/h)\), a useful checklist is:
 \end{punchbox}
 \end{frame}
 
+% ----- 41. Questions (moved ahead of the references so the deck ends with them) -----
+\begin{frame}[plain]
+\centering
+\vfill
+{\heading{Questions?}\par}
+
+\medskip
+{\color{DarkGray}\rule{0.34\textwidth}{0.8pt}}
+
+\vspace{1.7em}
+{\Large
+\(\Fvec\rightarrow\fvec\rightarrow\uvec\rightarrow\Uvec
+=\partial_t\Xvec\)\par}
+\vfill
+\end{frame}
+
 % ----- 40. References -----
 \begin{frame}{Primary references and official resources}
 \footnotesize
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.66\textwidth}
+\begin{column}{0.64\textwidth}
 \textbf{Primary references}
 \begin{itemize}\itemsep5pt
   \item C.~S. Peskin, \emph{The immersed boundary method}, \emph{Acta Numerica} 11 (2002), 479--517.\\
@@ -1174,7 +1233,7 @@ For \(\delta_h(\xvec)=h^{-2}\phi(x_1/h)\phi(x_2/h)\), a useful checklist is:
   \href{https://doi.org/10.1146/annurev-fluid-010719-060228}{doi:10.1146/annurev-fluid-010719-060228}
 \end{itemize}
 \end{column}
-\begin{column}{0.34\textwidth}
+\begin{column}{0.32\textwidth}
 \textbf{Official resources}
 \begin{itemize}\itemsep5pt
   \item \href{https://ibamr.github.io}{IBAMR documentation}
@@ -1186,18 +1245,45 @@ For \(\delta_h(\xvec)=h^{-2}\phi(x_1/h)\phi(x_2/h)\), a useful checklist is:
 \end{punchbox}
 \end{column}
 \end{columns}
+\vspace{2pt}
+\soft{\scriptsize Adapted from: the continuum formulation, spreading/interpolation, moment conditions, and conservation identities follow Peskin (2002), especially Secs.~5--6; the interaction-operator and IBFE remarks follow Griffith and Luo (2017) and Griffith and Patankar (2020). Further sources on the next slide.}
 \end{frame}
 
-% ----- 41. Questions -----
-\begin{frame}[plain]
-\begin{beamercolorbox}[sep=12pt,center]{title}
-{\bfseries\Large Questions?}
-\end{beamercolorbox}
-\vspace{1.7em}
-\centering
-\Large
-\(\Fvec\rightarrow\fvec\rightarrow\uvec\rightarrow\Uvec
-=\partial_t\Xvec\)
+% ----- 40b. References (continued) -----
+\begin{frame}{References (continued)}
+\scriptsize
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.49\textwidth}
+\textbf{Method and kernels}
+\begin{itemize}\itemsep3pt
+  \item C.~S. Peskin, \emph{Numerical analysis of blood flow in the heart}, \emph{J. Comput. Phys.} 25 (1977), 220--252.
+  \href{https://doi.org/10.1016/0021-9991(77)90100-0}{doi:10.1016/0021-9991(77)90100-0}
+  \item A.~M. Roma, C.~S. Peskin, and M.~J. Berger, \emph{An adaptive version of the immersed boundary method}, \emph{J. Comput. Phys.} 153 (1999), 509--534.
+  \href{https://doi.org/10.1006/jcph.1999.6293}{doi:10.1006/jcph.1999.6293}
+  \item F.~H. Harlow and J.~E. Welch, \emph{Numerical calculation of time-dependent viscous incompressible flow of fluid with free surface}, \emph{Phys. Fluids} 8 (1965), 2182--2189 (MAC grid).
+  \href{https://doi.org/10.1063/1.1761178}{doi:10.1063/1.1761178}
+  \item R.~J. LeVeque, \emph{Finite Difference Methods for Ordinary and Partial Differential Equations}, SIAM (2007): stiffness, absolute stability, von Neumann analysis, consistency + stability \(\Rightarrow\) convergence.
+  \href{https://doi.org/10.1137/1.9780898717839}{doi:10.1137/1.9780898717839}
+\end{itemize}
+\textbf{Scales}
+\begin{itemize}\itemsep3pt
+  \item S. Vogel, \emph{Life in Moving Fluids}, 2nd ed., Princeton University Press (1994): Reynolds-number orders of magnitude.
+\end{itemize}
+\end{column}
+\begin{column}{0.49\textwidth}
+\textbf{Adaptive refinement}
+\begin{itemize}\itemsep3pt
+  \item M.~J. Berger and P. Colella, \emph{Local adaptive mesh refinement for shock hydrodynamics}, \emph{J. Comput. Phys.} 82 (1989), 64--84.
+  \href{https://doi.org/10.1016/0021-9991(89)90035-1}{doi:10.1016/0021-9991(89)90035-1}
+  \item B.~E. Griffith, R.~D. Hornung, D.~M. McQueen, and C.~S. Peskin, \emph{An adaptive, formally second order accurate version of the immersed boundary method}, \emph{J. Comput. Phys.} 223 (2007), 10--49.
+\end{itemize}
+\textbf{Figures}
+\begin{itemize}\itemsep3pt
+  \item Stability plot: Wikimedia Commons, ``StiffEquationNumericalSolvers.svg'' (Berland), public domain.
+  \item Heat-equation plots: instructor's MATLAB lab output. Spreading/interpolation schematics: instructor's course notes. IBAMR and AMR schematics: after Griffith (IBAMR) and Berger--Colella; sources to be confirmed.
+\end{itemize}
+\end{column}
+\end{columns}
 \end{frame}
 
 \end{document}

@@ -1,24 +1,24 @@
-\documentclass{beamer}
+\documentclass[aspectratio=169,11pt]{beamer}
 
+% Shared style, ported from the UF Animal Sciences 2026 talk (ibfe-tutorials.sty at the repo root).
+\makeatletter\def\input@path{{./}{../}}\makeatother
+\usepackage{ibfe-tutorials}
+
+\usepackage[utf8]{inputenc}
 \usepackage{graphicx}
 \usepackage{amsmath}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,calc,shapes}
 
-\usetheme{default}
-\usefonttheme{serif}
-
 \title{Introduction to the Finite Element Method}
 \author{Laura A. Miller}
-\date{\today}
+\institute{Department of Mathematics, University of Arizona}
+\date{IBFE Tutorials \textbullet\ Module 3}
 
 \begin{document}
 
-\begin{frame}
-  \titlepage
-  \begin{center}
-    {\tiny AI tools were used to assist with formatting, organization, and clarification of the instructor's original notes.}
-  \end{center}
+\begin{frame}[plain,b]
+\maketutorialtitle
 \end{frame}
 
 \begin{frame}{Resources}
@@ -45,7 +45,7 @@
     \end{itemize}
     \begin{figure}
         \centering
-        \begin{tikzpicture}[scale=0.9]
+        \begin{tikzpicture}[scale=1.15]
           \draw[very thick] (0,0) -- (8,0);
           \foreach \x in {0,2,4,6,8}{
             \draw[very thick] (\x,-0.18) -- (\x,0.18);
@@ -62,6 +62,8 @@
         \end{tikzpicture}
         \caption{Example of domain discretization: a 1D domain split into four elements with five numbered nodes.}
     \end{figure}
+    \vspace{-3mm}
+    {\centering\tiny\color{DarkGray}Schematic: instructor's course notes.\par}
 \end{frame}
 
 \begin{frame}{Shape Functions}
@@ -72,7 +74,7 @@
     \end{itemize}
     \begin{figure}
         \centering
-        \begin{tikzpicture}[scale=0.85]
+        \begin{tikzpicture}[xscale=1.15,yscale=0.75]
           \draw[->,thick] (-0.3,0) -- (8.6,0) node[right] {\small $x$};
           \draw[->,thick] (0,-0.15) -- (0,2.0) node[above] {\small $N$};
           \node[left] at (0,1.5) {\small $1$};
@@ -87,13 +89,17 @@
           \draw[very thick,dashed] (0,0) -- (2,1.5) -- (4,0) -- (8,0);
           \draw[very thick,dotted] (0,0) -- (2,0) -- (4,1.5) -- (6,0) -- (8,0);
           \draw[very thick,dashdotted] (0,0) -- (4,0) -- (6,1.5) -- (8,0);
+          \draw[very thick,RubineRed] (6,0) -- (8,1.5);
           \node[above right] at (0,1.5) {\small $N_1$};
           \node[above] at (2,1.5) {\small $N_2$};
           \node[above] at (4,1.5) {\small $N_3$};
           \node[above] at (6,1.5) {\small $N_4$};
+          \node[above left,RubineRed] at (8,1.5) {\small $N_5$};
         \end{tikzpicture}
-        \caption{Piecewise-linear (hat) shape functions $N_1,\dots,N_4$ on the four-element mesh. Each equals 1 at its own node and 0 at every other node.}
+        \caption{Piecewise-linear (hat) shape functions $N_1,\dots,N_4$ on the four-element mesh. Each equals 1 at its own node and 0 at every other node. The half-hat $N_5$ at the right end node completes the set: five nodes, five functions, and $\sum_{a=1}^{5} N_a(x) = 1$ everywhere.}
     \end{figure}
+    \vspace{-3mm}
+    {\centering\tiny\color{DarkGray}Schematic: instructor's course notes.\par}
 \end{frame}
 
 \begin{frame}{Shape Functions: A Mathematical Deep Dive}
@@ -120,7 +126,23 @@
         \end{align*}
         where $N_1$, $N_2$, and $N_3$ are the shape functions associated with the three nodes of the triangle.
         \item These shape functions are linear polynomials that satisfy the interpolation, continuity, and completeness properties.
+        \item Here $(\xi,\eta)$ range over the \emph{reference} triangle with vertices $(0,0)$, $(1,0)$, $(0,1)$; node 1 is at $(0,0)$, node 2 at $(1,0)$, node 3 at $(0,1)$.
     \end{itemize}
+\end{frame}
+
+\begin{frame}{From the Reference Element to the Physical Element}
+    \begin{itemize}
+        \item Each physical element is the image of the reference element under the \textbf{isoparametric map}, built from the \emph{same} shape functions:
+        \[
+          \mathbf{x}(\xi,\eta) = \sum_{a=1}^{3} N_a(\xi,\eta)\,\mathbf{x}_a ,
+        \]
+        where $\mathbf{x}_a$ are the physical coordinates of the element's nodes.
+        \item The unknown is interpolated in the same way, $u^h(\xi,\eta) = \sum_a N_a(\xi,\eta)\,u_a$, so derivatives in physical coordinates follow from the chain rule with the Jacobian matrix $\partial\mathbf{x}/\partial(\xi,\eta)$.
+        \item For the linear triangle this map is affine and its Jacobian is constant; for quadrilaterals and higher-order elements it varies over the element and must be positive everywhere (no inverted elements).
+        \item The same idea, $\mathbf{x}=\sum_a N_a\mathbf{x}_a$, is how IBFE represents the current position of the immersed structure from its nodal positions.
+    \end{itemize}
+    \vspace{1mm}
+    {\tiny\color{DarkGray}After Hughes (2000), Ch.~3 (isoparametric elements).\par}
 \end{frame}
 
 \begin{frame}{Properties of Shape Functions}
@@ -129,6 +151,7 @@
         \item Partition of unity: The sum of all shape functions at any point within the element is equal to 1.
         \item Continuity: Lagrange shape functions are $C^0$ across element boundaries, meaning that they are continuous there but their derivatives generally are not; Hermite or spline elements are $C^1$ or higher.
         \item Completeness: The shape functions can represent constant and linear variations of the solution within the element.
+        \item More generally, elements of degree $p$ are complete to degree $p$: they reproduce every polynomial of degree $\le p$ exactly. For a smooth solution this gives an error that decreases like $h^{p+1}$ in the solution and $h^{p}$ in its gradient as the mesh size $h\to 0$.
     \end{itemize}
 \end{frame}
 
@@ -151,12 +174,13 @@
     \begin{itemize}
         \item The equations governing the behavior of each element are derived using variational principles or the Galerkin method.
         \item These equations relate the nodal values of the unknown variables to the element's properties and the external forces acting on it.
+        \item Coming next (in a later version of this module): the weak form and the Galerkin method, which turn the governing PDE into these element equations.
     \end{itemize}
 \end{frame}
 
 \begin{frame}{Element Equations in the Hybrid Immersed Boundary Finite Element Method}
     \begin{itemize}
-        \item In the hybrid immersed boundary finite element method, the structure is discretized using finite elements, while the fluid is discretized using finite differences.
+        \item In the hybrid immersed boundary finite element method, the structure is discretized using finite elements, while the fluid is discretized using finite differences (in IBAMR, a staggered-grid finite-difference/finite-volume scheme on a Cartesian, possibly adaptively refined, grid).
         \item This leads to a coupled system of equations that governs the behavior of the fluid-structure interaction.
         \item The element equations for the structure are derived from the principle of virtual work or the principle of minimum potential energy.
         \item These equations relate the nodal displacements and forces to the element stiffness matrix and the external forces acting on the element.
@@ -178,6 +202,7 @@
         \end{itemize}
         \item The element stiffness matrix $\mathbf{K}^e$ depends on the material properties and geometry of the element.
         \item The nodal forces $\mathbf{f}^e$ include both external forces and forces due to the interaction with the fluid.
+        \item In IBFE the structure is usually not solved with a stiffness matrix at all: at each time step the elastic \emph{nodal forces} are evaluated directly from the current nodal positions (via $\mathbf{P}=\partial W/\partial\mathbf{F}$, deck 4-2) and spread to the fluid; the fluid then moves the nodes.
     \end{itemize}
 \end{frame}
 
@@ -203,24 +228,31 @@
         \item The global system of equations for the structure is coupled with the fluid equations through the interaction forces.
         \item The interaction forces are calculated using the immersed boundary method, which involves spreading the forces from the Lagrangian structure to the Eulerian fluid grid and interpolating the fluid velocities back to the structure.
         \item The coupling between the structure and fluid equations leads to a nonlinear system of equations that must be solved iteratively.
+        \item In practice many IB/IBFE codes (including IBAMR's default integrators) avoid solving that coupled nonlinear system at every step by treating the elastic force explicitly in a semi-implicit time-stepping scheme; the price is a stability restriction on the time step for stiff structures. Fully implicit schemes do require the iterative solve.
     \end{itemize}
+    \vspace{1mm}
+    {\tiny\color{DarkGray}See Griffith \& Luo (2017) for the hybrid IB/FE coupling.\par}
 \end{frame}
 
 \begin{frame}{Assembly and Solution}
+  \begin{columns}[c,onlytextwidth]
+  \begin{column}{0.40\textwidth}
     \begin{itemize}
         \item The element equations are assembled into a global system of equations that governs the behavior of the entire structure.
         \item This system of equations is then solved numerically to obtain the nodal values of the unknown variables.
     \end{itemize}
+  \end{column}
+  \begin{column}{0.57\textwidth}
     \begin{figure}
         \centering
-        \begin{tikzpicture}[scale=1.0]
+        \begin{tikzpicture}[scale=0.95]
           % element matrix 1
           \begin{scope}[shift={(0,1.4)}]
             \fill[gray!25] (0,0) rectangle (1,1);
             \draw[step=0.5,thick] (0,0) grid (1,1);
             \draw[thick] (0,0) rectangle (1,1);
             \node[left] at (-0.15,0.5) {\small $K^{(1)}$};
-            \node[above] at (0.5,1.05) {\tiny dofs 1,2};
+            \node[above] at (0.5,1.05) {\scriptsize dofs 1,2};
           \end{scope}
           % element matrix 2
           \begin{scope}[shift={(0,0)}]
@@ -228,7 +260,7 @@
             \draw[step=0.5,thick] (0,0) grid (1,1);
             \draw[thick] (0,0) rectangle (1,1);
             \node[left] at (-0.15,0.5) {\small $K^{(2)}$};
-            \node[below] at (0.5,-0.1) {\tiny dofs 2,3};
+            \node[below] at (0.5,-0.1) {\scriptsize dofs 2,3};
           \end{scope}
           \draw[-{Latex[length=3mm]},very thick] (1.5,1.2) -- (2.6,1.2);
           \node[above] at (2.05,1.3) {\small assemble};
@@ -240,11 +272,16 @@
             \draw[step=0.5,thick] (0,0) grid (2,2);
             \draw[thick] (0,0) rectangle (2,2);
             \node[above] at (1,2.1) {\small global $K$ ($4\times 4$)};
-            \node[right,align=left] at (2.15,0.9) {\tiny shared dof 2:\\ \tiny contributions add};
+            \node[right,align=left] at (2.15,0.9) {\scriptsize shared dof 2:\\ \scriptsize contributions add};
           \end{scope}
         \end{tikzpicture}
         \caption{Assembly: each element matrix is scattered into the rows and columns of its own degrees of freedom in the global matrix; entries for a shared node (dark square) receive contributions from both elements.}
     \end{figure}
+    \vspace{-3mm}
+    {\centering\scriptsize Here $K^{(1)}$ fills rows/columns 1--2 and $K^{(2)}$ fills rows/columns 2--3, so only $K_{22}$ is a sum, $K_{22}=K^{(1)}_{22}+K^{(2)}_{22}$. The fourth row and column belong to the next element of the chain (not shown); entries coupling nodes that share no element stay zero, which is why $K$ is sparse (banded in 1D).\par}
+    {\centering\tiny\color{DarkGray}Schematic: instructor's course notes.\par}
+  \end{column}
+  \end{columns}
 \end{frame}
 
 \begin{frame}{Types of Elements}
@@ -254,7 +291,7 @@
     \end{itemize}
     \begin{figure}
         \centering
-        \begin{tikzpicture}[scale=0.95,every node/.style={font=\small}]
+        \begin{tikzpicture}[scale=1.15,every node/.style={font=\small}]
           % 1D line element
           \begin{scope}[shift={(0,0)}]
             \draw[very thick] (0,0.6) -- (1.4,0.6);
@@ -297,12 +334,16 @@
         \end{tikzpicture}
         \caption{Different types of finite elements: a 1D line element, 2D triangular and quadrilateral elements, and a 3D tetrahedron (shown as a wireframe).}
     \end{figure}
+    \vspace{-3mm}
+    {\centering\tiny\color{DarkGray}Schematic: instructor's course notes.\par}
 \end{frame}
 
 \begin{frame}{Boundary Conditions}
     \begin{itemize}
         \item Boundary conditions are incorporated into the FEM model to represent the physical constraints of the problem.
         \item They can be essential boundary conditions (e.g., prescribed displacements) or natural boundary conditions (e.g., applied forces).
+        \item Essential conditions are imposed on the unknowns themselves: by eliminating (or fixing) the constrained nodal values in $\mathbf{K}\mathbf{u}=\mathbf{f}$, or approximately by a penalty or Lagrange-multiplier term. Natural conditions need no constraint; they enter as boundary contributions to the force vector $\mathbf{f}$.
+        \item In IBFE, a structure can be held in place by tethering selected nodes to target positions with stiff springs (a penalty method) rather than by eliminating degrees of freedom.
     \end{itemize}
 \end{frame}
 
@@ -337,6 +378,19 @@
     \item[Pound per Square Inch (psi)] A unit of pressure or stress in the imperial and US customary systems.
     \item[Continuum Mechanics] The branch of mechanics that deals with the analysis of the kinematics and mechanical behavior of materials modeled as a continuous mass rather than as discrete particles.
   \end{description}
+\end{frame}
+
+\begin{frame}{References}
+  \scriptsize
+  \begin{itemize}
+    \item T. J. R. Hughes, \emph{The Finite Element Method: Linear Static and Dynamic Finite Element Analysis}, Dover, Mineola NY, 2000 (reprint of Prentice-Hall, 1987). Shape functions, isoparametric elements, assembly, boundary conditions.
+    \item B. E. Griffith, X. Luo, Hybrid finite difference/finite element immersed boundary method, \emph{Int.\ J.\ Numer.\ Methods Biomed.\ Eng.} 33(12) (2017) e2888. doi:10.1002/cnm.2888 (IBFE coupling; copy in \texttt{papers/}).
+    \item B. S. Kirk, J. W. Peterson, R. H. Stogner, G. F. Carey, libMesh: a C++ library for parallel adaptive mesh refinement/coarsening simulations, \emph{Engineering with Computers} 22 (2006) 237--254. doi:10.1007/s00366-006-0049-3. Documentation: \url{https://libmesh.github.io}.
+    \item IBAMR: an adaptive and distributed-memory parallel implementation of the immersed boundary method, \url{https://ibamr.github.io}.
+    \item The deal.II library, tutorial step-3 (Poisson problem with bilinear elements), \url{https://www.dealii.org/current/doxygen/deal.II/step_3.html}.
+  \end{itemize}
+  \medskip
+  \textbf{Figures.} All figures in this deck (mesh, hat functions, assembly, element types) are schematics drawn for these notes.
 \end{frame}
 
 \end{document}

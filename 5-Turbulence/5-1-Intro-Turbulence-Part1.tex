@@ -1,32 +1,20 @@
 \documentclass[aspectratio=169,11pt]{beamer}
 
-% Match the visual language of the SIAM Waves talk.
-\usetheme{Boadilla}
-\usecolortheme{seahorse}
-\useinnertheme{rectangles}
-\useoutertheme{infolines}
+% Shared style, ported from the UF Animal Sciences 2026 talk (ibfe-tutorials.sty at the repo root).
+\makeatletter\def\input@path{{./}{../}}\makeatother
+\usepackage{ibfe-tutorials}
 
-\setbeamercolor{structure}{fg=blue!55!black}
-\setbeamercolor{title}{fg=white,bg=blue!55!black}
-\setbeamercolor{frametitle}{fg=blue!55!black}
-\setbeamercolor{block title}{bg=blue!12,fg=blue!55!black}
-\setbeamercolor{block body}{bg=blue!4}
-\setbeamertemplate{navigation symbols}{}
-\setbeamerfont{frametitle}{series=\bfseries,size=\large}
-\setbeamerfont{title}{series=\bfseries,size=\Large}
-
-\usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
-\DeclareFontShape{T1}{cmss}{b}{n}{<->ssub*cmss/bx/n}{}
 \usepackage{amsmath, amssymb, bm}
 \usepackage{graphicx}
+% These prefixes allow compilation from either the repository root or this folder.
+\graphicspath{{./}{../}{}}
 \usepackage{xcolor}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,calc,decorations.pathmorphing,patterns}
 \usepackage{pgfplots}
 \pgfplotsset{compat=1.18}
 \usepackage{hyperref}
-\hypersetup{colorlinks=true,urlcolor=blue!55!black}
 
 % ---------- Macros ----------
 \newcommand{\R}{\mathbb{R}}
@@ -35,6 +23,8 @@
 \newcommand{\Rey}{\mathrm{Re}}
 \newcommand{\nuu}{\nu}
 \newcommand{\tmark}[1]{\hfill{\scriptsize\textcolor{gray}{#1}}}
+% The title slide uses \maketutorialtitlepanel{...} from ibfe-tutorials.sty,
+% which places arbitrary content (here a block) in the right-hand column.
 
 % Uncomment if you want speaker notes:
 % \usepackage{pgfpages}
@@ -44,33 +34,17 @@
 \subtitle{Key features, examples, and why it matters}
 \author[Miller]{Laura A. Miller}
 \institute[UArizona]{Department of Mathematics, University of Arizona}
-\date{}
+\date{IBFE Tutorials \textbullet\ Module 5\\[3pt]
+  Adapted from a \href{https://doi.org/10.52843/cassyni.hrpvdf}{lecture by Steven L. Brunton}.}
 
 \begin{document}
 
 % ---------------- Title ----------------
 \begin{frame}[plain]
-  \begin{beamercolorbox}[sep=10pt,center]{title}
-    {\bfseries\Large What is turbulence?}\\[3pt]
-    {\normalsize Key features, examples, and why it matters}
-  \end{beamercolorbox}
-  \vspace{1.35em}
-  \begin{columns}[T,onlytextwidth]
-  \begin{column}{0.55\textwidth}
-    \textbf{\large Laura A. Miller}\\[4pt]
-    Department of Mathematics\\
-    University of Arizona\\[12pt]
-    {\small IBFE Tutorials}
-  \end{column}
-  \begin{column}{0.45\textwidth}
-    \begin{block}{A working viewpoint}
-    Turbulence is recognized through a collection of dynamical signatures, not one universal checklist.
-    \end{block}
-  \end{column}
-  \end{columns}
-  \vfill
-  {\scriptsize Adapted from a \href{https://doi.org/10.52843/cassyni.hrpvdf}{lecture by Steven L. Brunton}.}
-  \\[2pt]{\tiny AI tools were used to assist with formatting, organization, and clarification of the instructor's original notes.}
+\maketutorialtitlepanel{%
+  \begin{block}{A working viewpoint}
+  Turbulence is recognized through a collection of dynamical signatures, not one universal checklist.
+  \end{block}}
   \note{
   Goal: build intuition + a math-friendly entry point.
   No single definition; use a set of hallmark features + canonical examples.
@@ -125,27 +99,30 @@
 
 \vspace{0.25em}
 \centering
-\begin{tikzpicture}[x=0.74cm,y=0.74cm]
-  \fill[blue!6] (0,0) circle (1.95);
-  % logarithmic spiral rain bands
+\begin{tikzpicture}[x=0.84cm,y=0.84cm]
+  \fill[LightGray!40] (0,0) circle (1.95);
+  % logarithmic spiral rain bands; the angle decreases outward, so the bands
+  % trail a counterclockwise (Northern Hemisphere) rotation, as in satellite images
   \foreach \s in {0,90,180,270}{%
-    \draw[blue!55!black,line width=1.1pt,opacity=0.9,samples=300,smooth,variable=\t,domain=0:900]
-      plot ({0.149*exp(0.0028*\t)*cos(\t+\s)},{0.149*exp(0.0028*\t)*sin(\t+\s)});
+    \draw[NavyBlue!70,line width=1.1pt,opacity=0.9,samples=300,smooth,variable=\t,domain=0:900]
+      plot ({0.149*exp(0.0028*\t)*cos(\s-\t)},{0.149*exp(0.0028*\t)*sin(\s-\t)});
   }
   \foreach \s in {45,135,225,315}{%
-    \draw[blue!40!black,line width=0.5pt,opacity=0.5,samples=220,smooth,variable=\t,domain=360:900]
-      plot ({0.149*exp(0.0028*\t)*cos(\t+\s)},{0.149*exp(0.0028*\t)*sin(\t+\s)});
+    \draw[NavyBlue!45,line width=0.5pt,opacity=0.5,samples=220,smooth,variable=\t,domain=360:900]
+      plot ({0.149*exp(0.0028*\t)*cos(\s-\t)},{0.149*exp(0.0028*\t)*sin(\s-\t)});
   }
   % eye
   \fill[white] (0,0) circle (0.22);
-  \draw[blue!55!black,thick] (0,0) circle (0.22);
-  \node[font=\tiny,blue!55!black,anchor=west,fill=white,inner sep=0.7pt] at (0.30,0.02) {eye};
+  \draw[DarkGray,thick] (0,0) circle (0.22);
+  \node[font=\tiny,DarkGray,anchor=west,fill=white,inner sep=0.7pt] at (0.30,0.02) {eye};
   % sense of rotation
   \draw[->,gray,thick] (1.62,0.78) arc (26:82:1.80);
   \node[font=\tiny,anchor=north] at (0,-2.05) {cyclone: $L\sim 500$ km};
 \end{tikzpicture}
 
-{\scriptsize Schematic (instructor's course notes).}
+{\scriptsize Northern-Hemisphere tropical cyclone seen from above: counterclockwise rotation, with spiral rain bands that trail the rotation (inflow spirals inward cyclonically). Its horizontal scale ($\sim$\,300--1000 km) far exceeds the $\sim$\,10--16 km depth of the troposphere, which is why such flows are quasi-2D. Schematic: instructor's course notes.\par}
+% Native redraw replacing pictures/5-1/hurricane.png (orbital photograph, source
+% unidentified); the PNG remains on disk.
 
 \end{frame}
 
@@ -160,7 +137,7 @@
 \centering
 \includegraphics[width=0.5\textwidth]{pictures/5-1/lectures-smit.png}
 
-{\scriptsize Title page of A. J. (Lex) Smits, \emph{MAE 553: Viscous Flows and Turbulence} lecture notes (Princeton University).}
+{\scriptsize Title page of A. J. (Lex) Smits, \emph{MAE 553: Viscous Flows and Turbulence} lecture notes (Princeton University).\par}
 
 \end{frame}
 
@@ -174,7 +151,7 @@
 \vspace{0.8em}
 
 \centering
-\href{https://www.youtube.com/watch?v=4KeaAhVoPIw}{\color{blue}\underline{3D Simulation (YouTube)}}
+\href{https://www.youtube.com/watch?v=4KeaAhVoPIw}{\color{NavyBlue}\underline{3D Simulation (YouTube)}}
 \end{frame}
 
 
@@ -193,7 +170,7 @@
 \includegraphics[width=0.5\textwidth]{pictures/5-1/explosion.png}
 
 \hfill
-{\scriptsize Still from \emph{Oppenheimer} (dir. C. Nolan, Universal Pictures, 2023); shown for educational commentary, rights reserved by the studio.}
+{\scriptsize Still from \emph{Oppenheimer} (dir. C. Nolan, Universal Pictures, 2023); shown for educational commentary, rights reserved by the studio.\par}
 
 \end{frame}
 
@@ -209,7 +186,7 @@
 \includegraphics[width=0.5\textwidth]{pictures/5-1/ocean-mix.jpg}
   \hfill
 
-{\scriptsize Photo: Kent Smith, Gulf of Alaska (2007), glacial meltwater meeting ocean water.}
+{\scriptsize Photo: Kent Smith, Gulf of Alaska (2007), glacial meltwater meeting ocean water.\par}
 \end{frame}
 
 % ---------------- Rayleigh-Bénard + chaos ----------------
@@ -223,7 +200,7 @@
 \vspace{0.5em}
 
 \centering
-\href{https://www.youtube.com/watch?v=YkN6F6LJzGU}{\color{blue}\underline{3D Simulation (YouTube)}}
+\href{https://www.youtube.com/watch?v=YkN6F6LJzGU}{\color{NavyBlue}\underline{3D Simulation (YouTube)}}
 
 \end{frame}
 
@@ -254,7 +231,7 @@ w(\mathbf{x},t)
 % ---------------- Reynolds number ----------------
 \begin{frame}{Reynolds number: a control knob for complexity}
 \begin{columns}[T,onlytextwidth]
-  \begin{column}{0.58\textwidth}
+  \begin{column}{0.56\textwidth}
     \begin{itemize}
       \item For chosen characteristic scales $U$ and $L$, the \textbf{Reynolds number} compares inertial and viscous effects:
       \[
@@ -265,11 +242,13 @@ w(\mathbf{x},t)
     \end{itemize}
   \end{column}
 
-  \begin{column}{0.42\textwidth}
+  \begin{column}{0.40\textwidth}
     \centering
-    \includegraphics[width=0.62\linewidth]{pictures/5-1/flow-cylinder.png}
+    \includegraphics[width=0.80\linewidth]{pictures/5-1/flow-cylinder.png}
 
-    {\scriptsize Flow regimes past a cylinder; after S. Vogel, \emph{Life in Moving Fluids}, 2nd ed. (Princeton Univ.\ Press, 1994) (figure number to confirm).}
+    {\scriptsize Flow regimes past a cylinder; after S. Vogel, \emph{Life in Moving Fluids}, 2nd ed. (Princeton Univ.\ Press, 1994) (figure number to confirm).\par}
+
+    {\tiny\color{DarkGray} The panel boundaries (10, 40, 200{,}000) are rounded; the next slide marks the more precise values $\Rey\approx5$, $47$, and $2\times10^5$.\par}
   \end{column}
 \end{columns}
 \end{frame}
@@ -303,7 +282,7 @@ w(\mathbf{x},t)
       \draw[gray,dashed] (axis cs:47,0.17) -- (axis cs:47,16);
       \draw[gray,dashed] (axis cs:2e5,0.17) -- (axis cs:2e5,16);
       % qualitative C_D(Re) for a circular cylinder
-      \addplot[blue!55!black,very thick,smooth] coordinates {
+      \addplot[NavyBlue!70,very thick,smooth] coordinates {
         (1,10.5) (2,6.6) (5,3.7) (10,2.75) (20,2.0) (47,1.55)
         (1e2,1.4) (3e2,1.2) (2e3,0.98) (1e4,1.1) (1e5,1.20)
         (2e5,1.15) (2.5e5,0.95) (3.5e5,0.42) (6e5,0.30)
@@ -319,7 +298,11 @@ w(\mathbf{x},t)
     \end{axis}
     \end{tikzpicture}
 
-{\scriptsize Drag coefficient of a circular cylinder versus Reynolds number with flow regimes. Schematic (instructor's course notes).}
+{\scriptsize Drag coefficient of a circular cylinder versus Reynolds number with flow regimes. Schematic (instructor's course notes).\par}
+
+{\tiny\color{DarkGray} Dashed lines: $\Rey\approx5$ (steady separation, a recirculating eddy pair forms), $\Rey\approx47$ (onset of periodic shedding, a Hopf bifurcation; the wake itself becomes turbulent for $\Rey\gtrsim200$--$300$), $\Rey\approx2\times10^5$ (onset of the drag crisis: the boundary layer turns turbulent before separating, so $C_D$ falls from $\approx1.2$ to $\approx0.3$ near $3$--$5\times10^5$). Curve is qualitative; values after standard compilations (e.g.\ Schlichting \& Gersten; Williamson 1996).\par}
+% Native redraw replacing pictures/5-1/drag.png (unlabelled C_D(Re) textbook-style
+% plot, source unidentified); the PNG remains on disk.
 
 \end{frame}
 
@@ -338,7 +321,7 @@ w(\mathbf{x},t)
     \centering
     \includegraphics[width=0.75\linewidth]{pictures/5-1/galileo.jpg}
      \vfill
-    \raggedleft{\scriptsize Portrait of Galileo Galilei (public domain); the legendary experiment at Pisa.}
+    {\raggedleft\scriptsize Portrait of Galileo Galilei (public domain); the legendary experiment at Pisa.\par}
   \end{column}
 \end{columns}
 \end{frame}
@@ -346,6 +329,9 @@ w(\mathbf{x},t)
 % ---------------- Osborne Reynolds ----------------
 \begin{frame}{Why ``Reynolds''? Pipe-flow experiments (1883)}
 \small
+\setbeamerfont{itemize/enumerate subbody}{size=\small}% keep sub-items at the frame's \small size
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.62\textwidth}
 \begin{itemize}
   \item Osborne Reynolds observed changes in pipe flow as speed and disturbance conditions varied:
   \begin{itemize}
@@ -355,15 +341,33 @@ w(\mathbf{x},t)
   \end{itemize}
   \item The laminar solution exists at every $\Rey$; pipe transition is subcritical and depends on finite-amplitude disturbances.
   \item Pipe flow remains a core engineering problem: pumping water, sewage, and process fluids efficiently.
-  \item Textbooks quote $\Rey_D\approx 2300$ for the onset of transition in pipes; Reynolds (1883) found transition near $\Rey\approx 13{,}000$ with a disturbed inlet and could keep flow laminar to far higher $\Rey$ with care. Deck 5-4 discusses the modern value $\Rey_D\approx 2040$.
+  \item Textbooks quote $\Rey_D\approx 2300$ for the onset of transition in pipes; Reynolds' own critical values are on the next slide.
+\end{itemize}
+\end{column}
+\begin{column}{0.35\textwidth}
+\centering
+    \includegraphics[width=\linewidth]{pictures/5-1/04-reynolds.jpg}
+
+\vspace{0.3em}
+{\scriptsize Apparatus and dye-filament plate from O. Reynolds, \emph{Phil.\ Trans.\ R. Soc.\ Lond.} \textbf{174} (1883), 935--982 (public domain).\par}
+\end{column}
+\end{columns}
+\end{frame}
+
+% ---------------- Critical Reynolds numbers (split from the previous frame) ----------------
+\begin{frame}{Pipe flow: which ``critical'' Reynolds number?}
+Here $\Rey_D=U_bD/\nu$ uses the bulk (mean) velocity $U_b$ and the pipe diameter $D$.
+\begin{itemize}\itemsep4pt
+  \item Textbooks quote $\Rey_D\approx 2300$ for the onset of transition in pipes.
+  \item Reynolds (1883) kept the flow laminar up to $\Rey\approx 13{,}000$ (his ``upper critical'' value) only with a very still reservoir and a smooth bell-mouth inlet.
+  \item With disturbances present, turbulence did not persist below $\Rey\approx 2000$ (his ``lower critical'' value).
+  \item Later, quieter experiments stayed laminar to $\Rey\sim10^5$ (Pfenninger 1961): there is no upper limit set by a linear instability.
+  \item Deck 5-4 discusses the modern statistical value $\Rey_D\approx 2040$ (Avila et al.\ 2011), where puff splitting balances puff decay.
 \end{itemize}
 
-\vspace{0.1em}
-\centering
-    \includegraphics[width=0.26\linewidth]{pictures/5-1/04-reynolds.jpg}
-  \hfill
-
-{\scriptsize Apparatus and dye-filament plate from O. Reynolds, \emph{Phil.\ Trans.\ R. Soc.\ Lond.} \textbf{174} (1883), 935--982 (public domain).}
+\begin{punchbox}
+The lower value is a property of the flow (below it, turbulence decays whatever the disturbance); the upper value is a property of the experiment (how quiet the inlet is).
+\end{punchbox}
 \end{frame}
 
 \begin{frame}{Transition to turbulence}
@@ -376,7 +380,7 @@ w(\mathbf{x},t)
 \vspace{0.8em}
 
 \centering
-\href{https://youtu.be/BBiR6FWmyv4}{\color{blue}\underline{Pipe flow transition to turbulence (YouTube)}}
+\href{https://youtu.be/BBiR6FWmyv4}{\color{NavyBlue}\underline{Pipe flow transition to turbulence (YouTube)}}
 \end{frame}
 % ---------------- Turbulence is not random ----------------
 \begin{frame}{Turbulence is not ``random'': coherent structures}
@@ -391,7 +395,7 @@ w(\mathbf{x},t)
     \includegraphics[width=0.9\linewidth]{pictures/5-1/vonkarman.png}
       \hfill
 
-{\scriptsize M. Van Dyke, \emph{An Album of Fluid Motion} (Parabolic Press, 1982).}
+{\scriptsize M. Van Dyke, \emph{An Album of Fluid Motion} (Parabolic Press, 1982).\par}
 
 \end{frame}
 
@@ -414,7 +418,7 @@ w(\mathbf{x},t)
     \includegraphics[width=0.72\linewidth]{pictures/5-1/mixing-layers.png}
 
     \vfill
-    \raggedleft{\scriptsize Shadowgraphs of a plane mixing layer at increasing Reynolds number; G. L. Brown \& A. Roshko, \emph{J. Fluid Mech.} \textbf{64}, 775--816 (1974); reproduced in Van Dyke, \emph{An Album of Fluid Motion}.}
+    {\raggedleft\scriptsize Shadowgraphs of a plane mixing layer at increasing Reynolds number; G. L. Brown \& A. Roshko, \emph{J. Fluid Mech.} \textbf{64}, 775--816 (1974); reproduced in Van Dyke, \emph{An Album of Fluid Motion}.\par}
   \end{column}
 \end{columns}
 \end{frame}
@@ -436,7 +440,8 @@ w(\mathbf{x},t)
     \includegraphics[width=0.55\linewidth]{pictures/5-1/intermitancy.png}
 
     \vfill
-    {\footnotesize Source: Smith and Smits, 1988.}
+    {\footnotesize Source: Smith and Smits, 1988.\par}
+    {\scriptsize\color{DarkGray} Image is a still of a lightboard sketch from S.~L. Brunton's lecture (title slide); the signal $u(t)$ and intermittency function $I(t)$ ($I=1$ in turbulent ``T'' intervals, $0$ in non-turbulent ``NT'' ones) follow the cited Smith \& Smits example (full reference to be confirmed). The time average of $I$ is the intermittency factor $\gamma$.\par}
 
 \end{frame}
 
@@ -445,7 +450,8 @@ w(\mathbf{x},t)
     \includegraphics[width=0.4\linewidth]{pictures/5-1/local-turbulence.png}
     
 \vfill
-    {\footnotesize Source: Nikitin, N. \& Pimanov, V.. (2015). Numerical study of localized turbulent structures in a pipe. Fluid Dynamics. 50. 655-664.} 
+    {\footnotesize Source: Nikitin, N. \& Pimanov, V. (2015). Numerical study of localized turbulent structures in a pipe. \emph{Fluid Dynamics} 50, 655--664.\par}
+    {\scriptsize\color{DarkGray} Panels range from uniformly turbulent pipe flow (top) to localized turbulent patches (puffs) separated by laminar flow (bottom): intermittency in space as well as in time. See deck 5-4 for puff decay and splitting.\par}
     \end{frame}
 % ---------------- Canonical flows ----------------
 \begin{frame}{How we handle complexity: canonical flows}
@@ -462,7 +468,7 @@ w(\mathbf{x},t)
     \centering
     \includegraphics[width=0.58\linewidth]{pictures/5-1/album.png}
 
-    {\scriptsize M. Van Dyke, \emph{An Album of Fluid Motion} (Parabolic Press, 1982), cover.}
+    {\scriptsize M. Van Dyke, \emph{An Album of Fluid Motion} (Parabolic Press, 1982), cover.\par}
   \end{column}
 \end{columns}
 \end{frame}
@@ -489,8 +495,8 @@ w(\mathbf{x},t)
   \draw[red!65!black,thick] (0.79,1.21) .. controls (1.02,1.60) .. (0.79,1.99);
   \draw[red!65!black,thick] (1.71,1.21) .. controls (1.48,1.60) .. (1.71,1.99);
   % motion to the left
-  \draw[->,very thick,blue!55!black] (1.05,3.05) -- (0.15,3.05);
-  \node[font=\tiny,anchor=west,blue!55!black] at (1.10,3.05) {motion};
+  \draw[->,very thick,DarkGray] (1.05,3.05) -- (0.15,3.05);
+  \node[font=\tiny,anchor=west,DarkGray] at (1.10,3.05) {motion};
   % turbulent wake behind (to the right)
   \foreach \y/\g in {1.05/-0.30,1.35/-0.14,1.60/0.0,1.85/0.14,2.15/0.30}{%
     \draw[gray!45!black,decorate,decoration={random steps,segment length=2.4pt,amplitude=1.1pt}]
@@ -500,7 +506,11 @@ w(\mathbf{x},t)
   \node[font=\tiny,anchor=west] at (1.5,0.10) {$\Rey\sim2\times10^{5}$};
 \end{tikzpicture}
 
-{\scriptsize Schematic (instructor's course notes).}
+{\scriptsize Schematic (instructor's course notes).\par}
+{\tiny\color{DarkGray} Baseball wake: $D\approx7.4$ cm at $40$ m/s in air gives $\Rey=UD/\nu\approx2\times10^5$, near the drag crisis.\par}
+% Native redraw replacing pictures/5-1/baseball.png (smoke photograph of a
+% baseball wake, commonly attributed to F. N. M. Brown, Notre Dame; source to be
+% confirmed); the PNG remains on disk.
 
 \column{0.33\textwidth}
 \textbf{Mixing layers}
@@ -512,7 +522,7 @@ w(\mathbf{x},t)
  \vspace{0.5em}
 \centering
 \begin{tikzpicture}[x=0.82cm,y=0.82cm]
-  \fill[blue!4] (0,0) rectangle (5,3.45);
+  \fill[LightGray!40] (0,0) rectangle (5,3.45);
   % rising plume stem, widening upward
   \fill[orange!25]
     (2.18,0.18) .. controls (2.08,0.85) .. (1.96,1.90)
@@ -532,7 +542,10 @@ w(\mathbf{x},t)
   \node[font=\tiny,anchor=east,orange!55!black] at (1.50,1.10) {plume};
 \end{tikzpicture}
 
-{\scriptsize Schematic (instructor's course notes).}
+{\scriptsize Schematic (instructor's course notes).\par}
+{\tiny\color{DarkGray} Starting thermal plume: its edges are shear (mixing) layers that entrain ambient fluid; the cap is a vortex ring, seen in section as a counter-rotating pair.\par}
+% Native redraw replacing pictures/5-1/thermal.png (photograph of thermal plumes
+% rising from a heated surface, source unidentified); the PNG remains on disk.
 
 \column{0.33\textwidth}
 \textbf{Jets}
@@ -547,12 +560,12 @@ w(\mathbf{x},t)
   % nozzle
   \fill[gray!40] (0,0.30) rectangle (0.75,0.46);
   \fill[gray!40] (0,-0.30) rectangle (0.75,-0.46);
-  \draw[->,thick,blue!55!black] (-0.35,0) -- (0.55,0);
+  \draw[->,thick,NavyBlue!70] (-0.35,0) -- (0.55,0);
   % spreading shear layers, half-angle ~12 degrees
-  \draw[blue!55!black,dashed] (0.75,0.30) -- (6.1,1.44);
-  \draw[blue!55!black,dashed] (0.75,-0.30) -- (6.1,-1.44);
+  \draw[NavyBlue!70,dashed] (0.75,0.30) -- (6.1,1.44);
+  \draw[NavyBlue!70,dashed] (0.75,-0.30) -- (6.1,-1.44);
   % potential core wedge
-  \fill[blue!20] (0.75,0.30) -- (0.75,-0.30) -- (2.75,0) -- cycle;
+  \fill[NavyBlue!20] (0.75,0.30) -- (0.75,-0.30) -- (3.65,0) -- cycle;
   \node[font=\tiny,anchor=west] at (0.95,0) {core};
   % spreading angle, measured from the nozzle lip
   \draw[gray,dotted] (0.75,0.30) -- (2.75,0.30);
@@ -561,13 +574,16 @@ w(\mathbf{x},t)
   % roll-up vortices in the shear layers
   \foreach \xc/\rr in {3.45/0.22, 4.45/0.26, 5.45/0.30}{%
     \pgfmathsetmacro{\yc}{0.30+(\xc-0.75)*0.2126}
-    \draw[->,blue!55!black,thick] ({\xc+\rr},{\yc}) arc (0:300:\rr);
-    \draw[->,blue!55!black,thick] ({\xc+\rr},{-\yc}) arc (0:-300:\rr);
+    \draw[->,NavyBlue!70,thick] ({\xc+\rr},{\yc}) arc (0:300:\rr);
+    \draw[->,NavyBlue!70,thick] ({\xc+\rr},{-\yc}) arc (0:-300:\rr);
   }
   \node[font=\tiny,anchor=north] at (3.2,-1.55) {turbulent jet};
 \end{tikzpicture}
 
-{\scriptsize Schematic (instructor's course notes).}
+{\scriptsize Schematic (instructor's course notes).\par}
+{\tiny\color{DarkGray} $\approx12^\circ$ is the visible outer edge; the half-velocity radius grows more slowly, $\mathrm dr_{1/2}/\mathrm dx\approx0.09$--$0.10$ ($\approx5$--$6^\circ$; Pope 2000, \S5.1). The potential core ends $\approx4$--$5$ diameters downstream.\par}
+% Native redraw replacing pictures/5-1/jet.png (shadowgraph of a turbulent jet,
+% source unidentified); the PNG remains on disk.
 
 \end{columns}
 
@@ -587,7 +603,7 @@ w(\mathbf{x},t)
     \includegraphics[width=0.65\linewidth]{pictures/5-1/wing-fin.jpg}
 
     \vfill
-    {\footnotesize Source: Ball, P. Wing and fin motions share universal principles. Nature (2014).}
+    {\footnotesize Source: Ball, P. Wing and fin motions share universal principles. Nature (2014).\par}
     
 \end{frame}
 
@@ -629,24 +645,26 @@ Choose an averaging operator and write the Reynolds decomposition:
   \draw[->,gray] (0.05,0.05) -- (6.25,0.05) node[right,font=\tiny,black] {$t$};
   \draw[->,gray] (0.05,0.05) -- (0.05,4.05) node[above,font=\tiny,black] {$u$};
   % laminar: flat
-  \draw[very thick,blue!55!black] (0.15,0.65) -- (6.0,0.65);
+  \draw[very thick,NavyBlue!70] (0.15,0.65) -- (6.0,0.65);
   \node[font=\tiny,anchor=west] at (6.3,0.65) {laminar};
   % transitional: flat with two bursts
-  \draw[very thick,blue!55!black] (0.15,1.85) -- (1.70,1.85);
-  \draw[very thick,blue!55!black,smooth,samples=70,domain=1.70:2.30]
+  \draw[very thick,NavyBlue!70] (0.15,1.85) -- (1.70,1.85);
+  \draw[very thick,NavyBlue!70,smooth,samples=70,domain=1.70:2.30]
     plot ({\x},{1.85+0.42*sin(1500*\x)*sin(180*(\x-1.70)/0.60)});
-  \draw[very thick,blue!55!black] (2.30,1.85) -- (4.05,1.85);
-  \draw[very thick,blue!55!black,smooth,samples=70,domain=4.05:4.65]
+  \draw[very thick,NavyBlue!70] (2.30,1.85) -- (4.05,1.85);
+  \draw[very thick,NavyBlue!70,smooth,samples=70,domain=4.05:4.65]
     plot ({\x},{1.85+0.42*sin(1500*\x)*sin(180*(\x-4.05)/0.60)});
-  \draw[very thick,blue!55!black] (4.65,1.85) -- (6.0,1.85);
+  \draw[very thick,NavyBlue!70] (4.65,1.85) -- (6.0,1.85);
   \node[font=\tiny,anchor=west] at (6.3,1.85) {transitional};
   % turbulent: broadband
-  \draw[very thick,blue!55!black,smooth,samples=260,domain=0.15:6.0]
+  \draw[very thick,NavyBlue!70,smooth,samples=260,domain=0.15:6.0]
     plot ({\x},{3.25+0.30*sin(1000*\x)*cos(731*\x)+0.16*sin(433*\x)+0.09*cos(1637*\x)});
   \node[font=\tiny,anchor=west] at (6.3,3.25) {turbulent};
 \end{tikzpicture}
 
-{\scriptsize Sketch of laminar, transitional, and turbulent velocity signals recorded at a point (e.g.\ by a hot-wire anemometer). Schematic (instructor's course notes).}
+{\scriptsize Sketch of laminar, transitional, and turbulent velocity signals recorded at a point (e.g.\ by a hot-wire anemometer). Schematic (instructor's course notes).\par}
+% Native redraw replacing pictures/5-1/flow-measure.png (handheld hot-wire meter
+% photo plus signal traces, source unidentified); the PNG remains on disk.
 
 \end{itemize}
 
@@ -673,6 +691,23 @@ Choose an averaging operator and write the Reynolds decomposition:
   \item R. H. Kraichnan, ``Inertial ranges in two-dimensional turbulence,'' \emph{Phys. Fluids} \textbf{10} (1967), 1417--1423. \href{https://doi.org/10.1063/1.1762301}{doi:10.1063/1.1762301}.
   \item K. Avila, D. Moxey, A. de Lozar, M. Avila, D. Barkley, and B. Hof, ``The onset of turbulence in pipe flow,'' \emph{Science} \textbf{333} (2011), 192--196. \href{https://doi.org/10.1126/science.1203223}{doi:10.1126/science.1203223}.
   \item S. B. Pope, \emph{Turbulent Flows}, Cambridge University Press (2000).
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Selected references (continued)}
+\scriptsize
+\begin{itemize}
+  \item S. L. Brunton, lecture on turbulence (source of the slide sequence of this deck), \href{https://doi.org/10.52843/cassyni.hrpvdf}{doi:10.52843/cassyni.hrpvdf}.
+  \item A. J. Smits, \emph{MAE 553: Viscous Flows and Turbulence}, lecture notes, Princeton University, \href{http://profs.sci.univr.it/~zuccher/downloads/FD-MAE553-Smits.pdf}{PDF}.
+  \item M. Van Dyke, \emph{An Album of Fluid Motion}, Parabolic Press (1982).
+  \item G. L. Brown and A. Roshko, ``On density effects and large structure in turbulent mixing layers,'' \emph{J. Fluid Mech.} \textbf{64} (1974), 775--816. \href{https://doi.org/10.1017/S002211207400190X}{doi:10.1017/S002211207400190X}.
+  \item S. Vogel, \emph{Life in Moving Fluids}, 2nd ed., Princeton University Press (1994).
+  \item C. H. K. Williamson, ``Vortex dynamics in the cylinder wake,'' \emph{Annu. Rev. Fluid Mech.} \textbf{28} (1996), 477--539. \href{https://doi.org/10.1146/annurev.fl.28.010196.002401}{doi:10.1146/annurev.fl.28.010196.002401}.
+  \item H. Schlichting and K. Gersten, \emph{Boundary-Layer Theory}, 9th ed., Springer (2017) (cylinder drag curve and drag crisis).
+  \item E. N. Lorenz, ``Deterministic nonperiodic flow,'' \emph{J. Atmos. Sci.} \textbf{20} (1963), 130--141. \href{https://doi.org/10.1175/1520-0469(1963)020\%3C0130:DNF\%3E2.0.CO;2}{doi:10.1175/1520-0469(1963)020<0130:DNF>2.0.CO;2}.
+  \item W. Pfenninger, ``Boundary layer suction experiments with laminar flow at high Reynolds numbers in the inlet length of a tube by various suction methods,'' in G. V. Lachmann (ed.), \emph{Boundary Layer and Flow Control}, Pergamon (1961), 961--980.
+  \item N. V. Nikitin and V. O. Pimanov, ``Numerical study of localized turbulent structures in a pipe,'' \emph{Fluid Dynamics} \textbf{50} (2015), 655--664.
+  \item Image credits for the paintings, film still, photographs, and the Ball (2014, \emph{Nature}) and Smith \& Smits (1988) figures are given on the slides where they appear.
 \end{itemize}
 \end{frame}
 

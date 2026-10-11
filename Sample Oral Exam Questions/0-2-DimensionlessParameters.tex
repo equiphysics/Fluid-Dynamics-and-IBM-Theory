@@ -77,6 +77,11 @@ Re = \frac{\rho UL}{\mu}=\frac{UL}{\nu}.
 \]
 The pressure scale is a choice: a viscous scale $\mu U/L$ is often more
 revealing for creeping flow and produces an equivalent rescaled equation.
+In detail, multiplying the momentum equation by $L/(\rho U^2)$ turns the
+viscous coefficient $\mu U/L^2$ into $\mu/(\rho UL)=1/Re$. A body acceleration
+$\mathbf{b}$, omitted above, becomes $\mathbf{b}^*=L\mathbf{b}/U^2$; for gravity,
+$|\mathbf{b}^*|=1/Fr^2$ with $Fr=U/\sqrt{gL}$. If the reference pressure is not
+zero, use $p^*=(p-p_0)/(\rho U^2)$; only pressure differences enter $\nabla p$.
 
 
 % -------------------------------------------
@@ -191,7 +196,9 @@ Several related groups appear in the tutorial:
     \item \textbf{Womersley number:} $\alpha=L\sqrt{\omega/\nu}$, where for a
           tube the length scale is the radius, $L=R$; it compares unsteady
           inertia with viscous diffusion in oscillatory flow. Other geometries
-          require a clearly stated length.
+          require a clearly stated length. With a common $L$ and $U$,
+          $\alpha^2=2\pi\,Re\,St$, and $\alpha=\sqrt2\,L/\delta_\omega$ with
+          Stokes-layer thickness $\delta_\omega=\sqrt{2\nu/\omega}$.
 \end{itemize}
 These determine how oscillations couple to fluid inertia and viscosity, crucial
 in pumping or swimming IBFE simulations.
@@ -237,6 +244,25 @@ In IBFE:
 This governs both the physical scalar boundary-layer thickness and the choice
 of stable, accurate advection--diffusion discretization. It is distinct from
 $Re$; for a common $U$ and $L$, $Pe=Re\,Sc$ for mass transfer and
-$Pe=Re\,Pr$ for heat transfer.
+$Pe=Re\,Pr$ for heat transfer. Here $Sc=\nu/D$ is the Schmidt number and
+$Pr=\nu/\kappa$ the Prandtl number, with $\kappa$ the thermal diffusivity.
+
+% -------------------------------------------
+\subsection*{Sources}
+The questions follow the tutorial deck \emph{Nondimensionalization and
+similarity}, whose References slides give full citations; source file:\\
+{\small\texttt{0-Intro-to-Fluid-Mechanics/0-2-Nondimensionalization.tex}}.\\ Key sources for the model answers:
+\begin{itemize}
+    \item G. K. Taylor, R. L. Nudds, and A. L. R. Thomas, ``Flying and swimming
+          animals cruise at a Strouhal number tuned for high power efficiency,''
+          \emph{Nature} 425 (2003), 707--711 (the $0.2$--$0.4$ band, with $A$ the
+          peak-to-peak excursion).
+    \item J. R. Womersley, \emph{J. Physiol.} 127 (1955), 553--563 (Womersley number).
+    \item S. Vogel, \emph{Life in Moving Fluids}, 2nd ed. Princeton University
+          Press, 1994 (scaling in biological flows).
+    \item Wikipedia, ``Strouhal number,'' ``Womersley number,'' and
+          ``P\'eclet number'' (CC BY-SA 4.0), from which the tutorial's
+          definitions were originally adapted.
+\end{itemize}
 
 \end{document}

@@ -87,7 +87,7 @@ For a Newtonian, incompressible fluid,
 \qquad
 \mathbf{D} = \tfrac{1}{2}(\nabla \mathbf{u} + \nabla \mathbf{u}^\top).
 \]
-When $\mu$ is constant, $\nabla\cdot(2\mu\mathbf{D})=\mu\nabla^2\mathbf{u}$, and this yields
+When $\mu$ is constant, $\nabla\cdot(2\mu\mathbf{D})=\mu\nabla^2\mathbf{u}$ (because $\nabla\cdot(2\mu\mathbf{D}) = \mu\nabla^2\mathbf{u} + \mu\nabla(\nabla\cdot\mathbf{u})$ and $\nabla\cdot\mathbf{u}=0$), and this yields
 \[
 \rho\left( \frac{\partial \mathbf{u}}{\partial t}
 + (\mathbf{u}\cdot\nabla)\mathbf{u} \right)
@@ -130,6 +130,7 @@ the Eulerian force density is
 \mathbf{f}(x,t) = \int_{B_0}
 \boldsymbol{\mathcal F}(X,t)\,\delta(x - \chi(X,t))\,dX.
 \]
+Here $B_0$ is the reference (Lagrangian) configuration of the structure, the domain of the material coordinates $X$, and $\chi(X,t)$ is the current position of material point $X$.
 In IBFE, $\boldsymbol{\mathcal F}$ is normally defined by a finite-element weak form rather than by pointwise differentiation of a discontinuous stress. Code evaluates the corresponding interaction integrals at quadrature points and replaces the Dirac delta by a regularized IB kernel. Conservation or power consistency follows only when spreading and velocity restriction use compatible weights and adjoint operators.
 
 This step couples the solid’s internal stresses to the fluid’s momentum
@@ -168,8 +169,16 @@ For a classical continuum without body couples or couple stresses, balance of an
 \[
 \sigma_{ij} = \sigma_{ji}.
 \]
-For a Newtonian fluid, the viscous Cauchy stress is therefore symmetric as well.
+For a Newtonian fluid, the viscous Cauchy stress is therefore symmetric as well. (Explicitly, $\boldsymbol\tau=\boldsymbol\sigma+p\mathbf I$ is the difference of two symmetric tensors; and the constitutive law $\boldsymbol\tau=2\mu\mathbf D$ is symmetric by construction, since $\mathbf D$ is the symmetric part of $\nabla\mathbf u$. The antisymmetric part of $\nabla\mathbf u$, the spin, describes local rigid rotation and produces no viscous stress.)
 
-In IBFE, the elastic Cauchy stress is symmetric for a classical non-polar material, but the first Piola--Kirchhoff stress $\mathbf P$ is generally not symmetric because it maps reference normals to current forces. Angular-momentum checks must therefore be made using the correct stress measure and configuration.
+In IBFE, the elastic Cauchy stress is symmetric for a classical non-polar material, but the first Piola--Kirchhoff stress $\mathbf P$ is generally not symmetric because it maps reference normals to current forces. Angular-momentum checks must therefore be made using the correct stress measure and configuration. (Equivalently: $\mathbf P\mathbf F^T = J\boldsymbol\sigma$ is symmetric even though $\mathbf P$ is not.)
+
+\subsection*{References for these answers}
+\begin{itemize}
+    \item A. F. Bower, \emph{Applied Mechanics of Solids}, CRC Press, 2010 (solidmechanics.org): Appendix B (tensors), \S2.2--2.3 (stress, symmetry).
+    \item M. E. Gurtin, E. Fried, L. Anand, \emph{The Mechanics and Thermodynamics of Continua}, Cambridge University Press, 2010.
+    \item B. E. Griffith, X. Luo, Hybrid finite difference/finite element immersed boundary method, \emph{Int.\ J.\ Numer.\ Methods Biomed.\ Eng.} 33 (2017) e2888.
+    \item C. S. Peskin, The immersed boundary method, \emph{Acta Numerica} 11 (2002) 479--517.
+\end{itemize}
 
 \end{document}

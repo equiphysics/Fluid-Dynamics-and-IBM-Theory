@@ -1,23 +1,10 @@
 \documentclass[aspectratio=169,11pt]{beamer}
 
-% Match the visual language of the SIAM Waves talk.
-\usetheme{Boadilla}
-\usecolortheme{seahorse}
-\useinnertheme{rectangles}
-\useoutertheme{infolines}
+% Shared style, ported from the UF Animal Sciences 2026 talk (ibfe-tutorials.sty at the repo root).
+\makeatletter\def\input@path{{./}{../}}\makeatother
+\usepackage{ibfe-tutorials}
 
-\setbeamercolor{structure}{fg=blue!55!black}
-\setbeamercolor{title}{fg=white,bg=blue!55!black}
-\setbeamercolor{frametitle}{fg=blue!55!black}
-\setbeamercolor{block title}{bg=blue!12,fg=blue!55!black}
-\setbeamercolor{block body}{bg=blue!4}
-\setbeamertemplate{navigation symbols}{}
-\setbeamerfont{frametitle}{series=\bfseries,size=\large}
-\setbeamerfont{title}{series=\bfseries,size=\Large}
-
-\usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
-\DeclareFontShape{T1}{cmss}{b}{n}{<->ssub*cmss/bx/n}{}
 \usepackage{amsmath,amssymb,bm}
 \usepackage{booktabs}
 \usepackage{graphicx}
@@ -26,27 +13,29 @@
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,positioning,shapes.geometric,fit,calc}
 \usepackage{hyperref}
-\hypersetup{colorlinks=true,urlcolor=blue!55!black}
 
 \graphicspath{{pictures/6-planktos/}{../pictures/6-planktos/}}
 \newcommand{\xx}{\bm{x}}
 \newcommand{\XX}{\bm{X}}
 \newcommand{\uu}{\bm{u}}
 \newcommand{\bb}{\bm{b}}
-\newcommand{\sourcecredit}[1]{\vfill\hfill{\tiny\textcolor{gray}{#1}}}
+\newcommand{\sourcecredit}[1]{\vfill\hfill{\tiny\textcolor{DarkGray}{#1}}}
 \newcommand{\code}[1]{\texttt{#1}}
 
+% Listings in the talk palette: NavyBlue keywords, DarkGray italic comments,
+% OliveGreen strings, light-gray panel with a hairline gray frame.
 \lstset{
-  basicstyle=\ttfamily\scriptsize,
-  keywordstyle=\color{blue!55!black}\bfseries,
-  commentstyle=\color{green!35!black},
-  stringstyle=\color{orange!60!black},
+  basicstyle=\ttfamily\scriptsize\color{BlackGray},
+  keywordstyle=\color{NavyBlue}\bfseries,
+  commentstyle=\color{DarkGray}\itshape,
+  stringstyle=\color{OliveGreen},
   showstringspaces=false,
   columns=fullflexible,
   keepspaces=true,
   frame=single,
-  rulecolor=\color{blue!20},
-  backgroundcolor=\color{blue!2},
+  framerule=0.4pt,
+  rulecolor=\color{LightGray},
+  backgroundcolor=\color{LightGray!30},
   xleftmargin=0.25em,
   xrightmargin=0.25em
 }
@@ -55,33 +44,22 @@
 \subtitle{Agent-based modeling in prescribed fluid flows}
 \author[Miller]{Laura A. Miller}
 \institute[UArizona]{Department of Mathematics, University of Arizona}
-\date{}
+\date{IBFE Tutorials \textbullet\ Module 6}
 
 \begin{document}
 
 % 1
 \begin{frame}[plain]
-  \begin{beamercolorbox}[sep=10pt,center]{title}
-    {\bfseries\Large What is Planktos?}\\[3pt]
-    {\normalsize Agent-based modeling in prescribed fluid flows}
-  \end{beamercolorbox}
-  \vspace{1.1em}
-  \begin{columns}[T,onlytextwidth]
-    \begin{column}{0.54\textwidth}
-      \textbf{\large Laura A. Miller}\\[4pt]
-      Department of Mathematics\\
-      University of Arizona\\[10pt]
-      {\small IBFE Tutorials}
-    \end{column}
-    \begin{column}{0.46\textwidth}
-      \begin{block}{The central idea}
-        Move many autonomous organisms through a resolved velocity field while retaining behavior, stochasticity, and collision geometry.
-      \end{block}
-    \end{column}
-  \end{columns}
-  \vfill
-  {\tiny Source basis: Strickland et al. (2022), Hamlet et al. (2023), and Planktos commit \code{a1c2128} (2026-08-19).}\\[2pt]
-  {\tiny AI tools were used to assist with formatting, organization, and clarification of the instructor's original notes.}
+% The central-idea panel and source line sit in the free right half below the title rule.
+\begin{tikzpicture}[remember picture,overlay]
+  \node[anchor=north east,text width=0.38\paperwidth,inner sep=0pt] at ([xshift=-5mm,yshift=-33mm]current page.north east) {%
+    \begin{block}{The central idea}
+      \small Move many autonomous organisms through a resolved velocity field while retaining behavior, stochasticity, and collision geometry.
+    \end{block}
+    \vspace{4pt}
+    {\tiny\color{DarkGray}Source basis: Strickland et al. (2022), Hamlet et al. (2023), and Planktos commit \code{a1c2128} (2026-08-19).\par}};
+\end{tikzpicture}%
+\maketutorialtitle
 \end{frame}
 
 % 2
@@ -111,9 +89,9 @@ By the end, you should be able to:
   \begin{column}{0.46\textwidth}
     \centering
     \begin{tikzpicture}[scale=0.82,>=Latex]
-      \draw[rounded corners,fill=blue!4,draw=blue!35] (0,0) rectangle (6.2,4.2);
+      \draw[rounded corners,fill=LightGray!40,draw=DarkGray] (0,0) rectangle (6.2,4.2);
       \foreach \y in {0.6,1.35,2.1,2.85,3.6}{
-        \draw[->,blue!55] (0.35,\y) .. controls (2.0,\y+0.35) and (3.6,\y-0.35) .. (5.85,\y+0.1);
+        \draw[->,NavyBlue!70] (0.35,\y) .. controls (2.0,\y+0.35) and (3.6,\y-0.35) .. (5.85,\y+0.1);
       }
       \draw[very thick,gray!75] (3.2,0.25) .. controls (2.65,1.1) and (3.8,1.8) .. (3.0,3.95);
       \foreach \p in {(0.9,1.0),(1.5,2.7),(2.2,1.8),(4.4,3.25),(5.1,1.4),(4.7,2.25)}{
@@ -124,7 +102,7 @@ By the end, you should be able to:
     \end{tikzpicture}
   \end{column}
 \end{columns}
-\sourcecredit{Scientific framing: Strickland et al. (2022), Sections 1 and 5.}
+\sourcecredit{Scientific framing: Strickland et al. (2022), Sections 1 and 5. Schematic: instructor's course notes.}
 \end{frame}
 
 % 4
@@ -207,8 +185,8 @@ This equation is a template, not a restriction: \code{apply\_agent\_model} may r
       \mathrm{St} &\sim \tau_p/\tau_f.
     \end{align*}
     \begin{itemize}
-      \item $\mathrm{Pe}$ compares advective transport with diffusive spreading.
-      \item A particle response-time ratio helps decide whether tracer dynamics are adequate.
+      \item $\mathrm{Pe}$ compares advective transport with diffusive spreading; $D$ is the agents' effective diffusivity (Planktos's covariance is $\texttt{cov}=2D$).
+      \item A particle response-time ratio helps decide whether tracer dynamics are adequate: $\tau_p$ is the particle's viscous response time, $\tau_f=L/U_f$ the flow time.
     \end{itemize}
   \end{column}
   \begin{column}{0.44\textwidth}
@@ -219,8 +197,12 @@ This equation is a template, not a restriction: \code{apply\_agent\_model} may r
         \item Is the CFD mesh fine enough for the gradients the behavior uses?
       \end{itemize}
     \end{block}
+    \begin{block}{Stokes number of a small sphere}
+      \small For radius $a$ and $\tau_p=2a^2/(9\nu)$: $\mathrm{St}=\tfrac29(a/L)^2\mathrm{Re}$, $\mathrm{Re}=U_fL/\nu$, the form used by Planktos's inertial-particle model.
+    \end{block}
   \end{column}
 \end{columns}
+\sourcecredit{$\mathrm{St}$ form: Haller \& Sapsis (2008), as implemented in \code{motion.inertial\_particles} (commit \code{a1c2128}).}
 \end{frame}
 
 % 8
@@ -256,13 +238,13 @@ Version 1.0.3, GPLv3, commit \code{a1c2128} (2026-08-19).
 \centering
 \begin{tikzpicture}[
   node distance=0.55cm and 1.05cm,
-  box/.style={rounded corners,draw=blue!45,fill=blue!5,minimum width=3.1cm,minimum height=0.72cm,align=center},
+  box/.style={rounded corners,draw=DarkGray,fill=LightGray!40,minimum width=3.1cm,minimum height=0.72cm,align=center},
   sbox/.style={rounded corners,draw=orange!70!black,fill=orange!8,minimum width=2.8cm,minimum height=0.68cm,align=center},
-  arr/.style={-{Latex[length=2.2mm]},thick,blue!55!black}
+  arr/.style={-{Latex[length=2.2mm]},thick,DarkGray}
 ]
   \node[box,minimum width=5.0cm,minimum height=0.85cm] (env) {\textbf{Environment}\\domain, time, flow, meshes, boundaries};
-  \node[sbox,below left=0.85cm and -0.25cm of env] (s1) {\textbf{Swarm A}\\positions, state, behavior};
-  \node[sbox,below right=0.85cm and -0.25cm of env] (s2) {\textbf{Swarm B}\\positions, state, behavior};
+  \node[sbox,below left=0.85cm and -0.8cm of env] (s1) {\textbf{Swarm A}\\positions, state, behavior};
+  \node[sbox,below right=0.85cm and -0.8cm of env] (s2) {\textbf{Swarm B}\\positions, state, behavior};
   \node[box,below=2.05cm of env,minimum width=4.7cm] (diag) {plots, histories, exports, KDE, FTLE};
   \draw[arr] (env) -- node[left,font=\scriptsize]{local flow} (s1);
   \draw[arr] (env) -- node[right,font=\scriptsize]{local flow} (s2);
@@ -275,11 +257,13 @@ Version 1.0.3, GPLv3, commit \code{a1c2128} (2026-08-19).
 \begin{itemize}
   \item Multiple Swarms may share an Environment and carry different behaviors.
   \item Use \code{Environment.move\_swarms} to advance all populations before the environment clock increments.
+  \item Note that \code{move\_swarms} defaults to \code{ib\_collisions='sliding'} for every Swarm; pass \code{ib\_collisions='default'} to honor each Swarm's own \code{ib\_condition}.
 \end{itemize}
+\sourcecredit{Schematic: instructor's course notes; API from \code{planktos/\_environment.py}, commit \code{a1c2128}.}
 \end{frame}
 
 % 10
-\begin{frame}{The \code{Environment}: Eulerian information}
+\begin{frame}{The \NoCaseChange{\code{Environment}}: Eulerian information}
 \begin{columns}[T,onlytextwidth]
   \begin{column}{0.52\textwidth}
     It owns the shared physical setting:
@@ -301,7 +285,7 @@ Version 1.0.3, GPLv3, commit \code{a1c2128} (2026-08-19).
 \end{frame}
 
 % 11
-\begin{frame}{The \code{Swarm}: vectorized Lagrangian state}
+\begin{frame}{The \NoCaseChange{\code{Swarm}}: vectorized Lagrangian state}
 \begin{columns}[T,onlytextwidth]
   \begin{column}{0.53\textwidth}
     \begin{itemize}
@@ -325,21 +309,20 @@ Version 1.0.3, GPLv3, commit \code{a1c2128} (2026-08-19).
 % 12
 \begin{frame}[fragile]{A minimal current workflow}
 \begin{columns}[T,onlytextwidth]
-  \begin{column}{0.62\textwidth}
-\begin{lstlisting}[language=Python,basicstyle=\ttfamily\tiny]
+  \begin{column}{0.69\textwidth}
+\begin{lstlisting}[language=Python,basicstyle=\ttfamily\scriptsize]
 import planktos
 
 env = planktos.Environment()      # becomes 3D on loading 3D data
-env.read_comsol_vtu_data("velocity.vtu",
-                         vel_conv=1000)   # m/s -> mm/s
+env.read_comsol_vtu_data("velocity.vtu", vel_conv=1000) # m/s->mm/s
 env.units = "mm"
-env.center_cell_regrid(
-    periodic_dim=(True, True, True))      # before any STL
+env.center_cell_regrid(periodic_dim=(True, True, True)) # before STL
 env.read_stl_mesh_data("obstacle.stl")
+env.tile_flow(x=13)        # 13 copies of flow + mesh in x
 env.plot_envir()                          # verify before moving
 
-swarm = planktos.Swarm(envir=env, seed=7)
-swarm.shared_props["cov"] *= 0.25
+swarm = planktos.Swarm(envir=env, seed=7) # 100 agents
+swarm.shared_props["cov"] *= 0.25  # cov = 0.25 I mm^2/s
 
 for _ in range(120):
     swarm.move(0.5, ib_collisions="sticky")
@@ -347,8 +330,8 @@ for _ in range(120):
 swarm.plot_all()
 \end{lstlisting}
   \end{column}
-  \begin{column}{0.35\textwidth}
-    \begin{enumerate}
+  \begin{column}{0.29\textwidth}
+    \begin{enumerate}\small\itemsep0pt
       \item Build the world.
       \item Load or generate flow.
       \item Load geometry and inspect it.
@@ -356,9 +339,12 @@ swarm.plot_all()
       \item Advance in a loop.
       \item Analyze or export.
     \end{enumerate}
+    \vspace{0.3em}
+    {\scriptsize\raggedright The \code{periodic\_dim} flags copy the example's choice for its COMSOL data; match them to your own solver's boundary conditions.\par\smallskip
+    The default \code{cov} is the identity, so \code{*= 0.25} gives a standard deviation of $0.5$\,mm$/\sqrt{\mathrm{s}}$ per axis.\par}
   \end{column}
 \end{columns}
-\vspace{-0.5em}
+\vspace{0.2em}
 {\scriptsize The COMSOL and STL readers are 3D-only, and immersed meshes must not intersect periodic domain boundaries.}
 \sourcecredit{API pattern follows \code{examples/ex\_sticky\_seafan\_3d.py} (Planktos, commit \code{a1c2128}); a 2D route is \code{set\_brinkman\_flow} + \code{read\_IB2d\_mesh\_data}, see deck 6-2.}
 \end{frame}
@@ -467,10 +453,26 @@ with $\bm\sigma$ constant in space (it may still differ from agent to agent). Fo
   \item The covariance of the stochastic increment is $\bm\sigma\bm\sigma^{T}\Delta t$.
   \item In the default drift--diffusion model, the local fluid velocity contributes to the drift.
   \item Confirm whether a biological paper reports diffusivity, increment variance, or a standard deviation; they differ by units and factors such as $2D$.
+  \item Planktos accepts either a \code{'cov'} property ($\bm\sigma\bm\sigma^T$) or a \code{'D'} property (converted as $\texttt{cov}=2D$).
+\end{itemize}
+\sourcecredit{Docstring of \code{motion.Euler\_brownian\_motion} (commit \code{a1c2128}).}
+\end{frame}
+
+% 17b
+\begin{frame}{SDE route: when the noise depends on position}
+For a scalar It\^o SDE $dX=\mu\,dt+\sigma(X)\,dW$ with $\Delta W\sim\mathcal N(0,\Delta t)$:
+\[
+  \underbrace{X_{n+1}=X_n+\mu\Delta t+\sigma\Delta W}_{\text{Euler--Maruyama}}
+  \;+\;\underbrace{\tfrac12\sigma\sigma'\big[(\Delta W)^2-\Delta t\big]}_{\text{Milstein correction}} .
+\]
+\begin{itemize}
+  \item If $\sigma'=0$ (additive noise, the built-in case) the correction vanishes and the two schemes coincide.
+  \item The Stratonovich form of the same dynamics has drift $\mu-\tfrac12\sigma\sigma'$; the conventions agree only when $\sigma'=0$.
 \end{itemize}
 \begin{alertblock}{Spatially varying diffusivity}
-A spatially varying $\bm\sigma(\XX)$ needs a Milstein-type scheme; the built-in Euler--Maruyama step is only order 0.5 in that case and does not support it directly.
+A spatially varying $\bm\sigma(\XX)$ needs a Milstein-type scheme to keep strong order 1; the built-in Euler--Maruyama step is only (strong) order 0.5 in that case and does not support it directly. (With constant, additive noise, Euler--Maruyama is already strong order 1.) With multiplicative noise the It\^o and Stratonovich interpretations also differ.
 \end{alertblock}
+\sourcecredit{Docstring of \code{motion.Euler\_brownian\_motion} (commit \code{a1c2128}); schemes and convergence orders: Kloeden \& Platen (1992), Ch.~10 (Euler \S10.2, Milstein \S10.3).}
 \end{frame}
 
 % 18
@@ -494,7 +496,7 @@ A spatially varying $\bm\sigma(\XX)$ needs a Milstein-type scheme; the built-in 
 \begin{block}{Solver choice}
 The current \code{RK45} helper wraps SciPy's adaptive \code{solve\_ivp}; tolerances should be tested against trajectory and ensemble observables.
 \end{block}
-\sourcecredit{Current implementation: \code{planktos/motion.py}.}
+\sourcecredit{Current implementation: \code{planktos/motion.py}. Built-in inertial model: linearized Maxey \& Riley (1983) equation in the form of Haller \& Sapsis (2008); \code{RK45} is SciPy's Dormand--Prince (1980) pair.}
 \end{frame}
 
 % 19
@@ -550,7 +552,7 @@ The CFD boundary conditions used to generate $\uu$ and the agent boundary rules 
   \begin{column}{0.52\textwidth}
     \begin{itemize}
       \item 2D meshes are line segments; 3D meshes are triangles.
-      \item Current readers include IB2d-style vertices and 3D STL geometry; 3D vertex data can also be converted through a convex hull workflow.
+      \item Current readers include IB2d-style vertices and 3D STL geometry; 3D vertex data can also be converted through a convex hull workflow (\code{.vtk} input; in v1.0.3 the \code{.vertex} branch of that reader drops $z$ and fails, open issue \#75).
       \item Static meshes are supported in 2D and 3D; current code also supports time-varying 2D meshes.
       \item Mesh segments should not cross except at intended shared vertices and should not intersect periodic domain boundaries.
     \end{itemize}
@@ -571,29 +573,32 @@ The CFD boundary conditions used to generate $\uu$ and the agent boundary rules 
 \begin{columns}[T,onlytextwidth]
   \begin{column}{0.49\textwidth}
     \centering
-    \begin{tikzpicture}[scale=0.82,>=Latex]
+    \vspace{2mm}
+    \begin{tikzpicture}[scale=1.1,>=Latex]
       \draw[very thick,gray!75] (-0.2,0) -- (4.8,0);
       \fill[orange!80!black] (0.6,1.7) circle (2.4pt);
-      \draw[->,very thick,orange!80!black] (0.6,1.7) -- (3.3,-0.85) node[midway,above right,font=\scriptsize]{proposed step};
-      \fill[blue!65!black] (2.45,0) circle (2.4pt);
-      \draw[->,very thick,blue!65!black] (2.45,0) -- (4.25,0) node[midway,above,font=\scriptsize]{sliding remainder};
-      \draw[dashed,blue!45] (2.45,0) -- (2.45,1.7);
-      \node[font=\scriptsize,below] at (2.45,-0.1) {first intersection};
+      \draw[->,very thick,orange!80!black] (0.6,1.7) -- (3.3,-0.85) node[at end,right,font=\scriptsize]{proposed step};
+      \fill[NavyBlue!70] (2.45,0) circle (2.4pt);
+      \draw[->,very thick,NavyBlue!70] (2.45,0) -- (4.25,0) node[pos=0.72,above,font=\scriptsize]{sliding remainder};
+      \draw[dashed,DarkGray] (2.45,0) -- (2.45,1.7);
+      \node[font=\scriptsize,below left] at (2.4,-0.05) {first intersection};
     \end{tikzpicture}
+    \raggedright
+    \begin{alertblock}{Resolution matters}
+    \small Large time steps can make collision searches expensive and obscure contact-time physics. Test step-size sensitivity for capture outcomes.
+    \end{alertblock}
+    {\scriptsize After every step, \code{Swarm.ib\_collision\_idx[i]} holds the index of the first mesh element agent $i$ struck in that step, or $-1$ if it struck none.\par}
   \end{column}
   \begin{column}{0.49\textwidth}
     \begin{description}
       \item[sliding] remove motion into the solid and project the remaining displacement along the boundary; recurse if another segment is encountered;
-      \item[sticky] stop at first contact for that step; model persistent attachment with agent state;
+      \item[sticky] stop at first contact for that step (backed off the surface by a tiny $\varepsilon$, recorded velocity $=0$); model persistent attachment with agent state;
       \item[\code{None}] ignore immersed meshes;
       \item[\code{'default'}] use the Swarm's \code{ib\_condition} (default \code{'sliding'}).
     \end{description}
   \end{column}
 \end{columns}
-\vspace{-0.7em}
-\begin{alertblock}{Resolution matters}
-Large time steps can make collision searches expensive and obscure contact-time physics. Test step-size sensitivity for capture outcomes.
-\end{alertblock}
+\sourcecredit{Schematic: instructor's course notes; collision rules from \code{planktos/\_ibc.py} and \code{Swarm.move}, commit \code{a1c2128}.}
 \end{frame}
 
 % 23
@@ -619,25 +624,25 @@ Large time steps can make collision searches expensive and obscure contact-time 
 
 % 24
 \begin{frame}{Visualization and population summaries}
-\begin{columns}[T,onlytextwidth]
-  \begin{column}{0.33\textwidth}
+\begin{columns}[c,onlytextwidth]
+  \begin{column}{0.37\textwidth}
     \scriptsize
     \begin{itemize}
       \item \code{plot} gives snapshots; \code{plot\_all} makes animations.
-      \item Position histories export to CSV, or to VTK point data (PolyData) for ParaView/VisIt; \code{save\_data} writes \code{shared\_props} to .npz and \code{props} to JSON.
+      \item Position histories export to CSV, or to VTK point data (PolyData) for ParaView/VisIt; \code{save\_data} writes \code{shared\_props} to .npz and \code{props} to JSON (plus position history and current velocity/acceleration as CSV; \code{props\_history} is not saved).
       \item Vorticity or velocity may appear behind the agents.
-      \item Marginal Gaussian KDEs summarize position distributions.
+      \item Marginal Gaussian KDEs summarize position distributions (SciPy \code{gaussian\_kde}; Scott's bandwidth factor by default).
     \end{itemize}
     \begin{alertblock}{KDE is an estimate}
       \scriptsize Bandwidth and boundary bias can change the apparent concentration; report the estimator settings.
     \end{alertblock}
   \end{column}
-  \begin{column}{0.63\textwidth}
+  \begin{column}{0.60\textwidth}
     \centering
     \includegraphics[width=\textwidth]{bmb2022-fig4-ib2d-kde.png}
   \end{column}
 \end{columns}
-\sourcecredit{Image: \href{https://doi.org/10.1007/s11538-022-01027-1}{Strickland et al. (2022), Fig. 4}; educational reproduction.}
+\sourcecredit{Image: \href{https://doi.org/10.1007/s11538-022-01027-1}{Strickland et al. (2022), Fig. 4}, \emph{Bull.\ Math.\ Biol.}\ 84:72; educational reproduction (article not openly licensed).}
 \end{frame}
 
 % 25
@@ -649,13 +654,24 @@ For a deterministic map $\bm\Phi_{t_0}^{T}$ with end time $T$ and integration du
   \sigma_{t_0}^{\tau}(\XX_0)=\frac{1}{\tau}\ln\sqrt{\lambda_{\max}(\bm C)}.
 \]
 \begin{itemize}
-  \item FTLE measures finite-time separation of initially nearby trajectories.
-  \item Planktos normalizes by the time actually integrated (changelog 1.0.3).
+  \item FTLE measures finite-time separation of initially nearby trajectories. Note $\ln\sqrt{\lambda_{\max}}=\tfrac12\ln\lambda_{\max}$: $\sqrt{\lambda_{\max}}$ is the largest stretch factor of an infinitesimal ball.
   \item Ridges may indicate candidate repelling transport structures, but ridge identification and LCS interpretation require care. Forward-time ridges $\rightarrow$ candidate repelling structures; backward-time ridges $\rightarrow$ attracting; \code{backward=True} is tracer-only in the current API.
-  \item In Planktos, forward-time FTLE can use tracers, selected ODEs, or deterministic custom behavior; backward-time support is more restricted.
   \item The diagnostic assumes independent deterministic agent dynamics on the initial-condition grid; ordinary stochastic realizations do not define a single smooth flow map.
 \end{itemize}
-\sourcecredit{Definition and scope: Strickland et al. (2022), Sections 2.1 and 4.2; current API documentation.}
+\sourcecredit{Definition and scope: Strickland et al. (2022), Sections 2.1 and 4.2; current API documentation. FTLE/LCS background: Shadden et al. (2005); Haller (2015).}
+\end{frame}
+
+% 25b
+\begin{frame}{FTLE in Planktos: what the implementation computes}
+\begin{itemize}
+  \item Agents are seeded on a grid (\code{grid\_dim}); $D\bm\Phi$ is approximated by central differences of the end positions, one-sided where a neighbor is masked.
+  \item Planktos normalizes by the time actually integrated (changelog 1.0.3): at each grid point, $\tau$ is cut short to the last time before any finite-difference neighbor left the domain.
+  \item In Planktos, forward-time FTLE can use tracers, selected ODEs, or deterministic custom behavior; backward-time support is more restricted.
+  \item \code{T} is the end time (despite the docstring's ``integration time''); the call requires \code{T > t0}. With \code{backward=True} the map runs from \code{t0} back to \code{2*t0-T}.
+  \item \code{FTLE\_largest} uses $\lambda_{\max}$; \code{FTLE\_smallest} uses $\lambda_{\min}$ of the same forward map (a contraction rate, not backward-time FTLE).
+  \item Static immersed meshes are respected (sliding projection); moving meshes are refused.
+\end{itemize}
+\sourcecredit{Implementation: \code{Environment.calculate\_FTLE}, \code{planktos/\_environment.py}, commit \code{a1c2128}; \code{changelog.txt}, v1.0.3.}
 \end{frame}
 
 % 26
@@ -674,7 +690,7 @@ For a deterministic map $\bm\Phi_{t_0}^{T}$ with end time $T$ and integration du
     \end{itemize}
   \end{column}
 \end{columns}
-\sourcecredit{Image and interpretation: \href{https://doi.org/10.1007/s11538-022-01027-1}{Strickland et al. (2022), Fig. 5}; educational reproduction.}
+\sourcecredit{Image and interpretation: \href{https://doi.org/10.1007/s11538-022-01027-1}{Strickland et al. (2022), Fig. 5}, \emph{Bull.\ Math.\ Biol.}\ 84:72; educational reproduction (article not openly licensed).}
 \end{frame}
 
 % 27
@@ -686,13 +702,13 @@ For a deterministic map $\bm\Phi_{t_0}^{T}$ with end time $T$ and integration du
   \end{column}
   \begin{column}{0.28\textwidth}
     \small
-    A Vicsek-type alignment model in periodic cylinder flow produces coherent, directional structure. Passive and Brownian agents in the same flow provide distinct baselines.
+    A Vicsek-type alignment model (Vicsek et al.\ 1995: each agent adopts its neighbors' mean heading plus noise) in periodic cylinder flow produces coherent, directional structure. Passive and Brownian agents in the same flow provide distinct baselines.
     \begin{block}{Lesson}
       A behavior calibrated in still fluid need not produce the same spatial statistics in a heterogeneous flow.
     \end{block}
   \end{column}
 \end{columns}
-\sourcecredit{Image: \href{https://doi.org/10.1007/s11538-022-01027-1}{Strickland et al. (2022), Fig. 9}; educational reproduction.}
+\sourcecredit{Image: \href{https://doi.org/10.1007/s11538-022-01027-1}{Strickland et al. (2022), Fig. 9}, \emph{Bull.\ Math.\ Biol.}\ 84:72; educational reproduction (article not openly licensed).}
 \end{frame}
 
 % 28
@@ -718,7 +734,7 @@ For a deterministic map $\bm\Phi_{t_0}^{T}$ with end time $T$ and integration du
 
 % 29
 \begin{frame}{From CFD to a Planktos capture experiment}
-\begin{columns}[T,onlytextwidth]
+\begin{columns}[c,onlytextwidth]
   \begin{column}{0.61\textwidth}
     \centering
     \includegraphics[width=\textwidth]{bmb2022-fig8-seafan-capture.png}
@@ -734,12 +750,12 @@ For a deterministic map $\bm\Phi_{t_0}^{T}$ with end time $T$ and integration du
     \end{enumerate}
   \end{column}
 \end{columns}
-\sourcecredit{Image: \href{https://doi.org/10.1007/s11538-022-01027-1}{Strickland et al. (2022), Fig. 8}; educational reproduction.}
+\sourcecredit{Image: \href{https://doi.org/10.1007/s11538-022-01027-1}{Strickland et al. (2022), Fig. 8}, \emph{Bull.\ Math.\ Biol.}\ 84:72; educational reproduction (article not openly licensed).}
 \end{frame}
 
 % 30
 \begin{frame}{The 2023 gorgonian capture study}
-\begin{columns}[T,onlytextwidth]
+\begin{columns}[c,onlytextwidth]
   \begin{column}{0.42\textwidth}
     \centering
     \includegraphics[width=\textwidth]{jeb2023-fig6a-polyp-array.png}
@@ -802,6 +818,43 @@ For a deterministic map $\bm\Phi_{t_0}^{T}$ with end time $T$ and integration du
 \textbf{Software source audited:}
 \href{https://github.com/mountaindust/Planktos}{Planktos}, version 1.0.3, commit \code{a1c2128} (2026-08-19), GPLv3.
 }
+\end{frame}
+
+% 33
+\begin{frame}{References}
+\footnotesize
+\begin{itemize}\itemsep3pt
+  \item W. C. Strickland, N. A. Battista, C. L. Hamlet, and L. A. Miller, ``Planktos: an agent-based modeling framework for small organism movement and dispersal in a fluid environment with immersed structures,'' \emph{Bull. Math. Biol.} 84 (2022), 72, \href{https://doi.org/10.1007/s11538-022-01027-1}{doi:10.1007/s11538-022-01027-1}. Source of the deck's framing and of Figs.~4, 5, 8, 9 (reproduced for education; not openly licensed).
+  \item C. L. Hamlet, W. C. Strickland, N. Battista, and L. A. Miller, ``Multiscale flow between the branches and polyps of gorgonians,'' \emph{J. Exp. Biol.} 226(5) (2023), jeb244520, \href{https://doi.org/10.1242/jeb.244520}{doi:10.1242/jeb.244520}. CC BY 4.0; Figs.~1 and 6A reproduced, Fig.~7 results summarized.
+  \item W. C. Strickland \emph{et al.}, \emph{Planktos} agent-based modeling framework, v1.0.3, commit \code{a1c2128} (2026-08-19), GPLv3, \url{https://github.com/mountaindust/Planktos}; documentation \url{https://planktos.readthedocs.io}. Source of the API statements, the example listing (\code{examples/ex\_sticky\_seafan\_3d.py}), and the \code{docs/\_static} images.
+  \item S. Kupfner Johnson and P. Hallock, ``A review of symbiotic gorgonian research in the western Atlantic and Caribbean with recommendations for future work,'' \emph{Coral Reefs} 39 (2020), 239--258, \href{https://doi.org/10.1007/s00338-020-01891-0}{doi:10.1007/s00338-020-01891-0}. Original source adapted in Hamlet et al.\ (2023), Fig.~1.
+  \item M. R. Maxey and J. J. Riley, ``Equation of motion for a small rigid sphere in a nonuniform flow,'' \emph{Phys. Fluids} 26 (1983), 883--889, \href{https://doi.org/10.1063/1.864230}{doi:10.1063/1.864230}.
+  \item G. Haller and T. Sapsis, ``Where do inertial particles go in fluid flows?'' \emph{Physica D} 237 (2008), 573--583, \href{https://doi.org/10.1016/j.physd.2007.09.027}{doi:10.1016/j.physd.2007.09.027}.
+\end{itemize}
+\end{frame}
+
+% 34
+\begin{frame}{References (continued)}
+\footnotesize
+\begin{itemize}\itemsep3pt
+  \item T. Vicsek, A. Czir\'ok, E. Ben-Jacob, I. Cohen, and O. Shochet, ``Novel type of phase transition in a system of self-driven particles,'' \emph{Phys. Rev. Lett.} 75 (1995), 1226--1229, \href{https://doi.org/10.1103/PhysRevLett.75.1226}{doi:10.1103/PhysRevLett.75.1226}.
+  \item S. C. Shadden, F. Lekien, and J. E. Marsden, ``Definition and properties of Lagrangian coherent structures from finite-time Lyapunov exponents in two-dimensional aperiodic flows,'' \emph{Physica D} 212 (2005), 271--304, \href{https://doi.org/10.1016/j.physd.2005.10.007}{doi:10.1016/j.physd.2005.10.007}.
+  \item G. Haller, ``Lagrangian coherent structures,'' \emph{Annu. Rev. Fluid Mech.} 47 (2015), 137--162, \href{https://doi.org/10.1146/annurev-fluid-010313-141322}{doi:10.1146/annurev-fluid-010313-141322}. Caveats on reading FTLE ridges as LCS.
+  \item P. E. Kloeden and E. Platen, \emph{Numerical Solution of Stochastic Differential Equations}. Springer, 1992, \href{https://doi.org/10.1007/978-3-662-12616-5}{doi:10.1007/978-3-662-12616-5}. Euler--Maruyama and Milstein schemes and their strong orders.
+  \item J. R. Dormand and P. J. Prince, ``A family of embedded Runge--Kutta formulae,'' \emph{J. Comput. Appl. Math.} 6 (1980), 19--26, \href{https://doi.org/10.1016/0771-050X(80)90013-3}{doi:10.1016/0771-050X(80)90013-3}. The RK45 pair behind SciPy's \code{solve\_ivp}.
+\end{itemize}
+\end{frame}
+
+% 35
+\begin{frame}{References (continued)}
+\footnotesize
+\begin{itemize}\itemsep3pt
+  \item D. W. Scott, \emph{Multivariate Density Estimation}. Wiley, 1992, \href{https://doi.org/10.1002/9780470316849}{doi:10.1002/9780470316849}. Scott's KDE bandwidth factor.
+  \item N. A. Battista, W. C. Strickland, and L. A. Miller, ``IB2d: a Python and MATLAB implementation of the immersed boundary method,'' \emph{Bioinspir. Biomim.} 12 (2017), 036003, \href{https://doi.org/10.1088/1748-3190/aa5e08}{doi:10.1088/1748-3190/aa5e08}. Source format of the IB2d flow and mesh data.
+\end{itemize}
+\begin{punchbox}
+\footnotesize The flow-and-agents cartoon, the architecture diagram, and the collision sketch were drawn for these notes (TikZ). Planktos issue cited on the immersed-geometry slide: \url{https://github.com/mountaindust/Planktos/issues/75}.
+\end{punchbox}
 \end{frame}
 
 \end{document}

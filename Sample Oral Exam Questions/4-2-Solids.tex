@@ -281,9 +281,51 @@ $W_{\text{vol}}$ controls volume change, while $W_{\text{iso}}$ controls shape c
 For an exactly incompressible material, enforce $J=1$, usually with a pressure-like
 Lagrange multiplier rather than a finite volumetric penalty.
 
+%-----------------------------------------------------------
+% Added in the second review pass (material from the polar-decomposition slides of deck 4-2)
+\item \textbf{Polar decomposition.}
+State the polar decomposition of $F_\chi$ and explain why a strain energy may depend on $F_\chi$
+only through $C$.
+
+\textbf{Sample answer:}
+Every $F_\chi$ with $\det F_\chi>0$ factors uniquely as $F_\chi=RU=VR$, with $R$ proper orthogonal
+and $U=\sqrt{C}$, $V=\sqrt{B}$ symmetric positive definite; $U$ and $V$ share the principal stretches
+$\lambda_i$ as eigenvalues, and $V=RUR^T$. Frame indifference, $W(QF_\chi)=W(F_\chi)$ for every rotation
+$Q$, with the choice $Q=R^T$ gives $W(F_\chi)=W(U)$, i.e.\ a function of $C=U^2$. For simple shear with
+$\gamma=1$, $\lambda_{1,2}=(\sqrt5\pm1)/2$ and
+\[
+U=\frac{1}{\sqrt5}\begin{pmatrix}2&1\\1&3\end{pmatrix},\qquad
+R=F_\chi U^{-1}=\frac{1}{\sqrt5}\begin{pmatrix}2&1\\-1&2\end{pmatrix},
+\]
+a clockwise rotation (for $x_1$ to the right, $x_2$ up) through $\theta=\arctan(\gamma/2)\approx26.6^\circ$.
+
+%-----------------------------------------------------------
+\item \textbf{Neo-Hookean first Piola stress.}
+For $W=\frac{\mu}{2}(I_1-3)-\mu\ln J+\frac{\lambda_{\mathrm L}}{2}(\ln J)^2$, derive $P$ and check the
+reference state.
+
+\textbf{Sample answer:}
+Using $\delta I_1=2F_\chi:\delta F_\chi$ and $\delta(\ln J)=F_\chi^{-T}:\delta F_\chi$ (Jacobi's formula),
+$\delta W=P:\delta F_\chi$ gives
+\[
+P=\mu\bigl(F_\chi-F_\chi^{-T}\bigr)+\lambda_{\mathrm L}(\ln J)\,F_\chi^{-T},
+\qquad
+\sigma=\frac{1}{J}PF_\chi^T=\frac{\mu}{J}(B-I)+\frac{\lambda_{\mathrm L}\ln J}{J}I .
+\]
+At $F_\chi=I$, $P=0$. Linearizing about $F_\chi=I$ gives $P\approx2\mu\varepsilon+\lambda_{\mathrm L}(\operatorname{tr}\varepsilon)I$,
+so $\mu$ is the shear modulus and $\lambda_{\mathrm L}$ the first Lam\'e parameter; the small-strain bulk
+modulus is $\lambda_{\mathrm L}+2\mu/3$.
+
 
 
 \end{enumerate}
 
+\section*{Sources}
+\small
+The model answers follow standard continuum mechanics as presented in
+G.~A. Holzapfel, \emph{Nonlinear Solid Mechanics} (Wiley, 2000);
+J. Bonet and R.~D. Wood, \emph{Nonlinear Continuum Mechanics for Finite Element Analysis}, 2nd ed.\ (Cambridge, 2008);
+and M.~E. Gurtin, E. Fried, and L. Anand, \emph{The Mechanics and Thermodynamics of Continua} (Cambridge, 2010).
+See also deck 4-2 (Solid mechanics for IBFE) of these tutorials.
 
 \end{document}

@@ -1,34 +1,22 @@
 \documentclass[aspectratio=169,11pt]{beamer}
 
-\usetheme{Boadilla}
-\usecolortheme{seahorse}
-\useinnertheme{rectangles}
-\useoutertheme{infolines}
-\setbeamercolor{structure}{fg=blue!55!black}
-\setbeamercolor{title}{fg=white,bg=blue!55!black}
-\setbeamercolor{frametitle}{fg=blue!55!black}
-\setbeamercolor{block title}{bg=blue!12,fg=blue!55!black}
-\setbeamercolor{block body}{bg=blue!4}
-\setbeamertemplate{navigation symbols}{}
-\setbeamerfont{frametitle}{series=\bfseries,size=\large}
-\setbeamerfont{title}{series=\bfseries,size=\Large}
+% Shared style, ported from the UF Animal Sciences 2026 talk (ibfe-tutorials.sty at the repo root).
+\makeatletter\def\input@path{{./}{../}}\makeatother
+\usepackage{ibfe-tutorials}
 
-\usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
-\DeclareFontShape{T1}{cmss}{b}{n}{<->ssub*cmss/bx/n}{}
 \usepackage{graphicx}
 \usepackage{amsmath}
 
 \title[IBM backup]{Immersed Boundary Method Backup Slides for Exams and Talks}
-\author{Laura Miller}
-\date{}
+\author{Laura A. Miller}
+\institute{Department of Mathematics, University of Arizona}
+\date{IBFE Tutorials \textbullet\ Oral exam backup slides}
 \begin{document}
 
 % ------------------------------------------------------------
 \begin{frame}[plain]
-  \titlepage
-  \vfill
-  \centering{\tiny\color{black!55}AI tools were used to assist with formatting, organization, and clarification of the instructor's original notes.}
+\maketutorialtitle
 \end{frame}
 
 % ============================================================
@@ -37,7 +25,7 @@
 
 % ------------------------------------------------------------
 \begin{frame}{[Backup] Force spreading: pointwise meaning}
-\footnotesize
+\small
 
 \textbf{IB coupling definition (force spreading):}
 \[
@@ -62,6 +50,9 @@
 \medskip
 \textbf{Key idea:} this compactly expresses ``forces carried by the structure become forces applied to the fluid
 at the structure's current location.''
+
+\medskip
+{\scriptsize\color{DarkGray}Notation: these backup slides use the continuum-mechanics convention of Module~4, with $\mathbf X$ the material (reference) label and $\boldsymbol\chi(\mathbf X,t)$ its current position. Decks 1-2 and 1-3 write the same map in Peskin's convention as $\mathbf X(\mathbf q,t)$, with label $\mathbf q$.\par}
 
 \end{frame}
 
@@ -112,7 +103,7 @@ Use the defining property of $\delta$:
 
 % ------------------------------------------------------------
 \begin{frame}{[Backup] Distributional meaning and Fubini}
-\footnotesize
+\small
 
 \textbf{Subtlety:} $\delta$ is a \emph{distribution}, not an $L^1$ function, so classical Fubini/Tonelli
 does not literally apply to
@@ -142,7 +133,7 @@ and Fubini is valid.
 
 % ------------------------------------------------------------
 \begin{frame}{[Backup] Regularized delta kernel $\delta_h$}
-\footnotesize
+\small
 
 In computation we use a regularized kernel $\delta_h$ supported on a few grid cells:
 \[
@@ -167,6 +158,7 @@ it spreads (or interpolates) between the Lagrangian mesh and Eulerian grid over 
 % ------------------------------------------------------------
 \begin{frame}{[Backup] One explicit IB time step}
 \footnotesize
+\setlength{\abovedisplayskip}{3pt}\setlength{\belowdisplayskip}{3pt}%
 
 \textbf{Grids:}
 Eulerian grid points $\mathbf{x}_{i}$ (Cartesian mesh spacing $h$), and Lagrangian points $\mathbf{X}_k$
@@ -174,7 +166,7 @@ Eulerian grid points $\mathbf{x}_{i}$ (Cartesian mesh spacing $h$), and Lagrangi
 
 \medskip
 \textbf{One illustrative explicit-coupling time step:}
-\begin{enumerate}\itemsep3pt
+\begin{enumerate}\itemsep2pt
 \item \textbf{Structure forces:} compute $\mathbf{F}_k^n$ from the structure model (springs/beam/FE stresses, etc.).
 \item \textbf{Spread to fluid:} for each Eulerian grid point $\mathbf{x}_i$,
 \[
@@ -189,14 +181,14 @@ where $w_k$ is the Lagrangian quadrature weight.
 where $v_i=h^d$ on a uniform grid.
 \item \textbf{Update structure:} $\chi_k^{n+1}=\chi_k^{n}+\Delta t\,\mathbf U_k^{n+1}$ (or implicit/semi-implicit variant).
 \end{enumerate}
-
+\smallskip
 With compatible weights, interpolation is chosen as the discrete adjoint of spreading so the two grids exchange equal power.
 
 \end{frame}
 
 % ------------------------------------------------------------
 \begin{frame}{[Backup] Density times material acceleration}
-\footnotesize
+\small
 
 For an incompressible Newtonian fluid with constant $\rho$, constant $\mu$, and body force $\mathbf{f}$:
 \[
@@ -261,5 +253,26 @@ with different velocity (advective).''
 \vfill
 {\tiny\color{black!55}AI tools were used to assist with formatting, organization, and clarification of the instructor's original notes.}
 
+\end{frame}
+
+% ------------------------------------------------------------
+\begin{frame}{References for the backup slides}
+\footnotesize
+\begin{itemize}\itemsep5pt
+\item C.~S. Peskin, ``The immersed boundary method,'' \emph{Acta Numerica} 11 (2002), 479--517.
+  \href{https://doi.org/10.1017/S0962492902000077}{doi:10.1017/S0962492902000077}.
+  (Force spreading, velocity interpolation, regularized delta kernels and their moment conditions, the explicit time step.)
+\item B.~E. Griffith and X.~Y. Luo, ``Hybrid finite difference/finite element immersed boundary method,''
+  \emph{Int. J. Numer. Meth. Biomed. Eng.} 33 (2017), e2888.
+  \href{https://doi.org/10.1002/cnm.2888}{doi:10.1002/cnm.2888}.
+  (Reference-configuration notation $\boldsymbol\chi(\mathbf X,t)$, FE quadrature points.)
+\item B.~E. Griffith and N.~A. Patankar, ``Immersed methods for fluid--structure interaction,''
+  \emph{Annu. Rev. Fluid Mech.} 52 (2020), 421--448.
+  \href{https://doi.org/10.1146/annurev-fluid-010719-060228}{doi:10.1146/annurev-fluid-010719-060228}.
+\item D.~J. Acheson, \emph{Elementary Fluid Dynamics}, Oxford University Press (1990), Ch.~1 and 6.
+  (Material derivative and the Navier--Stokes left-hand side.)
+\end{itemize}
+\medskip
+{\scriptsize\color{DarkGray}No third-party figures are used in these backup slides. Adapted from the instructor's Module 1 decks (1-2, 1-3, 1-4), which follow the sources above.\par}
 \end{frame}
 \end{document}

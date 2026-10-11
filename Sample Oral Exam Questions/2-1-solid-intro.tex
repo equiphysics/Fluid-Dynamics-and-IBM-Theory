@@ -11,6 +11,7 @@
 
 % === Formatting tweaks ===
 \setstretch{1.15}
+\emergencystretch=3em % avoid overfull lines in long references
 \setlist[enumerate]{itemsep=0.4em, topsep=0.2em}
 \titleformat{\section}{\Large\bfseries\sffamily}{\thesection.}{1em}{}
 \titleformat{\subsection}{\large\bfseries\sffamily}{\thesubsection}{1em}{}
@@ -72,7 +73,7 @@ In 1D, Hooke’s law is
 \]
 where $E$ is the Young’s modulus.
 
-This is a linear, small-strain constitutive law. In three-dimensional isotropic linear elasticity, stress depends on the full strain tensor through two independent elastic constants; the scalar relation $\sigma=E\epsilon$ applies to a uniaxial test under the corresponding lateral conditions.
+This is a linear, small-strain constitutive law. In three-dimensional isotropic linear elasticity, stress depends on the full strain tensor through two independent elastic constants; the scalar relation $\sigma=E\epsilon$ applies to a uniaxial test under the corresponding lateral conditions (lateral surfaces traction-free, so the bar is free to contract sideways by the Poisson effect). If lateral contraction is prevented instead, the axial stiffness is the larger constrained modulus $\lambda+2\mu$.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -131,7 +132,8 @@ The three quantities are defined as follows.
 
 In IBFE:
 \begin{itemize}
-    \item $E$ determines stiffness of structural elements and time-step limits.
+    \item $E$ determines stiffness of structural elements and time-step limits (for explicit structural coupling the stable time step shrinks roughly like $h\sqrt{\rho/E}$, the time for an elastic wave to cross one element of size $h$).
+    \item for an isotropic linear elastic solid, positive strain energy requires $-1<\nu<1/2$ (equivalently $\mu>0$ and $K=E/[3(1-2\nu)]>0$); most materials have $0<\nu<1/2$,
     \item many soft biological tissues have $\nu \approx 0.45$--$0.49$ (nearly incompressible); values of $\nu$ near $0.5$ indicate a nearly incompressible isotropic linear response; exact incompressibility is a constraint rather than simply setting $\nu=0.5$ in a displacement-only formulation,
     \item $\sigma_y$ is relevant only when the constitutive model includes yielding or permanent deformation.
 \end{itemize}
@@ -141,7 +143,7 @@ In IBFE:
 \subsection*{8. Compare linear elastic, nonlinear elastic, viscoelastic, and viscoplastic materials.}
 
 \textbf{Answer.}
-
+The classes differ in whether the stress--strain response is linear, whether it is reversible, and whether it depends on time or loading rate:
 
 \begin{itemize}
     \item \textbf{Linear elastic}: $\sigma \propto \epsilon$; material returns to original shape.
@@ -159,6 +161,7 @@ soft tissues often require nonlinear or viscoelastic models rather than linear e
 \subsection*{9. What boundary conditions are commonly used in solid mechanics?}
 
 \textbf{Answer.}
+At each boundary point and in each direction one prescribes either a displacement component or a traction component (exactly one of the pair). The common types of loading and constraint are:
 
 \begin{enumerate}
     \item Prescribed displacement (an essential or Dirichlet condition)
@@ -173,6 +176,7 @@ IBFE uses:
 \begin{itemize}
     \item Lagrangian solid BCs to anchor or fix material points,
     \item Eulerian traction conditions for fluid–structure coupling,
+    (more precisely: the fluid--structure interface is not a boundary of a body-fitted fluid mesh; the elastic force density, including the surface term from $\mathbf P\mathbf N$ on $\partial B_0$, is spread to the Eulerian grid as a body force, and traction balance at the interface emerges from the coupled equations rather than being imposed as a boundary condition),
     \item Contact or self-contact when structural meshes interact.
 \end{itemize}
 
@@ -181,6 +185,7 @@ IBFE uses:
 \subsection*{10. What is the importance of isotropy vs anisotropy in biological materials?}
 
 \textbf{Answer.}
+Isotropy means the constitutive response is unchanged by rotating the material; anisotropy means it depends on direction, typically because of aligned fibres or microstructure:
 
 \begin{itemize}
     \item \textbf{Isotropic linear elastic}: material properties identical in all directions.
@@ -192,6 +197,7 @@ In IBFE:
     \item Isotropy simplifies constitutive laws.
     \item Anisotropy is required for fiber-reinforced tissues or materials whose stiffness differs along fiber directions.
 \end{itemize}
+Quantitatively, isotropic linear elasticity has 2 independent constants, transversely isotropic 5, orthotropic 9, and fully anisotropic up to 21; finite-strain fibre models add terms such as $W_f(I_4)$ with $I_4=\mathbf a_0\cdot\mathbf C\mathbf a_0$ for a fibre direction $\mathbf a_0$.
 
 
 
@@ -210,6 +216,15 @@ Tensors allow:
     \item compact representation of multidirectional relationships,
     \item coordinate-invariant properties,
     \item implementation in IBFE finite-element formulations where the deformation gradient and Cauchy stress appear naturally.
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection*{References for these answers}
+\begin{itemize}
+    \item A. F. Bower, \emph{Applied Mechanics of Solids}, CRC Press, 2010 (online at solidmechanics.org): Ch.~1 (boundary conditions), \S2.1--2.3, \S3.2 (linear elasticity).
+    \item M. E. Gurtin, E. Fried, L. Anand, \emph{The Mechanics and Thermodynamics of Continua}, Cambridge University Press, 2010.
+    \item G. A. Holzapfel, \emph{Nonlinear Solid Mechanics}, Wiley, 2000 (hyperelasticity, fibre-reinforced models).
+    \item B. E. Griffith, X. Luo, Hybrid finite difference/finite element immersed boundary method, \emph{Int.\ J.\ Numer.\ Methods Biomed.\ Eng.} 33 (2017) e2888 (IBFE).
 \end{itemize}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
