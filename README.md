@@ -61,7 +61,7 @@ Claude (Anthropic) was used to assist with formatting, organization, and clarifi
 
 The slides, text and figures are under the [Creative Commons Attribution 4.0 International license (CC BY 4.0)](LICENSE): you may share and adapt them for any purpose, as long as you give credit. Figures from other sources keep their own terms and are credited on the slide where they appear. The papers listed in `papers/README.md` are under their publishers' licenses.
 
-To credit these notes, cite: L. A. Miller, *Fluid Dynamics and IBM Theory*, https://github.com/equiphysics/Fluid-Dynamics-and-IBM-Theory.
+To credit these notes, cite: L. A. Miller, *Fluid Dynamics and IBM Theory*, https://github.com/fairyflies9/Fluid-Dynamics-and-IBM-Theory.
 
 ## Feedback
 
